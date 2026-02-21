@@ -7,6 +7,9 @@ import Index from "./pages/Index";
 import Doctors from "./pages/Doctors";
 import DoctorProfile from "./pages/DoctorProfile";
 import MyBookings from "./pages/MyBookings";
+import SignIn from "./pages/SignIn";
+import SignUp from "./pages/SignUp";
+import ForgotPassword from "./pages/ForgotPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +25,9 @@ const App = () => (
           <Route path="/doctors" element={<Doctors />} />
           <Route path="/doctor/:id" element={<DoctorProfile />} />
           <Route path="/my-bookings" element={<MyBookings />} />
+          <Route path="/sign-in" element={<SignIn />} />
+          <Route path="/sign-up" element={<SignUp />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
