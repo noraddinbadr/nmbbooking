@@ -41,14 +41,17 @@ const Navbar = () => {
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Button variant="outline" size="sm" className="font-cairo gap-2">
-            <User className="h-4 w-4" />
-            تسجيل الدخول
-          </Button>
-          <Button size="sm" className="font-cairo gap-2 bg-hero-gradient text-primary-foreground hover:opacity-90">
-            <Calendar className="h-4 w-4" />
-            احجز الآن
-          </Button>
+          <Link to="/sign-in">
+            <Button variant="outline" size="sm" className="font-cairo gap-2">
+              <User className="h-4 w-4" />
+              دخول
+            </Button>
+          </Link>
+          <Link to="/sign-up">
+            <Button size="sm" className="font-cairo gap-2 bg-hero-gradient text-primary-foreground hover:opacity-90">
+              انضم الآن
+            </Button>
+          </Link>
         </div>
 
         {/* Mobile menu button */}
