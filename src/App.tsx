@@ -11,6 +11,14 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import ForgotPassword from "./pages/ForgotPassword";
 import NotFound from "./pages/NotFound";
+import DashboardHome from "./pages/dashboard/DashboardHome";
+import DashboardCalendar from "./pages/dashboard/DashboardCalendar";
+import DashboardBookings from "./pages/dashboard/DashboardBookings";
+import DashboardPatients from "./pages/dashboard/DashboardPatients";
+import DashboardProfile from "./pages/dashboard/DashboardProfile";
+import DashboardServices from "./pages/dashboard/DashboardServices";
+import DashboardTreatment from "./pages/dashboard/DashboardTreatment";
+import DashboardReports from "./pages/dashboard/DashboardReports";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +36,15 @@ const App = () => (
           <Route path="/sign-in" element={<SignIn />} />
           <Route path="/sign-up" element={<SignUp />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          {/* Doctor Dashboard */}
+          <Route path="/dashboard" element={<DashboardHome />} />
+          <Route path="/dashboard/calendar" element={<DashboardCalendar />} />
+          <Route path="/dashboard/bookings" element={<DashboardBookings />} />
+          <Route path="/dashboard/patients" element={<DashboardPatients />} />
+          <Route path="/dashboard/profile" element={<DashboardProfile />} />
+          <Route path="/dashboard/services" element={<DashboardServices />} />
+          <Route path="/dashboard/treatment" element={<DashboardTreatment />} />
+          <Route path="/dashboard/reports" element={<DashboardReports />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
