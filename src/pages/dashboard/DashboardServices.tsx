@@ -1,206 +1,238 @@
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useMemo } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { dashboardPrescriptions, dashboardLabOrders } from '@/data/dashboardMockData';
-import { Pill, TestTube, ScanLine, Syringe, Plus, Printer, Send, Eye } from 'lucide-react';
+import {
+  catalogMedicines, catalogLabTests, catalogImaging, catalogProcedures,
+  getMedicineCategories, getLabCategories, getImagingTypes, getProcedureCategories,
+  imagingTypeLabels,
+  type CatalogMedicine, type CatalogLabTest, type CatalogImaging, type CatalogProcedure,
+} from '@/data/serviceCatalog';
+import { Pill, TestTube, ScanLine, Syringe, Search, Edit2, Check, X, Clock } from 'lucide-react';
 
-const labCategories = [
-  { value: 'blood', label: 'دم' }, { value: 'sugar', label: 'سكر' },
-  { value: 'cholesterol', label: 'كوليسترول' }, { value: 'urine', label: 'بول' },
-  { value: 'hormones', label: 'هرمونات' }, { value: 'viruses', label: 'فيروسات' },
-  { value: 'thyroid', label: 'غدة درقية' },
-];
-
-const labStatusConfig: Record<string, { label: string; color: string }> = {
-  ordered: { label: 'تم الطلب', color: 'bg-amber-500 text-white' },
-  collected: { label: 'تم الجمع', color: 'bg-primary text-primary-foreground' },
-  processing: { label: 'قيد التحليل', color: 'bg-blue-500 text-white' },
-  ready: { label: 'جاهزة', color: 'bg-emerald-500 text-white' },
-};
+type EditingPrice = { id: string; value: string } | null;
 
 const DashboardServices = () => {
-  const [rxDialogOpen, setRxDialogOpen] = useState(false);
-  const [medicines, setMedicines] = useState([{ name: '', dosage: '', frequency: '', duration: '', instructions: '' }]);
+  const [search, setSearch] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [editingPrice, setEditingPrice] = useState<EditingPrice>(null);
 
-  const addMedicine = () => setMedicines(prev => [...prev, { name: '', dosage: '', frequency: '', duration: '', instructions: '' }]);
+  // Local price overrides (in production: persisted per doctor)
+  const [medPrices, setMedPrices] = useState<Record<string, number>>({});
+  const [labPrices, setLabPrices] = useState<Record<string, number>>({});
+  const [imgPrices, setImgPrices] = useState<Record<string, number>>({});
+  const [procPrices, setProcPrices] = useState<Record<string, number>>({});
+
+  const savePrice = (tab: string, id: string, price: number) => {
+    if (tab === 'medicines') setMedPrices(p => ({ ...p, [id]: price }));
+    else if (tab === 'labs') setLabPrices(p => ({ ...p, [id]: price }));
+    else if (tab === 'imaging') setImgPrices(p => ({ ...p, [id]: price }));
+    else setProcPrices(p => ({ ...p, [id]: price }));
+    setEditingPrice(null);
+  };
+
+  const resetPrice = (tab: string, id: string) => {
+    if (tab === 'medicines') setMedPrices(p => { const n = { ...p }; delete n[id]; return n; });
+    else if (tab === 'labs') setLabPrices(p => { const n = { ...p }; delete n[id]; return n; });
+    else if (tab === 'imaging') setImgPrices(p => { const n = { ...p }; delete n[id]; return n; });
+    else setProcPrices(p => { const n = { ...p }; delete n[id]; return n; });
+  };
+
+  const filterBySearch = <T extends { nameAr: string; nameEn: string }>(items: T[]) =>
+    items.filter(i => i.nameAr.includes(search) || i.nameEn.toLowerCase().includes(search.toLowerCase()));
+
+  const PriceCell = ({ id, defaultPrice, customPrice, tab }: { id: string; defaultPrice: number; customPrice?: number; tab: string }) => {
+    const isEditing = editingPrice?.id === id;
+    const hasCustom = customPrice !== undefined;
+
+    if (isEditing) {
+      return (
+        <div className="flex items-center gap-1">
+          <Input
+            type="number"
+            className="font-cairo text-xs w-24 h-7"
+            value={editingPrice.value}
+            onChange={e => setEditingPrice({ id, value: e.target.value })}
+            onKeyDown={e => e.key === 'Enter' && savePrice(tab, id, Number(editingPrice.value))}
+            autoFocus
+          />
+          <button onClick={() => savePrice(tab, id, Number(editingPrice.value))} className="text-emerald-500 hover:text-emerald-600"><Check className="h-3.5 w-3.5" /></button>
+          <button onClick={() => setEditingPrice(null)} className="text-destructive hover:text-destructive/80"><X className="h-3.5 w-3.5" /></button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-1.5">
+        <span className={`font-cairo text-sm font-bold ${hasCustom ? 'text-primary' : 'text-foreground'}`}>
+          {(customPrice ?? defaultPrice).toLocaleString()} ر.ي
+        </span>
+        {hasCustom && (
+          <span className="font-cairo text-[10px] text-muted-foreground line-through">{defaultPrice.toLocaleString()}</span>
+        )}
+        <button onClick={() => setEditingPrice({ id, value: String(customPrice ?? defaultPrice) })} className="text-muted-foreground hover:text-primary">
+          <Edit2 className="h-3 w-3" />
+        </button>
+        {hasCustom && (
+          <button onClick={() => resetPrice(tab, id)} className="text-muted-foreground hover:text-destructive" title="إعادة السعر الافتراضي">
+            <X className="h-3 w-3" />
+          </button>
+        )}
+      </div>
+    );
+  };
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <h1 className="font-cairo text-2xl font-bold text-foreground">الخدمات الطبية</h1>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h1 className="font-cairo text-2xl font-bold text-foreground">كتالوج الخدمات</h1>
+          <p className="font-cairo text-xs text-muted-foreground">يمكنك تعديل الأسعار لعيادتك • الأسعار الافتراضية من إدارة النظام</p>
+        </div>
 
-        <Tabs defaultValue="prescriptions">
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="ابحث عن دواء، تحليل، أشعة، أو إجراء..."
+            className="font-cairo pr-10"
+            value={search}
+            onChange={e => { setSearch(e.target.value); setActiveCategory('all'); }}
+          />
+        </div>
+
+        <Tabs defaultValue="medicines" onValueChange={() => { setActiveCategory('all'); setEditingPrice(null); }}>
           <TabsList className="font-cairo w-full grid grid-cols-4">
-            <TabsTrigger value="prescriptions" className="font-cairo gap-1"><Pill className="h-3.5 w-3.5" /> الوصفات</TabsTrigger>
-            <TabsTrigger value="labs" className="font-cairo gap-1"><TestTube className="h-3.5 w-3.5" /> التحاليل</TabsTrigger>
-            <TabsTrigger value="imaging" className="font-cairo gap-1"><ScanLine className="h-3.5 w-3.5" /> الأشعة</TabsTrigger>
-            <TabsTrigger value="procedures" className="font-cairo gap-1"><Syringe className="h-3.5 w-3.5" /> الإجراءات</TabsTrigger>
+            <TabsTrigger value="medicines" className="font-cairo gap-1"><Pill className="h-3.5 w-3.5" /> الأدوية <Badge variant="secondary" className="font-cairo text-[10px] mr-1">{catalogMedicines.length}</Badge></TabsTrigger>
+            <TabsTrigger value="labs" className="font-cairo gap-1"><TestTube className="h-3.5 w-3.5" /> التحاليل <Badge variant="secondary" className="font-cairo text-[10px] mr-1">{catalogLabTests.length}</Badge></TabsTrigger>
+            <TabsTrigger value="imaging" className="font-cairo gap-1"><ScanLine className="h-3.5 w-3.5" /> الأشعة <Badge variant="secondary" className="font-cairo text-[10px] mr-1">{catalogImaging.length}</Badge></TabsTrigger>
+            <TabsTrigger value="procedures" className="font-cairo gap-1"><Syringe className="h-3.5 w-3.5" /> الإجراءات <Badge variant="secondary" className="font-cairo text-[10px] mr-1">{catalogProcedures.length}</Badge></TabsTrigger>
           </TabsList>
 
-          {/* Prescriptions */}
-          <TabsContent value="prescriptions">
-            <div className="flex justify-end mb-4">
-              <Button className="font-cairo gap-2" onClick={() => setRxDialogOpen(true)}><Plus className="h-4 w-4" /> وصفة جديدة</Button>
-            </div>
-            <div className="space-y-3">
-              {dashboardPrescriptions.map(rx => (
-                <Card key={rx.id} className="shadow-card">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <p className="font-cairo font-bold text-foreground">{rx.patientName}</p>
-                        <p className="font-cairo text-xs text-muted-foreground">{rx.createdAt}</p>
-                      </div>
-                      <div className="flex gap-1.5">
-                        <Button size="sm" variant="outline" className="font-cairo text-xs gap-1"><Printer className="h-3 w-3" /> طباعة</Button>
-                        <Button size="sm" variant="outline" className="font-cairo text-xs gap-1"><Send className="h-3 w-3" /> إرسال</Button>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      {rx.medicines.map((m, i) => (
-                        <div key={i} className="p-2 rounded bg-muted/50 font-cairo text-sm">
-                          <span className="font-medium text-primary">{m.name}</span> — {m.dosage} — {m.frequency} — {m.duration}
-                          {m.instructions && <p className="text-xs text-muted-foreground mt-0.5">📋 {m.instructions}</p>}
+          {/* Medicines */}
+          <TabsContent value="medicines">
+            <CategoryFilter categories={getMedicineCategories()} active={activeCategory} onChange={setActiveCategory} />
+            <div className="space-y-2 mt-3">
+              {filterBySearch(catalogMedicines)
+                .filter(m => activeCategory === 'all' || m.category === activeCategory)
+                .map(med => (
+                  <Card key={med.id} className="shadow-sm hover:shadow-card transition-shadow">
+                    <CardContent className="p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Pill className="h-4 w-4 text-primary" />
                         </div>
-                      ))}
-                    </div>
-                    {rx.pharmacySent && <Badge className="font-cairo text-xs mt-2 bg-emerald-500">✓ تم الإرسال للصيدلية</Badge>}
-                  </CardContent>
-                </Card>
-              ))}
+                        <div>
+                          <p className="font-cairo text-sm font-medium text-foreground">{med.nameAr}</p>
+                          <p className="text-xs text-muted-foreground">{med.nameEn} • {med.unit} • <Badge variant="outline" className="font-cairo text-[10px] h-4">{med.category}</Badge></p>
+                        </div>
+                      </div>
+                      <PriceCell id={med.id} defaultPrice={med.defaultPrice} customPrice={medPrices[med.id]} tab="medicines" />
+                    </CardContent>
+                  </Card>
+                ))}
             </div>
           </TabsContent>
 
           {/* Lab Tests */}
           <TabsContent value="labs">
-            <div className="flex justify-end mb-4">
-              <Button className="font-cairo gap-2"><Plus className="h-4 w-4" /> طلب تحاليل</Button>
-            </div>
-            <div className="space-y-3">
-              {dashboardLabOrders.map(lab => (
-                <Card key={lab.id} className="shadow-card">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <p className="font-cairo font-bold text-foreground">{lab.patientName}</p>
-                        <p className="font-cairo text-xs text-muted-foreground">{lab.labPartner} — {lab.createdAt}</p>
+            <CategoryFilter categories={getLabCategories()} active={activeCategory} onChange={setActiveCategory} />
+            <div className="space-y-2 mt-3">
+              {filterBySearch(catalogLabTests)
+                .filter(t => activeCategory === 'all' || t.category === activeCategory)
+                .map(test => (
+                  <Card key={test.id} className="shadow-sm hover:shadow-card transition-shadow">
+                    <CardContent className="p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <TestTube className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-cairo text-sm font-medium text-foreground">{test.nameAr}</p>
+                          <p className="text-xs text-muted-foreground">{test.nameEn} • <Badge variant="outline" className="font-cairo text-[10px] h-4">{test.category}</Badge></p>
+                        </div>
                       </div>
-                      <Badge className={`font-cairo ${labStatusConfig[lab.status].color}`}>{labStatusConfig[lab.status].label}</Badge>
-                    </div>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {lab.tests.map((t, i) => (
-                        <Badge key={i} variant="secondary" className="font-cairo text-xs">{t.name}</Badge>
-                      ))}
-                    </div>
-                    {lab.interpretation && (
-                      <p className="font-cairo text-sm bg-emerald-500/10 p-2 rounded text-foreground">📋 {lab.interpretation}</p>
-                    )}
-                    {lab.status === 'ready' && (
-                      <Button size="sm" variant="outline" className="font-cairo text-xs gap-1 mt-2"><Eye className="h-3 w-3" /> عرض النتائج</Button>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
+                      <PriceCell id={test.id} defaultPrice={test.defaultPrice} customPrice={labPrices[test.id]} tab="labs" />
+                    </CardContent>
+                  </Card>
+                ))}
             </div>
           </TabsContent>
 
           {/* Imaging */}
           <TabsContent value="imaging">
-            <div className="flex justify-end mb-4">
-              <Button className="font-cairo gap-2"><Plus className="h-4 w-4" /> طلب أشعة</Button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {['أشعة سينية', 'أشعة مقطعية', 'رنين مغناطيسي', 'سونار', 'إيكو'].map((type, i) => (
-                <Card key={i} className="shadow-card hover:shadow-card-hover transition-shadow cursor-pointer">
-                  <CardContent className="p-4 text-center">
-                    <ScanLine className="h-8 w-8 text-primary mx-auto mb-2" />
-                    <p className="font-cairo font-bold text-foreground">{type}</p>
-                    <p className="font-cairo text-xs text-muted-foreground mt-1">اضغط لإنشاء طلب جديد</p>
-                  </CardContent>
-                </Card>
-              ))}
+            <CategoryFilter categories={getImagingTypes().map(t => t)} active={activeCategory} onChange={setActiveCategory} labels={imagingTypeLabels} />
+            <div className="space-y-2 mt-3">
+              {filterBySearch(catalogImaging)
+                .filter(i => activeCategory === 'all' || i.type === activeCategory)
+                .map(img => (
+                  <Card key={img.id} className="shadow-sm hover:shadow-card transition-shadow">
+                    <CardContent className="p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <ScanLine className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-cairo text-sm font-medium text-foreground">{img.nameAr}</p>
+                          <p className="text-xs text-muted-foreground">{img.nameEn} • <Badge variant="outline" className="font-cairo text-[10px] h-4">{imagingTypeLabels[img.type] || img.type}</Badge></p>
+                        </div>
+                      </div>
+                      <PriceCell id={img.id} defaultPrice={img.defaultPrice} customPrice={imgPrices[img.id]} tab="imaging" />
+                    </CardContent>
+                  </Card>
+                ))}
             </div>
           </TabsContent>
 
           {/* Procedures */}
           <TabsContent value="procedures">
-            <div className="flex justify-end mb-4">
-              <Button className="font-cairo gap-2"><Plus className="h-4 w-4" /> إجراء جديد</Button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[
-                { name: 'حقن', icon: '💉', price: 2000 },
-                { name: 'تطعيمات', icon: '🛡️', price: 3000 },
-                { name: 'تنظيف أسنان', icon: '🦷', price: 5000 },
-                { name: 'حشوات', icon: '🔧', price: 8000 },
-                { name: 'جراحة بسيطة', icon: '🔪', price: 15000 },
-                { name: 'تضميد جروح', icon: '🩹', price: 1500 },
-              ].map((proc, i) => (
-                <Card key={i} className="shadow-card hover:shadow-card-hover transition-shadow cursor-pointer">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
+            <CategoryFilter categories={getProcedureCategories()} active={activeCategory} onChange={setActiveCategory} />
+            <div className="space-y-2 mt-3">
+              {filterBySearch(catalogProcedures)
+                .filter(p => activeCategory === 'all' || p.category === activeCategory)
+                .map(proc => (
+                  <Card key={proc.id} className="shadow-sm hover:shadow-card transition-shadow">
+                    <CardContent className="p-3 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <span className="text-2xl">{proc.icon}</span>
-                        <span className="font-cairo font-medium text-foreground">{proc.name}</span>
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                          <Syringe className="h-4 w-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-cairo text-sm font-medium text-foreground">{proc.nameAr}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {proc.nameEn} • <Clock className="inline h-3 w-3" /> {proc.durationMin} د •
+                            <Badge variant="outline" className="font-cairo text-[10px] h-4 mr-1">{proc.category}</Badge>
+                          </p>
+                          {proc.prepInstructions && <p className="font-cairo text-[10px] text-amber-600 mt-0.5">⚠️ {proc.prepInstructions}</p>}
+                        </div>
                       </div>
-                      <span className="font-cairo font-bold text-primary">{proc.price.toLocaleString()} ر.ي</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      <PriceCell id={proc.id} defaultPrice={proc.defaultPrice} customPrice={procPrices[proc.id]} tab="procedures" />
+                    </CardContent>
+                  </Card>
+                ))}
             </div>
           </TabsContent>
         </Tabs>
-
-        {/* New Prescription Dialog */}
-        <Dialog open={rxDialogOpen} onOpenChange={setRxDialogOpen}>
-          <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto" dir="rtl">
-            <DialogHeader>
-              <DialogTitle className="font-cairo">وصفة طبية جديدة</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label className="font-cairo">المريض</Label>
-                <Select><SelectTrigger className="font-cairo mt-1"><SelectValue placeholder="اختر المريض" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="p1" className="font-cairo">أحمد محمد علي</SelectItem>
-                    <SelectItem value="p3" className="font-cairo">خالد سعيد الحمدي</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {medicines.map((_, i) => (
-                <Card key={i} className="bg-muted/30">
-                  <CardContent className="p-3 space-y-2">
-                    <p className="font-cairo text-sm font-bold">الدواء {i + 1}</p>
-                    <Input placeholder="اسم الدواء" className="font-cairo" />
-                    <div className="grid grid-cols-3 gap-2">
-                      <Input placeholder="الجرعة" className="font-cairo" />
-                      <Input placeholder="التكرار" className="font-cairo" />
-                      <Input placeholder="المدة" className="font-cairo" />
-                    </div>
-                    <Input placeholder="تعليمات الاستخدام" className="font-cairo" />
-                  </CardContent>
-                </Card>
-              ))}
-              <Button variant="outline" onClick={addMedicine} className="font-cairo w-full gap-2"><Plus className="h-4 w-4" /> إضافة دواء آخر</Button>
-            </div>
-            <DialogFooter className="flex gap-2">
-              <Button className="font-cairo gap-2"><Printer className="h-4 w-4" /> حفظ وطباعة</Button>
-              <Button variant="outline" className="font-cairo gap-2"><Send className="h-4 w-4" /> إرسال للصيدلية</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </DashboardLayout>
   );
 };
+
+// Category filter chips
+const CategoryFilter = ({ categories, active, onChange, labels }: {
+  categories: string[]; active: string; onChange: (v: string) => void; labels?: Record<string, string>;
+}) => (
+  <div className="flex flex-wrap gap-1.5 mt-3">
+    <Button size="sm" variant={active === 'all' ? 'default' : 'outline'} className="font-cairo text-xs h-7" onClick={() => onChange('all')}>الكل</Button>
+    {categories.map(cat => (
+      <Button key={cat} size="sm" variant={active === cat ? 'default' : 'outline'} className="font-cairo text-xs h-7" onClick={() => onChange(cat)}>
+        {labels?.[cat] || cat}
+      </Button>
+    ))}
+  </div>
+);
 
 export default DashboardServices;
