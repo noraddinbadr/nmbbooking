@@ -140,7 +140,11 @@ const DashboardHome = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     {appt.priority === 'emergency' && <Badge variant="destructive" className="font-cairo text-[10px]">طوارئ</Badge>}
-                    {appt.classification === 'sponsored' && <Badge className="font-cairo text-[10px] bg-emerald-500">مموّل</Badge>}
+                    {(appt.status === 'confirmed' || appt.status === 'pending') && (
+                      <Button size="sm" variant="outline" className="font-cairo text-xs gap-1 h-7" onClick={() => navigate(`/dashboard/consultation?appointment=${appt.id}`)}>
+                        ▶ بدء
+                      </Button>
+                    )}
                     <span className="font-cairo text-sm font-medium text-foreground">{appt.price.toLocaleString()} ر.ي</span>
                   </div>
                 </div>

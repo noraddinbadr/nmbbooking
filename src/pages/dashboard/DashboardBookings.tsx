@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { dashboardAppointments } from '@/data/dashboardMockData';
 import { Check, X, Play, FileText, Search, Clock, Phone } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const statusConfig: Record<string, { label: string; color: string }> = {
   pending: { label: 'معلّق', color: 'bg-amber-500 text-white' },
@@ -27,6 +28,7 @@ const bookingTypeLabels: Record<string, string> = {
 const DashboardBookings = () => {
   const [filter, setFilter] = useState('today');
   const [search, setSearch] = useState('');
+  const navigate = useNavigate();
 
   const todayAppts = dashboardAppointments.filter(a => a.slotDate === '2026-02-22');
   const allAppts = dashboardAppointments;
@@ -69,7 +71,7 @@ const DashboardBookings = () => {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button size="sm" className="font-cairo gap-1"><Play className="h-3 w-3" /> بدء الجلسة</Button>
+                <Button size="sm" className="font-cairo gap-1" onClick={() => navigate(`/dashboard/consultation?appointment=${nextAppt.id}`)}><Play className="h-3 w-3" /> بدء الجلسة</Button>
                 <Button size="sm" variant="outline" className="font-cairo gap-1"><Phone className="h-3 w-3" /> اتصال</Button>
               </div>
             </CardContent>
@@ -146,7 +148,7 @@ const DashboardBookings = () => {
                             <Check className="h-3 w-3" /> تأكيد
                           </Button>
                         )}
-                        <Button size="sm" variant="outline" className="font-cairo text-xs gap-1 h-7">
+                        <Button size="sm" variant="outline" className="font-cairo text-xs gap-1 h-7" onClick={() => navigate(`/dashboard/consultation?appointment=${appt.id}`)}>
                           <Play className="h-3 w-3" /> بدء
                         </Button>
                         <Button size="sm" variant="ghost" className="font-cairo text-xs gap-1 h-7 text-destructive">
