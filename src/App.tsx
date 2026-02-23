@@ -19,6 +19,7 @@ import DashboardProfile from "./pages/dashboard/DashboardProfile";
 import DashboardServices from "./pages/dashboard/DashboardServices";
 import DashboardTreatment from "./pages/dashboard/DashboardTreatment";
 import DashboardReports from "./pages/dashboard/DashboardReports";
+import ActiveConsultation from "./pages/dashboard/ActiveConsultation";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => (
           <Route path="/dashboard/services" element={<DashboardServices />} />
           <Route path="/dashboard/treatment" element={<DashboardTreatment />} />
           <Route path="/dashboard/reports" element={<DashboardReports />} />
+          <Route path="/dashboard/consultation" element={<ActiveConsultation />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
