@@ -1,0 +1,120 @@
+{
+  "project": {
+    "name": "Sehtak (صحتك) — Community Healthcare Booking Platform",
+    "status": "editor/preview",
+    "last_modified": "2026-02-24"
+  },
+  "pages": [
+    { "route": "/", "title": "Homepage", "components": ["Navbar", "HeroSearch", "SpecialtyGrid", "FeaturedDoctors", "Footer"] },
+    { "route": "/doctors", "title": "Doctor Listing", "components": ["Navbar", "DoctorCard", "Footer"] },
+    { "route": "/doctor/:id", "title": "Doctor Profile", "components": ["Navbar", "DoctorProfileHeader", "DoctorAbout", "DoctorReviews", "BookingSidebar", "Footer"] },
+    { "route": "/my-bookings", "title": "My Bookings", "components": ["Navbar", "Footer"] },
+    { "route": "/sign-in", "title": "Sign In", "components": ["Navbar"] },
+    { "route": "/sign-up", "title": "Sign Up", "components": ["Navbar"] },
+    { "route": "/forgot-password", "title": "Forgot Password", "components": ["Navbar"] },
+    { "route": "/dashboard", "title": "Dashboard Home", "components": ["DashboardLayout"] },
+    { "route": "/dashboard/calendar", "title": "Dashboard Calendar", "components": ["DashboardLayout"] },
+    { "route": "/dashboard/bookings", "title": "Dashboard Bookings", "components": ["DashboardLayout"] },
+    { "route": "/dashboard/patients", "title": "Dashboard Patients", "components": ["DashboardLayout"] },
+    { "route": "/dashboard/profile", "title": "Dashboard Profile", "components": ["DashboardLayout"] },
+    { "route": "/dashboard/services", "title": "Service Catalog", "components": ["DashboardLayout"] },
+    { "route": "/dashboard/treatment", "title": "Treatment Files", "components": ["DashboardLayout"] },
+    { "route": "/dashboard/reports", "title": "Reports", "components": ["DashboardLayout"] },
+    { "route": "/dashboard/consultation", "title": "Active Consultation", "components": ["DashboardLayout"] }
+  ],
+  "components": [
+    { "name": "Navbar", "props": [], "state": "navigation links, mobile menu toggle" },
+    { "name": "NavLink", "props": ["to", "children"], "state": "none" },
+    { "name": "HeroSearch", "props": [], "state": "search query, specialty, city filters" },
+    { "name": "SpecialtyGrid", "props": [], "state": "none (reads from mockData)" },
+    { "name": "FeaturedDoctors", "props": [], "state": "none (reads from mockData)" },
+    { "name": "DoctorCard", "props": ["doctor"], "state": "none" },
+    { "name": "Footer", "props": [], "state": "none" },
+    { "name": "DoctorProfileHeader", "props": ["doctor"], "state": "none" },
+    { "name": "DoctorAbout", "props": ["doctor"], "state": "none" },
+    { "name": "DoctorReviews", "props": ["doctorId"], "state": "reviews list" },
+    { "name": "BookingSidebar", "props": ["doctor"], "state": "selected date, selected slot, booking type" },
+    { "name": "DashboardLayout", "props": ["children"], "state": "sidebar collapsed, active route, profile dropdown, notifications" }
+  ],
+  "data_sources": [
+    { "name": "mockData.ts", "type": "local", "samples_count": 6, "description": "doctors, specialties, cities, reviews, bookings" },
+    { "name": "dashboardMockData.ts", "type": "local", "samples_count": 6, "description": "patients, appointments, prescriptions, lab orders, treatment files, notifications" },
+    { "name": "serviceCatalog.ts", "type": "local", "samples_count": 42, "description": "12 medicines, 12 lab tests, 8 imaging, 10 procedures" },
+    { "name": "types.ts", "type": "local", "samples_count": 0, "description": "shared TypeScript interfaces (Doctor, Booking, TimeSlot, etc.)" }
+  ],
+  "integrations": [
+    { "service": "Supabase / Lovable Cloud", "endpoint": "", "status": "not-configured" },
+    { "service": "Stripe", "endpoint": "", "status": "not-configured" },
+    { "service": "Twilio SMS", "endpoint": "", "status": "not-configured" },
+    { "service": "WhatsApp API", "endpoint": "", "status": "not-configured" },
+    { "service": "Google Calendar", "endpoint": "", "status": "not-configured" }
+  ],
+  "missing_endpoints": [
+    { "path": "/api/auth/*", "purpose": "User authentication (doctor, patient, admin login/register)" },
+    { "path": "/api/bookings/*", "purpose": "CRUD bookings with double-booking prevention" },
+    { "path": "/api/prescriptions/*", "purpose": "Create/read prescriptions, send to pharmacy" },
+    { "path": "/api/lab-orders/*", "purpose": "Order labs, track status, receive results" },
+    { "path": "/api/notifications/*", "purpose": "SMS/WhatsApp appointment reminders and updates" },
+    { "path": "/api/payments/*", "purpose": "Stripe checkout, commission splitting, refunds" },
+    { "path": "/api/services/*", "purpose": "Service catalog CRUD with doctor price overrides" }
+  ],
+  "issues": [
+    { "title": "No backend or database", "severity": "urgent", "short_fix": "Enable Lovable Cloud to provision Supabase DB + Auth" },
+    { "title": "No authentication", "severity": "urgent", "short_fix": "Implement email/password auth for doctors and patients" },
+    { "title": "All data is mock/local", "severity": "high", "short_fix": "Migrate mock data to real DB tables with RLS" },
+    { "title": "No double-booking prevention", "severity": "high", "short_fix": "Add UNIQUE constraint on (doctor_id, date, time) + server-side validation" },
+    { "title": "No payment integration", "severity": "high", "short_fix": "Connect Stripe for consultation fee collection" },
+    { "title": "No RTL/LTR language toggle", "severity": "medium", "short_fix": "Add i18n with Arabic/English switch and RTL support" },
+    { "title": "No dark mode", "severity": "low", "short_fix": "Add theme toggle using next-themes (already installed)" }
+  ],
+  "next_steps_top5": [
+    "Enable Lovable Cloud (Supabase) for database + authentication",
+    "Implement email/password auth with role-based access (doctor, patient, admin)",
+    "Persist all mock data to real PostgreSQL tables with RLS policies",
+    "Build real-time booking flow with double-booking prevention",
+    "Connect Stripe sandbox for payment processing and commission system"
+  ],
+  "entity_samples": {
+    "doctor": {
+      "id": "dr-1",
+      "nameAr": "د. أحمد محمد العليمي",
+      "nameEn": "Dr. Ahmed Al-Alimi",
+      "specialty": "cardiology",
+      "city": "sanaa",
+      "rating": 4.8,
+      "basePrice": 5000,
+      "bookingTypes": ["clinic", "video"],
+      "isVerified": true
+    },
+    "patient": {
+      "id": "p1",
+      "name": "أحمد محمد علي",
+      "phone": "777123456",
+      "gender": "male",
+      "age": 35,
+      "classification": "regular",
+      "totalVisits": 5
+    },
+    "appointment": {
+      "id": "a1",
+      "patientId": "p1",
+      "patientName": "أحمد محمد علي",
+      "slotTime": "09:00",
+      "slotDate": "2026-02-22",
+      "bookingType": "clinic",
+      "status": "confirmed",
+      "price": 5000,
+      "priority": "normal"
+    },
+    "prescription": {
+      "id": "rx1",
+      "patientId": "p1",
+      "medicines": [
+        { "name": "أسبرين", "dosage": "100mg", "frequency": "مرة يومياً", "duration": "3 أشهر" },
+        { "name": "أتورفاستاتين", "dosage": "20mg", "frequency": "مرة يومياً", "duration": "6 أشهر" }
+      ],
+      "pharmacySent": true
+    },
+    "_note": "Entities like events, registrations, users, cases, donations do NOT exist yet — planned for Medical Events & Sponsorship modules."
+  }
+}
