@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Calendar, ClipboardList, Users,
   Stethoscope, BarChart3, Bell, LogOut, Menu, X, ChevronLeft,
-  UserCog, Settings, Moon, Sun
+  UserCog, Settings, Moon, Sun, Heart, Package, UserCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +19,9 @@ const navItems = [
   { path: '/dashboard/bookings', icon: ClipboardList, label: 'الحجوزات' },
   { path: '/dashboard/patients', icon: Users, label: 'المرضى' },
   { path: '/dashboard/services', icon: Stethoscope, label: 'الخدمات' },
+  { path: '/dashboard/events', icon: Heart, label: 'الأحداث الطبية' },
+  { path: '/dashboard/providers', icon: Package, label: 'مزودو الخدمات' },
+  { path: '/dashboard/kiosk', icon: UserCheck, label: 'تسجيل الحضور' },
   { path: '/dashboard/reports', icon: BarChart3, label: 'التقارير' },
 ];
 

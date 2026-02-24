@@ -20,6 +20,12 @@ import DashboardServices from "./pages/dashboard/DashboardServices";
 import DashboardTreatment from "./pages/dashboard/DashboardTreatment";
 import DashboardReports from "./pages/dashboard/DashboardReports";
 import ActiveConsultation from "./pages/dashboard/ActiveConsultation";
+import EventList from "./pages/events/EventList";
+import EventDetail from "./pages/events/EventDetail";
+import DashboardEventsAdmin from "./pages/dashboard/DashboardEventsAdmin";
+import DashboardProviders from "./pages/dashboard/DashboardProviders";
+import KioskCheckin from "./pages/KioskCheckin";
+import CasesList from "./pages/CasesList";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +43,10 @@ const App = () => (
           <Route path="/sign-in" element={<SignIn />} />
           <Route path="/sign-up" element={<SignUp />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          {/* Events / Medical Camps */}
+          <Route path="/events" element={<EventList />} />
+          <Route path="/events/:id" element={<EventDetail />} />
+          <Route path="/cases" element={<CasesList />} />
           {/* Doctor Dashboard */}
           <Route path="/dashboard" element={<DashboardHome />} />
           <Route path="/dashboard/calendar" element={<DashboardCalendar />} />
@@ -47,6 +57,9 @@ const App = () => (
           <Route path="/dashboard/treatment" element={<DashboardTreatment />} />
           <Route path="/dashboard/reports" element={<DashboardReports />} />
           <Route path="/dashboard/consultation" element={<ActiveConsultation />} />
+          <Route path="/dashboard/events" element={<DashboardEventsAdmin />} />
+          <Route path="/dashboard/providers" element={<DashboardProviders />} />
+          <Route path="/dashboard/kiosk" element={<KioskCheckin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
