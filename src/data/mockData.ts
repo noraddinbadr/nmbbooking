@@ -1,4 +1,4 @@
-import { Doctor, Specialty, City, TimeSlot, Booking, Review } from './types';
+import { Doctor, Specialty, City, TimeSlot, Booking, Review, DoctorShift } from './types';
 
 export const specialties: Specialty[] = [
   { id: 'cardiology', nameAr: 'قلب وأوعية دموية', nameEn: 'Cardiology', icon: '❤️', doctorCount: 45 },
@@ -23,6 +23,29 @@ export const cities: City[] = [
   { id: 'ibb', nameAr: 'إب', nameEn: 'Ibb' },
   { id: 'mukalla', nameAr: 'المكلا', nameEn: 'Mukalla' },
 ];
+
+// ============ Shared shift definitions ============
+const morningShift = (id: string, days: number[], enableSlots: boolean, duration?: number, cap?: number): DoctorShift => ({
+  id: `${id}-morning`,
+  label: 'الفترة الصباحية',
+  startTime: '09:00',
+  endTime: '13:00',
+  daysOfWeek: days,
+  enableSlotGeneration: enableSlots,
+  consultationDurationMin: duration,
+  maxCapacity: cap,
+});
+
+const eveningShift = (id: string, days: number[], enableSlots: boolean, duration?: number, cap?: number): DoctorShift => ({
+  id: `${id}-evening`,
+  label: 'الفترة المسائية',
+  startTime: '16:00',
+  endTime: '20:00',
+  daysOfWeek: days,
+  enableSlotGeneration: enableSlots,
+  consultationDurationMin: duration,
+  maxCapacity: cap,
+});
 
 export const doctors: Doctor[] = [
   {
@@ -52,6 +75,13 @@ export const doctors: Doctor[] = [
     waitTime: '15 دقيقة',
     availableToday: true,
     isSponsored: false,
+    freeCasesPerShift: 2,
+    discountType: 'none',
+    discountValue: 0,
+    shifts: [
+      morningShift('dr-1', [0, 1, 2, 3, 4], true, 20, 12),
+      eveningShift('dr-1', [0, 2, 4], true, 20, 10),
+    ],
   },
   {
     id: 'dr-2',
@@ -80,6 +110,13 @@ export const doctors: Doctor[] = [
     waitTime: '10 دقائق',
     availableToday: true,
     isSponsored: true,
+    freeCasesPerShift: 3,
+    discountType: 'percentage',
+    discountValue: 20,
+    shifts: [
+      morningShift('dr-2', [0, 1, 2, 3, 4], false, undefined, 20), // flexible — no slot generation
+      eveningShift('dr-2', [0, 1, 3], true, 15, 16),
+    ],
   },
   {
     id: 'dr-3',
@@ -108,6 +145,12 @@ export const doctors: Doctor[] = [
     waitTime: '20 دقيقة',
     availableToday: false,
     isSponsored: false,
+    freeCasesPerShift: 1,
+    discountType: 'fixed',
+    discountValue: 500,
+    shifts: [
+      morningShift('dr-3', [0, 2, 4], true, 30, 8),
+    ],
   },
   {
     id: 'dr-4',
@@ -136,6 +179,13 @@ export const doctors: Doctor[] = [
     waitTime: '15 دقيقة',
     availableToday: true,
     isSponsored: false,
+    freeCasesPerShift: 1,
+    discountType: 'percentage',
+    discountValue: 15,
+    shifts: [
+      morningShift('dr-4', [0, 1, 2, 3, 4], true, 20, 12),
+      eveningShift('dr-4', [1, 3], true, 20, 10),
+    ],
   },
   {
     id: 'dr-5',
@@ -164,6 +214,12 @@ export const doctors: Doctor[] = [
     waitTime: '30 دقيقة',
     availableToday: true,
     isSponsored: true,
+    freeCasesPerShift: 2,
+    discountType: 'none',
+    discountValue: 0,
+    shifts: [
+      morningShift('dr-5', [0, 1, 2, 3, 4], false, undefined, 15), // flexible
+    ],
   },
   {
     id: 'dr-6',
@@ -192,25 +248,89 @@ export const doctors: Doctor[] = [
     waitTime: '20 دقيقة',
     availableToday: true,
     isSponsored: false,
+    freeCasesPerShift: 3,
+    discountType: 'none',
+    discountValue: 0,
+    shifts: [
+      morningShift('dr-6', [0, 1, 2, 3, 4], true, 20, 12),
+      eveningShift('dr-6', [0, 2, 4], true, 20, 10),
+    ],
   },
 ];
 
-// Generate time slots for each doctor
+/**
+ * Generate time slots from a doctor's shifts for a given date.
+ * If shift.enableSlotGeneration is true and consultationDurationMin is set,
+ * it generates fixed time slots. Otherwise, it creates a single "open queue" entry.
+ */
 export function generateTimeSlots(doctorId: string, date: string): TimeSlot[] {
+  const doctor = doctors.find(d => d.id === doctorId);
+  if (!doctor) return [];
+
+  const dateObj = new Date(date);
+  const dayOfWeek = dateObj.getDay();
+  const activeShifts = doctor.shifts.filter(s => s.daysOfWeek.includes(dayOfWeek));
   const slots: TimeSlot[] = [];
-  const hours = [9, 10, 11, 12, 14, 15, 16, 17, 18, 19];
-  hours.forEach((hour, i) => {
-    slots.push({
-      id: `${doctorId}-${date}-${hour}`,
-      doctorId,
-      date,
-      startTime: `${hour}:00`,
-      endTime: `${hour}:30`,
-      isAvailable: Math.random() > 0.3,
-      bookingType: 'clinic',
-    });
-  });
+
+  for (const shift of activeShifts) {
+    if (shift.enableSlotGeneration && shift.consultationDurationMin) {
+      // Generate fixed slots based on duration
+      const [startH, startM] = shift.startTime.split(':').map(Number);
+      const [endH, endM] = shift.endTime.split(':').map(Number);
+      const startMinutes = startH * 60 + startM;
+      const endMinutes = endH * 60 + endM;
+      const dur = shift.consultationDurationMin;
+      let pos = 0;
+
+      for (let m = startMinutes; m + dur <= endMinutes; m += dur) {
+        if (shift.maxCapacity && pos >= shift.maxCapacity) break;
+        const sH = Math.floor(m / 60);
+        const sM = m % 60;
+        const eH = Math.floor((m + dur) / 60);
+        const eM = (m + dur) % 60;
+        const startTime = `${String(sH).padStart(2, '0')}:${String(sM).padStart(2, '0')}`;
+        const endTime = `${String(eH).padStart(2, '0')}:${String(eM).padStart(2, '0')}`;
+
+        slots.push({
+          id: `${doctorId}-${date}-${shift.id}-${pos}`,
+          doctorId,
+          shiftId: shift.id,
+          date,
+          startTime,
+          endTime,
+          isAvailable: Math.random() > 0.3,
+          bookingType: 'clinic',
+          queuePosition: pos + 1,
+        });
+        pos++;
+      }
+    } else {
+      // Flexible mode — single entry representing open booking in this shift
+      const bookedCount = Math.floor(Math.random() * (shift.maxCapacity || 20));
+      const cap = shift.maxCapacity || 999;
+      slots.push({
+        id: `${doctorId}-${date}-${shift.id}-queue`,
+        doctorId,
+        shiftId: shift.id,
+        date,
+        startTime: shift.startTime,
+        endTime: shift.endTime,
+        isAvailable: bookedCount < cap,
+        bookingType: 'clinic',
+        queuePosition: bookedCount + 1,
+      });
+    }
+  }
+
   return slots;
+}
+
+/** Get the active shifts for a doctor on a specific date */
+export function getShiftsForDate(doctorId: string, date: string): DoctorShift[] {
+  const doctor = doctors.find(d => d.id === doctorId);
+  if (!doctor) return [];
+  const dayOfWeek = new Date(date).getDay();
+  return doctor.shifts.filter(s => s.daysOfWeek.includes(dayOfWeek));
 }
 
 export const reviews: Review[] = [
@@ -224,12 +344,14 @@ export const reviews: Review[] = [
 
 export const sampleBookings: Booking[] = [
   {
-    id: 'b1', patientName: 'علي محمد', doctorId: 'dr-1', slotId: 'dr-1-2026-02-25-10',
-    status: 'confirmed', finalPrice: 5000, fundingAmount: 0, createdAt: '2026-02-20', bookingType: 'clinic',
+    id: 'b1', patientName: 'علي محمد', doctorId: 'dr-1', slotId: 'dr-1-2026-02-25-dr-1-morning-0',
+    shiftId: 'dr-1-morning', status: 'confirmed', finalPrice: 5000, fundingAmount: 0,
+    isFreeCase: false, createdAt: '2026-02-20', bookingType: 'clinic',
   },
   {
-    id: 'b2', patientName: 'علي محمد', doctorId: 'dr-2', slotId: 'dr-2-2026-02-22-14',
-    status: 'completed', finalPrice: 2400, fundingAmount: 600, createdAt: '2026-02-15', bookingType: 'video',
+    id: 'b2', patientName: 'علي محمد', doctorId: 'dr-2', slotId: 'dr-2-2026-02-22-dr-2-evening-2',
+    shiftId: 'dr-2-evening', status: 'completed', finalPrice: 2400, fundingAmount: 600,
+    isFreeCase: false, createdAt: '2026-02-15', bookingType: 'video',
   },
 ];
 
