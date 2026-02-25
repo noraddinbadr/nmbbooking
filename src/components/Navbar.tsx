@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Search, User, Calendar, Menu, X } from 'lucide-react';
+import { User, Menu, X, Heart, HandHeart } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
@@ -10,6 +10,8 @@ const Navbar = () => {
   const navLinks = [
     { to: '/', label: 'الرئيسية' },
     { to: '/doctors', label: 'الأطباء' },
+    { to: '/events', label: 'الأحداث الطبية', icon: Heart },
+    { to: '/cases', label: 'حالات التبرع', icon: HandHeart },
     { to: '/my-bookings', label: 'حجوزاتي' },
   ];
 
@@ -29,12 +31,13 @@ const Navbar = () => {
             <Link
               key={link.to}
               to={link.to}
-              className={`rounded-lg px-4 py-2 font-cairo text-sm font-medium transition-colors ${
+              className={`rounded-lg px-4 py-2 font-cairo text-sm font-medium transition-colors flex items-center gap-1.5 ${
                 location.pathname === link.to
                   ? 'bg-primary/10 text-primary'
                   : 'text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
             >
+              {link.icon && <link.icon className="h-3.5 w-3.5" />}
               {link.label}
             </Link>
           ))}
@@ -69,18 +72,24 @@ const Navbar = () => {
                 key={link.to}
                 to={link.to}
                 onClick={() => setMobileOpen(false)}
-                className={`rounded-lg px-4 py-3 font-cairo text-sm font-medium ${
+                className={`rounded-lg px-4 py-3 font-cairo text-sm font-medium flex items-center gap-2 ${
                   location.pathname === link.to
                     ? 'bg-primary/10 text-primary'
                     : 'text-muted-foreground'
                 }`}
               >
+                {link.icon && <link.icon className="h-4 w-4" />}
                 {link.label}
               </Link>
             ))}
-            <Button size="sm" className="mt-2 font-cairo bg-hero-gradient text-primary-foreground">
-              احجز الآن
-            </Button>
+            <div className="flex gap-2 mt-2">
+              <Link to="/sign-in" className="flex-1" onClick={() => setMobileOpen(false)}>
+                <Button variant="outline" size="sm" className="w-full font-cairo">دخول</Button>
+              </Link>
+              <Link to="/sign-up" className="flex-1" onClick={() => setMobileOpen(false)}>
+                <Button size="sm" className="w-full font-cairo bg-hero-gradient text-primary-foreground">انضم الآن</Button>
+              </Link>
+            </div>
           </div>
         </div>
       )}
