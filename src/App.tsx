@@ -19,6 +19,7 @@ import DashboardProfile from "./pages/dashboard/DashboardProfile";
 import DashboardServices from "./pages/dashboard/DashboardServices";
 import DashboardTreatment from "./pages/dashboard/DashboardTreatment";
 import DashboardReports from "./pages/dashboard/DashboardReports";
+import DashboardSettings from "./pages/dashboard/DashboardSettings";
 import ActiveConsultation from "./pages/dashboard/ActiveConsultation";
 import EventList from "./pages/events/EventList";
 import EventDetail from "./pages/events/EventDetail";
@@ -56,6 +57,7 @@ const App = () => (
           <Route path="/dashboard/services" element={<DashboardServices />} />
           <Route path="/dashboard/treatment" element={<DashboardTreatment />} />
           <Route path="/dashboard/reports" element={<DashboardReports />} />
+          <Route path="/dashboard/settings" element={<DashboardSettings />} />
           <Route path="/dashboard/consultation" element={<ActiveConsultation />} />
           <Route path="/dashboard/events" element={<DashboardEventsAdmin />} />
           <Route path="/dashboard/providers" element={<DashboardProviders />} />
