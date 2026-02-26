@@ -23,6 +23,7 @@ const navItems = [
   { path: '/dashboard/providers', icon: Package, label: 'مزودو الخدمات' },
   { path: '/dashboard/kiosk', icon: UserCheck, label: 'تسجيل الحضور' },
   { path: '/dashboard/reports', icon: BarChart3, label: 'التقارير' },
+  { path: '/dashboard/settings', icon: Settings, label: 'الإعدادات' },
 ];
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
