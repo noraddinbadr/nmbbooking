@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, MapPin, Video, CheckCircle, XCircle } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -16,6 +17,7 @@ const statusLabels: Record<string, { label: string; color: string }> = {
 };
 
 const MyBookings = () => {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState(sampleBookings);
 
   const upcoming = bookings.filter(b => b.status === 'confirmed' || b.status === 'pending');
@@ -101,7 +103,7 @@ const MyBookings = () => {
               <div className="rounded-2xl border border-border bg-card p-12 text-center shadow-card">
                 <Calendar className="mx-auto h-12 w-12 text-muted-foreground/30" />
                 <p className="mt-4 font-cairo text-lg text-muted-foreground">لا توجد حجوزات قادمة</p>
-                <Button className="mt-4 font-cairo bg-hero-gradient text-primary-foreground" onClick={() => window.location.href = '/doctors'}>
+                <Button className="mt-4 font-cairo bg-hero-gradient text-primary-foreground" onClick={() => navigate('/doctors')}>
                   احجز موعدك الآن
                 </Button>
               </div>

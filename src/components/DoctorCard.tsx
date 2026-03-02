@@ -93,6 +93,8 @@ const DoctorCard = ({ doctor }: DoctorCardProps) => {
               className="font-cairo bg-hero-gradient text-primary-foreground hover:opacity-90"
               onClick={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
+                window.location.href = `/doctor/${doctor.id}`;
               }}
             >
               احجز الآن
