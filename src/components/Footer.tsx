@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin, Heart } from 'lucide-react';
 
 const Footer = () => {
@@ -6,12 +7,12 @@ const Footer = () => {
       <div className="container mx-auto px-4" dir="rtl">
         <div className="grid gap-8 md:grid-cols-4">
           <div>
-            <div className="flex items-center gap-2 mb-4">
+            <Link to="/" className="flex items-center gap-2 mb-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-hero-gradient text-lg font-bold text-primary-foreground">
                 ص
               </div>
               <span className="font-cairo text-xl font-bold text-foreground">صحتك</span>
-            </div>
+            </Link>
             <p className="font-cairo text-sm text-muted-foreground leading-relaxed">
               منصة حجز المواعيد الطبية الأولى في اليمن. نربط المرضى بأفضل الأطباء بسهولة وأمان.
             </p>
@@ -19,18 +20,19 @@ const Footer = () => {
           <div>
             <h3 className="font-cairo text-sm font-bold text-foreground mb-4">روابط سريعة</h3>
             <ul className="space-y-2 font-cairo text-sm text-muted-foreground">
-              <li><a href="/doctors" className="hover:text-primary transition-colors">الأطباء</a></li>
-              <li><a href="/doctors" className="hover:text-primary transition-colors">التخصصات</a></li>
-              <li><a href="/my-bookings" className="hover:text-primary transition-colors">حجوزاتي</a></li>
+              <li><Link to="/doctors" className="hover:text-primary transition-colors">الأطباء</Link></li>
+              <li><Link to="/events" className="hover:text-primary transition-colors">الأحداث الطبية</Link></li>
+              <li><Link to="/cases" className="hover:text-primary transition-colors">حالات التبرع</Link></li>
+              <li><Link to="/my-bookings" className="hover:text-primary transition-colors">حجوزاتي</Link></li>
             </ul>
           </div>
           <div>
             <h3 className="font-cairo text-sm font-bold text-foreground mb-4">خدماتنا</h3>
             <ul className="space-y-2 font-cairo text-sm text-muted-foreground">
-              <li>حجز عيادات</li>
-              <li>استشارات فيديو</li>
-              <li>زيارات منزلية</li>
-              <li>تحاليل طبية</li>
+              <li><Link to="/doctors?specialty=clinic" className="hover:text-primary transition-colors">حجز عيادات</Link></li>
+              <li><Link to="/doctors" className="hover:text-primary transition-colors">استشارات فيديو</Link></li>
+              <li><Link to="/doctors" className="hover:text-primary transition-colors">زيارات منزلية</Link></li>
+              <li><Link to="/doctors" className="hover:text-primary transition-colors">تحاليل طبية</Link></li>
             </ul>
           </div>
           <div>

@@ -157,7 +157,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                   <DropdownMenuItem onClick={() => navigate('/dashboard/profile')} className="gap-2 cursor-pointer">
                     <UserCog className="h-4 w-4" /> الملف الشخصي
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/dashboard/profile')} className="gap-2 cursor-pointer">
+                  <DropdownMenuItem onClick={() => navigate('/dashboard/settings')} className="gap-2 cursor-pointer">
                     <Settings className="h-4 w-4" /> الإعدادات
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
