@@ -1,7 +1,9 @@
-import { doctors } from '@/data/mockData';
 import DoctorCard from '@/components/DoctorCard';
+import { useDoctors } from '@/hooks/useDoctors';
+import { Loader2 } from 'lucide-react';
 
 const FeaturedDoctors = () => {
+  const { data: doctors = [], isLoading } = useDoctors();
   const featured = doctors.filter(d => d.rating >= 4.7).slice(0, 4);
 
   return (
@@ -11,11 +13,17 @@ const FeaturedDoctors = () => {
           <h2 className="font-cairo text-3xl font-bold text-foreground">أفضل الأطباء</h2>
           <p className="mt-2 font-cairo text-muted-foreground">الأعلى تقييماً من مرضانا</p>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          {featured.map((doctor) => (
-            <DoctorCard key={doctor.id} doctor={doctor} />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            {featured.map((doctor) => (
+              <DoctorCard key={doctor.id} doctor={doctor} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

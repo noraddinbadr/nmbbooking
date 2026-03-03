@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import Doctors from "./pages/Doctors";
 import DoctorProfile from "./pages/DoctorProfile";
@@ -10,6 +11,7 @@ import MyBookings from "./pages/MyBookings";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import DashboardHome from "./pages/dashboard/DashboardHome";
 import DashboardCalendar from "./pages/dashboard/DashboardCalendar";
@@ -32,40 +34,41 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/doctors" element={<Doctors />} />
-          <Route path="/doctor/:id" element={<DoctorProfile />} />
-          <Route path="/my-bookings" element={<MyBookings />} />
-          <Route path="/sign-in" element={<SignIn />} />
-          <Route path="/sign-up" element={<SignUp />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          {/* Events / Medical Camps */}
-          <Route path="/events" element={<EventList />} />
-          <Route path="/events/:id" element={<EventDetail />} />
-          <Route path="/cases" element={<CasesList />} />
-          {/* Doctor Dashboard */}
-          <Route path="/dashboard" element={<DashboardHome />} />
-          <Route path="/dashboard/calendar" element={<DashboardCalendar />} />
-          <Route path="/dashboard/bookings" element={<DashboardBookings />} />
-          <Route path="/dashboard/patients" element={<DashboardPatients />} />
-          <Route path="/dashboard/profile" element={<DashboardProfile />} />
-          <Route path="/dashboard/services" element={<DashboardServices />} />
-          <Route path="/dashboard/treatment" element={<DashboardTreatment />} />
-          <Route path="/dashboard/reports" element={<DashboardReports />} />
-          <Route path="/dashboard/settings" element={<DashboardSettings />} />
-          <Route path="/dashboard/consultation" element={<ActiveConsultation />} />
-          <Route path="/dashboard/events" element={<DashboardEventsAdmin />} />
-          <Route path="/dashboard/providers" element={<DashboardProviders />} />
-          <Route path="/dashboard/kiosk" element={<KioskCheckin />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/doctors" element={<Doctors />} />
+            <Route path="/doctor/:id" element={<DoctorProfile />} />
+            <Route path="/my-bookings" element={<MyBookings />} />
+            <Route path="/sign-in" element={<SignIn />} />
+            <Route path="/sign-up" element={<SignUp />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/events" element={<EventList />} />
+            <Route path="/events/:id" element={<EventDetail />} />
+            <Route path="/cases" element={<CasesList />} />
+            <Route path="/dashboard" element={<DashboardHome />} />
+            <Route path="/dashboard/calendar" element={<DashboardCalendar />} />
+            <Route path="/dashboard/bookings" element={<DashboardBookings />} />
+            <Route path="/dashboard/patients" element={<DashboardPatients />} />
+            <Route path="/dashboard/profile" element={<DashboardProfile />} />
+            <Route path="/dashboard/services" element={<DashboardServices />} />
+            <Route path="/dashboard/treatment" element={<DashboardTreatment />} />
+            <Route path="/dashboard/reports" element={<DashboardReports />} />
+            <Route path="/dashboard/settings" element={<DashboardSettings />} />
+            <Route path="/dashboard/consultation" element={<ActiveConsultation />} />
+            <Route path="/dashboard/events" element={<DashboardEventsAdmin />} />
+            <Route path="/dashboard/providers" element={<DashboardProviders />} />
+            <Route path="/dashboard/kiosk" element={<KioskCheckin />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

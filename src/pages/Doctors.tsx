@@ -1,10 +1,11 @@
 import { useSearchParams } from 'react-router-dom';
 import { useState, useMemo } from 'react';
-import { Filter, SlidersHorizontal } from 'lucide-react';
+import { Filter, SlidersHorizontal, Loader2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import DoctorCard from '@/components/DoctorCard';
-import { doctors, specialties, cities } from '@/data/mockData';
+import { specialties, cities } from '@/data/mockData';
+import { useDoctors } from '@/hooks/useDoctors';
 import { Button } from '@/components/ui/button';
 
 const Doctors = () => {
@@ -20,6 +21,8 @@ const Doctors = () => {
   const [sortBy, setSortBy] = useState('rating');
   const [showFilters, setShowFilters] = useState(false);
 
+  const { data: doctors = [], isLoading } = useDoctors();
+
   const filtered = useMemo(() => {
     let result = [...doctors];
 
@@ -29,8 +32,7 @@ const Doctors = () => {
     if (query) {
       const q = query.toLowerCase();
       result = result.filter(d =>
-        d.nameAr.includes(q) || d.nameEn.toLowerCase().includes(q) ||
-        d.specialtyAr.includes(q)
+        d.nameAr.includes(q) || d.nameEn.toLowerCase().includes(q) || d.specialtyAr.includes(q)
       );
     }
 
@@ -40,138 +42,89 @@ const Doctors = () => {
     else if (sortBy === 'reviews') result.sort((a, b) => b.totalReviews - a.totalReviews);
 
     return result;
-  }, [specialty, city, gender, query, sortBy]);
+  }, [doctors, specialty, city, gender, query, sortBy]);
 
   const selectedSpecialtyName = specialties.find(s => s.id === specialty)?.nameAr;
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       <Navbar />
-
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
         <div className="mb-6">
           <h1 className="font-cairo text-2xl font-bold text-foreground">
             {selectedSpecialtyName ? `أطباء ${selectedSpecialtyName}` : 'جميع الأطباء'}
           </h1>
-          <p className="mt-1 font-cairo text-sm text-muted-foreground">
-            {filtered.length} طبيب متاح
-          </p>
+          <p className="mt-1 font-cairo text-sm text-muted-foreground">{filtered.length} طبيب متاح</p>
         </div>
 
         <div className="flex flex-col gap-6 lg:flex-row">
-          {/* Filters sidebar */}
           <div className={`lg:w-72 shrink-0 ${showFilters ? 'block' : 'hidden lg:block'}`}>
             <div className="rounded-2xl border border-border bg-card p-5 shadow-card space-y-5 sticky top-24">
               <h3 className="font-cairo text-sm font-bold text-foreground flex items-center gap-2">
-                <SlidersHorizontal className="h-4 w-4" />
-                تصفية النتائج
+                <SlidersHorizontal className="h-4 w-4" /> تصفية النتائج
               </h3>
-
               <div>
                 <label className="font-cairo text-xs font-medium text-muted-foreground mb-1.5 block">البحث</label>
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="اسم الطبيب..."
-                  className="w-full rounded-xl bg-muted px-3 py-2.5 font-cairo text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                />
+                <input type="text" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="اسم الطبيب..." className="w-full rounded-xl bg-muted px-3 py-2.5 font-cairo text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
               </div>
-
               <div>
                 <label className="font-cairo text-xs font-medium text-muted-foreground mb-1.5 block">التخصص</label>
-                <select
-                  value={specialty}
-                  onChange={(e) => setSpecialty(e.target.value)}
-                  className="w-full rounded-xl bg-muted px-3 py-2.5 font-cairo text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                >
+                <select value={specialty} onChange={(e) => setSpecialty(e.target.value)} className="w-full rounded-xl bg-muted px-3 py-2.5 font-cairo text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
                   <option value="">الكل</option>
-                  {specialties.map(s => (
-                    <option key={s.id} value={s.id}>{s.nameAr}</option>
-                  ))}
+                  {specialties.map(s => <option key={s.id} value={s.id}>{s.nameAr}</option>)}
                 </select>
               </div>
-
               <div>
                 <label className="font-cairo text-xs font-medium text-muted-foreground mb-1.5 block">المدينة</label>
-                <select
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="w-full rounded-xl bg-muted px-3 py-2.5 font-cairo text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                >
+                <select value={city} onChange={(e) => setCity(e.target.value)} className="w-full rounded-xl bg-muted px-3 py-2.5 font-cairo text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
                   <option value="">الكل</option>
-                  {cities.map(c => (
-                    <option key={c.id} value={c.id}>{c.nameAr}</option>
-                  ))}
+                  {cities.map(c => <option key={c.id} value={c.id}>{c.nameAr}</option>)}
                 </select>
               </div>
-
               <div>
                 <label className="font-cairo text-xs font-medium text-muted-foreground mb-1.5 block">الجنس</label>
-                <select
-                  value={gender}
-                  onChange={(e) => setGender(e.target.value)}
-                  className="w-full rounded-xl bg-muted px-3 py-2.5 font-cairo text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                >
+                <select value={gender} onChange={(e) => setGender(e.target.value)} className="w-full rounded-xl bg-muted px-3 py-2.5 font-cairo text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
                   <option value="">الكل</option>
                   <option value="male">ذكر</option>
                   <option value="female">أنثى</option>
                 </select>
               </div>
-
               <div>
                 <label className="font-cairo text-xs font-medium text-muted-foreground mb-1.5 block">ترتيب حسب</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full rounded-xl bg-muted px-3 py-2.5 font-cairo text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-                >
+                <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="w-full rounded-xl bg-muted px-3 py-2.5 font-cairo text-sm focus:outline-none focus:ring-2 focus:ring-primary/30">
                   <option value="rating">التقييم</option>
                   <option value="price_low">السعر: الأقل أولاً</option>
                   <option value="price_high">السعر: الأعلى أولاً</option>
                   <option value="reviews">الأكثر تقييمات</option>
                 </select>
               </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full font-cairo"
-                onClick={() => { setSpecialty(''); setCity(''); setGender(''); setQuery(''); setSortBy('rating'); }}
-              >
+              <Button variant="outline" size="sm" className="w-full font-cairo" onClick={() => { setSpecialty(''); setCity(''); setGender(''); setQuery(''); setSortBy('rating'); }}>
                 إعادة تعيين
               </Button>
             </div>
           </div>
 
-          {/* Results */}
           <div className="flex-1 space-y-4">
-            {/* Mobile filter toggle */}
-            <Button
-              variant="outline"
-              size="sm"
-              className="font-cairo lg:hidden gap-2"
-              onClick={() => setShowFilters(!showFilters)}
-            >
+            <Button variant="outline" size="sm" className="font-cairo lg:hidden gap-2" onClick={() => setShowFilters(!showFilters)}>
               <Filter className="h-4 w-4" />
               {showFilters ? 'إخفاء الفلاتر' : 'عرض الفلاتر'}
             </Button>
 
-            {filtered.length === 0 ? (
+            {isLoading ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : filtered.length === 0 ? (
               <div className="rounded-2xl border border-border bg-card p-12 text-center shadow-card">
                 <p className="font-cairo text-lg text-muted-foreground">لا يوجد أطباء بهذه المعايير</p>
                 <p className="mt-2 font-cairo text-sm text-muted-foreground">جرب تغيير الفلاتر</p>
               </div>
             ) : (
-              filtered.map((doctor) => (
-                <DoctorCard key={doctor.id} doctor={doctor} />
-              ))
+              filtered.map((doctor) => <DoctorCard key={doctor.id} doctor={doctor} />)
             )}
           </div>
         </div>
       </div>
-
       <Footer />
     </div>
   );
