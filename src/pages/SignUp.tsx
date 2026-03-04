@@ -1,15 +1,19 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Stethoscope, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { cn } from '@/lib/utils';
+
+type AccountType = 'patient' | 'doctor';
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const [accountType, setAccountType] = useState<AccountType>('patient');
   const [form, setForm] = useState({
     name: '',
     phone: '',
@@ -32,7 +36,7 @@ const SignUp = () => {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
       options: {
@@ -42,9 +46,16 @@ const SignUp = () => {
           phone: form.phone,
           gender: form.gender,
           date_of_birth: form.birthDate,
+          account_type: accountType,
         },
       },
     });
+    
+    // If doctor, add doctor role (trigger already adds patient)
+    if (!error && signUpData.user && accountType === 'doctor') {
+      await supabase.from('user_roles').insert({ user_id: signUpData.user.id, role: 'doctor' as const });
+    }
+
     setLoading(false);
     if (error) {
       toast({ title: 'خطأ', description: error.message, variant: 'destructive' });
@@ -63,6 +74,41 @@ const SignUp = () => {
             <h1 className="font-cairo text-xl font-bold text-primary-foreground">انضم الآن</h1>
           </div>
           <div className="rounded-b-2xl border border-t-0 border-border bg-card p-6 shadow-card">
+            {/* Account type selector */}
+            <div className="mb-5">
+              <label className="mb-2 block font-cairo text-sm font-medium text-foreground">نوع الحساب <span className="text-destructive">*</span></label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setAccountType('patient')}
+                  className={cn(
+                    "flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all font-cairo text-sm",
+                    accountType === 'patient'
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-border text-muted-foreground hover:border-primary/50"
+                  )}
+                >
+                  <User className="h-6 w-6" />
+                  <span className="font-semibold">مريض</span>
+                  <span className="text-[11px] text-muted-foreground">ابحث واحجز مواعيد طبية</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAccountType('doctor')}
+                  className={cn(
+                    "flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all font-cairo text-sm",
+                    accountType === 'doctor'
+                      ? "border-primary bg-primary/5 text-primary"
+                      : "border-border text-muted-foreground hover:border-primary/50"
+                  )}
+                >
+                  <Stethoscope className="h-6 w-6" />
+                  <span className="font-semibold">طبيب</span>
+                  <span className="text-[11px] text-muted-foreground">أدر عيادتك واستقبل حجوزات</span>
+                </button>
+              </div>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="mb-1.5 block font-cairo text-sm font-medium text-foreground">الاسم <span className="text-destructive">*</span></label>
@@ -109,7 +155,7 @@ const SignUp = () => {
                 بقيامك بالتسجيل، فأنت توافق على <span className="text-primary cursor-pointer hover:underline">الشروط و القوانين</span>
               </p>
               <Button type="submit" disabled={loading} className="w-full bg-hero-gradient font-cairo text-base text-primary-foreground hover:opacity-90" size="lg">
-                {loading ? 'جارٍ التسجيل...' : 'اشترك الآن'}
+                {loading ? 'جارٍ التسجيل...' : accountType === 'doctor' ? 'سجل كطبيب' : 'اشترك الآن'}
               </Button>
             </form>
             <div className="mt-6 border-t border-border pt-4 text-center">

@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Calendar, ClipboardList, Users,
   Stethoscope, BarChart3, Bell, LogOut, Menu, X, ChevronLeft,
-  UserCog, Settings, Moon, Sun, Heart, Package, UserCheck
+  UserCog, Settings, Heart, Package, UserCheck, ShieldCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,46 +12,76 @@ import {
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import type { Database } from '@/integrations/supabase/types';
 
-const navItems = [
-  { path: '/dashboard', icon: LayoutDashboard, label: 'لوحة التحكم' },
-  { path: '/dashboard/calendar', icon: Calendar, label: 'التقويم' },
-  { path: '/dashboard/bookings', icon: ClipboardList, label: 'الحجوزات' },
-  { path: '/dashboard/patients', icon: Users, label: 'المرضى' },
-  { path: '/dashboard/services', icon: Stethoscope, label: 'الخدمات' },
-  { path: '/dashboard/events', icon: Heart, label: 'الأحداث الطبية' },
-  { path: '/dashboard/providers', icon: Package, label: 'مزودو الخدمات' },
-  { path: '/dashboard/kiosk', icon: UserCheck, label: 'تسجيل الحضور' },
-  { path: '/dashboard/reports', icon: BarChart3, label: 'التقارير' },
+type AppRole = Database['public']['Enums']['app_role'];
+
+interface NavItem {
+  path: string;
+  icon: React.ElementType;
+  label: string;
+  roles?: AppRole[];
+}
+
+const allNavItems: NavItem[] = [
+  { path: '/dashboard', icon: LayoutDashboard, label: 'لوحة التحكم', roles: ['doctor', 'admin', 'clinic_admin', 'staff'] },
+  { path: '/dashboard/calendar', icon: Calendar, label: 'التقويم', roles: ['doctor', 'admin', 'clinic_admin', 'staff'] },
+  { path: '/dashboard/bookings', icon: ClipboardList, label: 'الحجوزات', roles: ['doctor', 'admin', 'clinic_admin', 'staff'] },
+  { path: '/dashboard/patients', icon: Users, label: 'المرضى', roles: ['doctor', 'admin', 'clinic_admin', 'staff'] },
+  { path: '/dashboard/services', icon: Stethoscope, label: 'الخدمات', roles: ['doctor', 'admin', 'clinic_admin'] },
+  { path: '/dashboard/events', icon: Heart, label: 'الأحداث الطبية', roles: ['doctor', 'admin', 'clinic_admin'] },
+  { path: '/dashboard/providers', icon: Package, label: 'مزودو الخدمات', roles: ['admin'] },
+  { path: '/dashboard/kiosk', icon: UserCheck, label: 'تسجيل الحضور', roles: ['doctor', 'admin', 'clinic_admin', 'staff'] },
+  { path: '/dashboard/reports', icon: BarChart3, label: 'التقارير', roles: ['doctor', 'admin', 'clinic_admin'] },
+  { path: '/dashboard/users', icon: ShieldCheck, label: 'إدارة المستخدمين', roles: ['admin'] },
   { path: '/dashboard/settings', icon: Settings, label: 'الإعدادات' },
+  // Patient-specific
+  { path: '/my-bookings', icon: ClipboardList, label: 'حجوزاتي', roles: ['patient'] },
+  { path: '/dashboard/profile', icon: UserCog, label: 'ملفي الشخصي', roles: ['patient'] },
 ];
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { profile, roles, hasRole, signOut } = useAuth();
+
+  const navItems = allNavItems.filter(item => {
+    if (!item.roles) return true;
+    return item.roles.some(r => roles.includes(r));
+  });
+
+  const displayName = profile?.full_name || profile?.full_name_ar || 'المستخدم';
+  const initials = displayName.charAt(0);
+  const roleLabelMap: Partial<Record<AppRole, string>> = {
+    admin: 'مدير النظام',
+    doctor: 'طبيب',
+    clinic_admin: 'مدير عيادة',
+    staff: 'موظف',
+    patient: 'مريض',
+  };
+  const primaryRole = (['admin', 'doctor', 'clinic_admin', 'staff', 'patient'] as AppRole[]).find(r => roles.includes(r));
+  const roleLabel = primaryRole ? roleLabelMap[primaryRole] || '' : '';
 
   return (
     <div className="min-h-screen bg-background flex" dir="rtl">
-      {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar — slim, no profile/settings */}
       <aside className={cn(
         "fixed inset-y-0 right-0 z-50 w-56 bg-card border-l border-border transition-transform duration-300 lg:translate-x-0 lg:static lg:z-auto",
         sidebarOpen ? "translate-x-0" : "translate-x-full"
       )}>
         <div className="flex flex-col h-full">
-          {/* Logo */}
           <div className="p-4 border-b border-border">
             <div className="flex items-center justify-between">
               <Link to="/dashboard" className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-hero-gradient flex items-center justify-center">
                   <Stethoscope className="h-4 w-4 text-primary-foreground" />
                 </div>
-                <span className="font-cairo font-bold text-foreground text-sm">صحتك — طبيب</span>
+                <span className="font-cairo font-bold text-foreground text-sm">صحتك</span>
               </Link>
               <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8" onClick={() => setSidebarOpen(false)}>
                 <X className="h-4 w-4" />
@@ -59,7 +89,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             </div>
           </div>
 
-          {/* Nav */}
           <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
             {navItems.map(item => {
               const isActive = location.pathname === item.path;
@@ -82,7 +111,6 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             })}
           </nav>
 
-          {/* Back to site */}
           <div className="p-2 border-t border-border">
             <button
               onClick={() => navigate('/')}
@@ -95,9 +123,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         </div>
       </aside>
 
-      {/* Main */}
       <main className="flex-1 min-w-0">
-        {/* Top bar with profile dropdown */}
         <header className="sticky top-0 z-30 bg-card/80 backdrop-blur-sm border-b border-border px-4 py-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -105,52 +131,38 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                 <Menu className="h-5 w-5" />
               </Button>
               <div>
-                <h2 className="font-cairo font-bold text-foreground text-sm">د. أحمد محمد العليمي</h2>
-                <p className="text-[11px] text-muted-foreground font-cairo">قلب وأوعية دموية</p>
+                <h2 className="font-cairo font-bold text-foreground text-sm">{displayName}</h2>
+                <p className="text-[11px] text-muted-foreground font-cairo">{roleLabel}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-1.5">
-              {/* Notifications */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative h-9 w-9">
                     <Bell className="h-4 w-4" />
-                    <Badge className="absolute -top-0.5 -left-0.5 h-4 w-4 flex items-center justify-center p-0 text-[9px]">5</Badge>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-72 font-cairo">
                   <DropdownMenuLabel>الإشعارات</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="flex-col items-start gap-0.5">
-                    <span className="font-medium text-sm">حجز جديد</span>
-                    <span className="text-xs text-muted-foreground">حجز من أحمد محمد — 2:30 م</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="flex-col items-start gap-0.5">
-                    <span className="font-medium text-sm">تقييم جديد</span>
-                    <span className="text-xs text-muted-foreground">5 نجوم من فاطمة عبدالله</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="flex-col items-start gap-0.5">
-                    <span className="font-medium text-sm">نتائج مخبرية</span>
-                    <span className="text-xs text-muted-foreground">نتائج أحمد محمد جاهزة</span>
-                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-sm text-muted-foreground">لا توجد إشعارات جديدة</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Profile dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-muted transition-colors">
                     <div className="w-8 h-8 rounded-full bg-hero-gradient flex items-center justify-center">
-                      <span className="text-xs font-cairo font-bold text-primary-foreground">أ</span>
+                      <span className="text-xs font-cairo font-bold text-primary-foreground">{initials}</span>
                     </div>
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-56 font-cairo">
                   <DropdownMenuLabel>
                     <div>
-                      <p className="font-bold">د. أحمد محمد العليمي</p>
-                      <p className="text-xs text-muted-foreground font-normal">قلب وأوعية دموية</p>
+                      <p className="font-bold">{displayName}</p>
+                      <p className="text-xs text-muted-foreground font-normal">{roleLabel}</p>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
@@ -161,7 +173,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                     <Settings className="h-4 w-4" /> الإعدادات
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate('/sign-in')} className="gap-2 cursor-pointer text-destructive focus:text-destructive">
+                  <DropdownMenuItem onClick={signOut} className="gap-2 cursor-pointer text-destructive focus:text-destructive">
                     <LogOut className="h-4 w-4" /> تسجيل الخروج
                   </DropdownMenuItem>
                 </DropdownMenuContent>

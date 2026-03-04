@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { User, Menu, X, Heart, HandHeart, LogOut } from 'lucide-react';
+import { User, Menu, X, Heart, HandHeart, LogOut, LayoutDashboard } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -8,7 +8,12 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, roles, hasRole, signOut } = useAuth();
+
+  const getDashboardPath = () => {
+    if (hasRole('admin') || hasRole('doctor') || hasRole('clinic_admin') || hasRole('staff')) return '/dashboard';
+    return '/dashboard/patient';
+  };
 
   const navLinks = [
     { to: '/', label: 'الرئيسية' },
@@ -43,10 +48,13 @@ const Navbar = () => {
         <div className="hidden items-center gap-3 md:flex">
           {user ? (
             <>
-              <span className="font-cairo text-sm text-muted-foreground">
-                مرحباً، {user.user_metadata?.full_name || user.email?.split('@')[0]}
-              </span>
-              <Button variant="outline" size="sm" className="font-cairo gap-2" onClick={handleSignOut}>
+              <Link to={getDashboardPath()}>
+                <Button variant="outline" size="sm" className="font-cairo gap-2">
+                  <LayoutDashboard className="h-4 w-4" />
+                  لوحة التحكم
+                </Button>
+              </Link>
+              <Button variant="ghost" size="sm" className="font-cairo gap-2" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4" />
                 خروج
               </Button>
