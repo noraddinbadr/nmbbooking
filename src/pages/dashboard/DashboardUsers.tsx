@@ -1,48 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { supabase } from '@/integrations/supabase/client';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from '@/hooks/use-toast';
-import { Constants } from '@/integrations/supabase/types';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Users, Stethoscope, UserCog, Heart, ShieldCheck } from 'lucide-react';
+import UsersTable, { type UserRow } from '@/components/admin/UsersTable';
+import UserFormModal from '@/components/admin/UserFormModal';
+import UserDetailModal from '@/components/admin/UserDetailModal';
+import EditUserRolesModal from '@/components/admin/EditUserRolesModal';
+import RolesPermissionsTab from '@/components/admin/RolesPermissionsTab';
 import type { Database } from '@/integrations/supabase/types';
 
 type AppRole = Database['public']['Enums']['app_role'];
 
-interface UserWithRoles {
-  id: string;
-  full_name: string | null;
-  phone: string | null;
-  roles: AppRole[];
-}
-
-const roleLabels: Record<AppRole, string> = {
-  admin: 'مدير النظام',
-  doctor: 'طبيب',
-  clinic_admin: 'مدير عيادة',
-  staff: 'موظف',
-  patient: 'مريض',
-  donor: 'متبرع',
-  provider: 'مزود خدمة',
-};
-
-const roleBadgeVariant = (role: AppRole) => {
-  if (role === 'admin') return 'destructive' as const;
-  if (role === 'doctor') return 'default' as const;
-  return 'secondary' as const;
-};
-
 const DashboardUsers = () => {
-  const [users, setUsers] = useState<UserWithRoles[]>([]);
+  const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [addingRole, setAddingRole] = useState<{ userId: string; role: AppRole } | null>(null);
+  const [addOpen, setAddOpen] = useState(false);
+  const [viewUser, setViewUser] = useState<UserRow | null>(null);
+  const [editUser, setEditUser] = useState<UserRow | null>(null);
+  const [addDefaultRole, setAddDefaultRole] = useState<AppRole | undefined>();
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
-    const { data: profiles } = await supabase.from('profiles').select('id, full_name, phone');
-    const { data: allRoles } = await supabase.from('user_roles').select('user_id, role');
+    const [{ data: profiles }, { data: allRoles }] = await Promise.all([
+      supabase.from('profiles').select('*'),
+      supabase.from('user_roles').select('user_id, role'),
+    ]);
 
     if (profiles) {
       const rolesMap = new Map<string, AppRole[]>();
@@ -55,100 +38,111 @@ const DashboardUsers = () => {
       setUsers(profiles.map(p => ({
         id: p.id,
         full_name: p.full_name,
+        full_name_ar: p.full_name_ar,
         phone: p.phone,
+        gender: p.gender,
+        avatar_url: p.avatar_url,
+        date_of_birth: p.date_of_birth,
+        created_at: p.created_at,
         roles: rolesMap.get(p.id) || [],
       })));
     }
     setLoading(false);
+  }, []);
+
+  useEffect(() => { fetchUsers(); }, [fetchUsers]);
+
+  const roleCounts = users.reduce((acc, u) => {
+    u.roles.forEach(r => { acc[r] = (acc[r] || 0) + 1; });
+    return acc;
+  }, {} as Record<AppRole, number>);
+
+  const handleAdd = (defaultRole?: AppRole) => {
+    setAddDefaultRole(defaultRole);
+    setAddOpen(true);
   };
 
-  useEffect(() => { fetchUsers(); }, []);
-
-  const addRole = async (userId: string, role: AppRole) => {
-    const { error } = await supabase.from('user_roles').insert({ user_id: userId, role });
-    if (error) {
-      toast({ title: 'خطأ', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'تم', description: `تمت إضافة دور ${roleLabels[role]}` });
-      fetchUsers();
-    }
-    setAddingRole(null);
-  };
-
-  const removeRole = async (userId: string, role: AppRole) => {
-    const { error } = await supabase.from('user_roles').delete().eq('user_id', userId).eq('role', role);
-    if (error) {
-      toast({ title: 'خطأ', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'تم', description: `تم إزالة دور ${roleLabels[role]}` });
-      fetchUsers();
-    }
-  };
+  const tabs = [
+    { value: 'all', label: 'الكل', icon: Users, count: users.length },
+    { value: 'doctor', label: 'الأطباء', icon: Stethoscope, count: roleCounts.doctor || 0 },
+    { value: 'patient', label: 'المرضى', icon: Heart, count: roleCounts.patient || 0 },
+    { value: 'staff', label: 'الموظفون', icon: UserCog, count: roleCounts.staff || 0 },
+    { value: 'roles', label: 'الأدوار والصلاحيات', icon: ShieldCheck, count: null },
+  ];
 
   return (
     <DashboardLayout>
       <div className="space-y-4">
-        <h1 className="font-cairo text-xl font-bold text-foreground">إدارة المستخدمين والأدوار</h1>
-        
-        {loading ? (
-          <div className="flex justify-center py-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          </div>
-        ) : (
-          <div className="rounded-lg border border-border overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="font-cairo text-right">الاسم</TableHead>
-                  <TableHead className="font-cairo text-right">الهاتف</TableHead>
-                  <TableHead className="font-cairo text-right">الأدوار</TableHead>
-                  <TableHead className="font-cairo text-right">إجراءات</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {users.map(u => (
-                  <TableRow key={u.id}>
-                    <TableCell className="font-cairo text-sm">{u.full_name || '—'}</TableCell>
-                    <TableCell className="font-cairo text-sm" dir="ltr">{u.phone || '—'}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {u.roles.map(r => (
-                          <Badge key={r} variant={roleBadgeVariant(r)} className="font-cairo text-xs cursor-pointer" onClick={() => removeRole(u.id, r)} title="اضغط للإزالة">
-                            {roleLabels[r]} ×
-                          </Badge>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {addingRole?.userId === u.id ? (
-                        <div className="flex items-center gap-2">
-                          <Select onValueChange={(v) => addRole(u.id, v as AppRole)}>
-                            <SelectTrigger className="w-32 h-8 font-cairo text-xs">
-                              <SelectValue placeholder="اختر دور" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Constants.public.Enums.app_role
-                                .filter(r => !u.roles.includes(r))
-                                .map(r => (
-                                  <SelectItem key={r} value={r} className="font-cairo text-xs">{roleLabels[r]}</SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
-                          <Button variant="ghost" size="sm" onClick={() => setAddingRole(null)} className="font-cairo text-xs h-8">إلغاء</Button>
-                        </div>
-                      ) : (
-                        <Button variant="outline" size="sm" onClick={() => setAddingRole({ userId: u.id, role: 'patient' })} className="font-cairo text-xs h-8">
-                          + إضافة دور
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+        <div>
+          <h1 className="font-cairo text-xl font-bold text-foreground">إدارة المستخدمين</h1>
+          <p className="font-cairo text-sm text-muted-foreground">إدارة جميع حسابات المستخدمين والأدوار والصلاحيات</p>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: 'إجمالي المستخدمين', value: users.length, color: 'bg-primary/10 text-primary' },
+            { label: 'الأطباء', value: roleCounts.doctor || 0, color: 'bg-blue-500/10 text-blue-600' },
+            { label: 'المرضى', value: roleCounts.patient || 0, color: 'bg-green-500/10 text-green-600' },
+            { label: 'الموظفون', value: roleCounts.staff || 0, color: 'bg-orange-500/10 text-orange-600' },
+          ].map(stat => (
+            <div key={stat.label} className="rounded-lg border border-border bg-card p-3">
+              <p className="font-cairo text-xs text-muted-foreground">{stat.label}</p>
+              <p className={`font-cairo text-2xl font-bold mt-1 ${stat.color.split(' ')[1]}`}>{stat.value}</p>
+            </div>
+          ))}
+        </div>
+
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="w-full justify-start h-auto flex-wrap gap-1 bg-muted/50 p-1">
+            {tabs.map(tab => (
+              <TabsTrigger key={tab.value} value={tab.value} className="font-cairo text-xs gap-1.5 data-[state=active]:bg-background">
+                <tab.icon className="h-3.5 w-3.5" />
+                {tab.label}
+                {tab.count !== null && (
+                  <span className="bg-muted-foreground/20 text-[10px] px-1.5 py-0.5 rounded-full">{tab.count}</span>
+                )}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          <TabsContent value="all">
+            <UsersTable
+              users={users} loading={loading}
+              onView={setViewUser} onEdit={setEditUser}
+              onAdd={() => handleAdd()} onRefresh={fetchUsers}
+            />
+          </TabsContent>
+          <TabsContent value="doctor">
+            <UsersTable
+              users={users} loading={loading} filterRole="doctor"
+              onView={setViewUser} onEdit={setEditUser}
+              onAdd={() => handleAdd('doctor')} onRefresh={fetchUsers}
+            />
+          </TabsContent>
+          <TabsContent value="patient">
+            <UsersTable
+              users={users} loading={loading} filterRole="patient"
+              onView={setViewUser} onEdit={setEditUser}
+              onAdd={() => handleAdd('patient')} onRefresh={fetchUsers}
+            />
+          </TabsContent>
+          <TabsContent value="staff">
+            <UsersTable
+              users={users} loading={loading} filterRole="staff"
+              onView={setViewUser} onEdit={setEditUser}
+              onAdd={() => handleAdd('staff')} onRefresh={fetchUsers}
+            />
+          </TabsContent>
+          <TabsContent value="roles">
+            <RolesPermissionsTab roleCounts={roleCounts} />
+          </TabsContent>
+        </Tabs>
       </div>
+
+      <UserFormModal open={addOpen} onOpenChange={setAddOpen} onSuccess={fetchUsers} defaultRole={addDefaultRole} />
+      <UserDetailModal open={!!viewUser} onOpenChange={() => setViewUser(null)} user={viewUser} />
+      <EditUserRolesModal open={!!editUser} onOpenChange={() => setEditUser(null)} user={editUser} onSuccess={fetchUsers} />
     </DashboardLayout>
   );
 };

@@ -32,6 +32,7 @@ import KioskCheckin from "./pages/KioskCheckin";
 import CasesList from "./pages/CasesList";
 import PatientDashboard from "./pages/dashboard/PatientDashboard";
 import DashboardUsers from "./pages/dashboard/DashboardUsers";
+import DashboardCatalog from "./pages/dashboard/DashboardCatalog";
 
 const queryClient = new QueryClient();
 
@@ -78,6 +79,7 @@ const App = () => (
             {/* Admin only */}
             <Route path="/dashboard/providers" element={<ProtectedRoute requiredRoles={['admin']}><DashboardProviders /></ProtectedRoute>} />
             <Route path="/dashboard/users" element={<ProtectedRoute requiredRoles={['admin']}><DashboardUsers /></ProtectedRoute>} />
+            <Route path="/dashboard/catalog" element={<ProtectedRoute requiredRoles={['admin']}><DashboardCatalog /></ProtectedRoute>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

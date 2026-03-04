@@ -727,6 +727,163 @@ export type Database = {
           },
         ]
       }
+      service_categories: {
+        Row: {
+          created_at: string
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name_ar: string
+          name_en: string | null
+          sort_order: number | null
+        }
+        Insert: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name_ar: string
+          name_en?: string | null
+          sort_order?: number | null
+        }
+        Update: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name_ar?: string
+          name_en?: string | null
+          sort_order?: number | null
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          default_price: number | null
+          description_ar: string | null
+          duration_min: number | null
+          id: string
+          is_active: boolean | null
+          name_ar: string
+          name_en: string | null
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          default_price?: number | null
+          description_ar?: string | null
+          duration_min?: number | null
+          id?: string
+          is_active?: boolean | null
+          name_ar: string
+          name_en?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          default_price?: number | null
+          description_ar?: string | null
+          duration_min?: number | null
+          id?: string
+          is_active?: boolean | null
+          name_ar?: string
+          name_en?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "services_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "service_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sponsor_types: {
+        Row: {
+          created_at: string
+          description_ar: string | null
+          id: string
+          is_active: boolean | null
+          name_ar: string
+          name_en: string | null
+          tier_level: number | null
+        }
+        Insert: {
+          created_at?: string
+          description_ar?: string | null
+          id?: string
+          is_active?: boolean | null
+          name_ar: string
+          name_en?: string | null
+          tier_level?: number | null
+        }
+        Update: {
+          created_at?: string
+          description_ar?: string | null
+          id?: string
+          is_active?: boolean | null
+          name_ar?: string
+          name_en?: string | null
+          tier_level?: number | null
+        }
+        Relationships: []
+      }
+      sponsors: {
+        Row: {
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          name_ar: string
+          name_en: string | null
+          sponsor_type_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name_ar: string
+          name_en?: string | null
+          sponsor_type_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name_ar?: string
+          name_en?: string | null
+          sponsor_type_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sponsors_sponsor_type_id_fkey"
+            columns: ["sponsor_type_id"]
+            isOneToOne: false
+            referencedRelation: "sponsor_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff_members: {
         Row: {
           clinic_id: string
