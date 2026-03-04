@@ -24,13 +24,21 @@ const SignIn = () => {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
+    const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
+      setLoading(false);
       toast({ title: 'خطأ', description: error.message, variant: 'destructive' });
+      return;
+    }
+    // Fetch roles to decide redirect
+    const { data: rolesData } = await supabase.from('user_roles').select('role').eq('user_id', signInData.user.id);
+    setLoading(false);
+    const userRoles = (rolesData || []).map(r => r.role);
+    toast({ title: '✅ تم تسجيل الدخول بنجاح', description: 'مرحباً بعودتك!' });
+    if (['admin', 'doctor', 'clinic_admin', 'staff'].some(r => userRoles.includes(r as any))) {
+      navigate('/dashboard');
     } else {
-      toast({ title: '✅ تم تسجيل الدخول بنجاح', description: 'مرحباً بعودتك!' });
-      navigate('/');
+      navigate('/dashboard/patient');
     }
   };
 
