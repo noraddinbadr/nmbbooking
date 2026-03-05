@@ -33,6 +33,8 @@ import CasesList from "./pages/CasesList";
 import PatientDashboard from "./pages/dashboard/PatientDashboard";
 import DashboardUsers from "./pages/dashboard/DashboardUsers";
 import DashboardCatalog from "./pages/dashboard/DashboardCatalog";
+import DashboardClinics from "./pages/dashboard/DashboardClinics";
+import DashboardMedicalCases from "./pages/dashboard/DashboardMedicalCases";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +82,8 @@ const App = () => (
             <Route path="/dashboard/providers" element={<ProtectedRoute requiredRoles={['admin']}><DashboardProviders /></ProtectedRoute>} />
             <Route path="/dashboard/users" element={<ProtectedRoute requiredRoles={['admin']}><DashboardUsers /></ProtectedRoute>} />
             <Route path="/dashboard/catalog" element={<ProtectedRoute requiredRoles={['admin']}><DashboardCatalog /></ProtectedRoute>} />
+            <Route path="/dashboard/clinics" element={<ProtectedRoute requiredRoles={['admin', 'doctor', 'clinic_admin']}><DashboardClinics /></ProtectedRoute>} />
+            <Route path="/dashboard/cases" element={<ProtectedRoute requiredRoles={['admin', 'doctor']}><DashboardMedicalCases /></ProtectedRoute>} />
 
             <Route path="*" element={<NotFound />} />
           </Routes>

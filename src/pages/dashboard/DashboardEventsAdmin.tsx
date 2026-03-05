@@ -1,126 +1,103 @@
-import { useState } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { mockCamps, mockRegistrations, statusLabels } from '@/data/eventsMockData';
-import AdminEventForm from '@/components/events/AdminEventForm';
-import RegistrationsTable from '@/components/events/RegistrationsTable';
-import { Plus, Calendar, Users, Heart } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Calendar, Users, FileText, Heart } from 'lucide-react';
+import DynamicCrud, { type FieldConfig } from '@/components/admin/DynamicCrud';
 
-const DashboardEvents = () => {
-  const [showForm, setShowForm] = useState(false);
-  const [selectedCampId, setSelectedCampId] = useState<string | null>(null);
-  const { toast } = useToast();
+const campFields: FieldConfig[] = [
+  { key: 'title_ar', label: 'العنوان بالعربي', type: 'text', required: true, showInTable: true },
+  { key: 'title_en', label: 'العنوان بالإنجليزي', type: 'text', showInTable: false },
+  { key: 'description_ar', label: 'الوصف', type: 'text', showInTable: false },
+  { key: 'location_name', label: 'الموقع', type: 'text', showInTable: true },
+  { key: 'location_city', label: 'المدينة', type: 'text', showInTable: true },
+  { key: 'status', label: 'الحالة', type: 'select', showInTable: true, options: [
+    { value: 'draft', label: 'مسودة' },
+    { value: 'published', label: 'منشور' },
+    { value: 'active', label: 'نشط' },
+    { value: 'completed', label: 'مكتمل' },
+    { value: 'cancelled', label: 'ملغي' },
+  ]},
+  { key: 'start_date', label: 'تاريخ البداية', type: 'text', showInTable: true, dir: 'ltr' },
+  { key: 'end_date', label: 'تاريخ النهاية', type: 'text', showInTable: false, dir: 'ltr' },
+  { key: 'total_capacity', label: 'السعة الكلية', type: 'number', showInTable: true },
+  { key: 'is_free', label: 'مجاني', type: 'boolean', showInTable: true },
+  { key: 'target_fund', label: 'الهدف التمويلي', type: 'number', showInTable: false, dir: 'ltr' },
+  { key: 'raised_fund', label: 'المبلغ المحصّل', type: 'number', showInTable: false, dir: 'ltr' },
+  { key: 'organizer_id', label: 'معرف المنظم', type: 'text', required: true, showInTable: false, dir: 'ltr' },
+];
 
-  const handleCreateCamp = (data: Record<string, unknown>) => {
-    toast({ title: 'تم حفظ الحدث بنجاح', description: data.titleAr as string });
-    setShowForm(false);
-  };
+const scheduleFields: FieldConfig[] = [
+  { key: 'schedule_date', label: 'التاريخ', type: 'text', required: true, showInTable: true, dir: 'ltr' },
+  { key: 'start_time', label: 'وقت البداية', type: 'text', required: true, showInTable: true, dir: 'ltr' },
+  { key: 'end_time', label: 'وقت النهاية', type: 'text', required: true, showInTable: true, dir: 'ltr' },
+  { key: 'service_type', label: 'نوع الخدمة', type: 'text', showInTable: true },
+  { key: 'total_slots', label: 'إجمالي المقاعد', type: 'number', showInTable: true },
+  { key: 'available_slots', label: 'المقاعد المتاحة', type: 'number', showInTable: true },
+  { key: 'location_note', label: 'ملاحظة الموقع', type: 'text', showInTable: false },
+  { key: 'camp_id', label: 'معرف الحدث', type: 'text', required: true, showInTable: false, dir: 'ltr' },
+];
 
-  const handleCheckin = (regId: string) => {
-    toast({ title: 'تم تسجيل الحضور', description: `التسجيل: ${regId}` });
-  };
+const registrationFields: FieldConfig[] = [
+  { key: 'case_code', label: 'كود الحالة', type: 'text', showInTable: true, dir: 'ltr' },
+  { key: 'status', label: 'الحالة', type: 'select', showInTable: true, options: [
+    { value: 'held', label: 'محجوز مؤقتاً' },
+    { value: 'confirmed', label: 'مؤكد' },
+    { value: 'checked_in', label: 'تم الحضور' },
+    { value: 'completed', label: 'مكتمل' },
+    { value: 'expired', label: 'منتهي' },
+    { value: 'cancelled', label: 'ملغي' },
+  ]},
+  { key: 'notes', label: 'ملاحظات', type: 'text', showInTable: true },
+  { key: 'camp_id', label: 'معرف الحدث', type: 'text', required: true, showInTable: false, dir: 'ltr' },
+  { key: 'schedule_id', label: 'معرف الجدول', type: 'text', required: true, showInTable: false, dir: 'ltr' },
+  { key: 'booked_by', label: 'معرف الحاجز', type: 'text', required: true, showInTable: false, dir: 'ltr' },
+];
 
-  const campRegistrations = selectedCampId
-    ? mockRegistrations.filter(r => r.campId === selectedCampId)
-    : mockRegistrations;
+const donationFields: FieldConfig[] = [
+  { key: 'donor_name', label: 'اسم المتبرع', type: 'text', showInTable: true },
+  { key: 'amount', label: 'المبلغ', type: 'number', required: true, showInTable: true, dir: 'ltr' },
+  { key: 'payment_method', label: 'طريقة الدفع', type: 'select', showInTable: true, options: [
+    { value: 'bank_transfer', label: 'تحويل بنكي' },
+    { value: 'wallet', label: 'محفظة' },
+    { value: 'cash', label: 'نقدي' },
+  ]},
+  { key: 'status', label: 'الحالة', type: 'select', showInTable: true, options: [
+    { value: 'pledged', label: 'تعهد' },
+    { value: 'received', label: 'مستلم' },
+    { value: 'verified', label: 'موثق' },
+    { value: 'refunded', label: 'مسترد' },
+  ]},
+  { key: 'payment_reference', label: 'مرجع الدفع', type: 'text', showInTable: false, dir: 'ltr' },
+];
 
-  return (
-    <DashboardLayout>
-      <div className="space-y-6" dir="rtl">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="font-cairo font-bold text-xl text-foreground">إدارة الأحداث الطبية</h1>
-            <p className="font-cairo text-sm text-muted-foreground">إنشاء وإدارة المخيمات الطبية والأحداث</p>
-          </div>
-          <Button onClick={() => setShowForm(!showForm)} className="font-cairo gap-1">
-            <Plus className="h-4 w-4" />
-            {showForm ? 'إلغاء' : 'حدث جديد'}
-          </Button>
-        </div>
-
-        {showForm ? (
-          <AdminEventForm onSubmit={handleCreateCamp} />
-        ) : (
-          <Tabs defaultValue="events" className="space-y-4">
-            <TabsList className="font-cairo">
-              <TabsTrigger value="events" className="font-cairo">الأحداث</TabsTrigger>
-              <TabsTrigger value="registrations" className="font-cairo">التسجيلات</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="events">
-              {/* Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <Card>
-                  <CardContent className="p-4 text-center">
-                    <Calendar className="h-5 w-5 text-primary mx-auto mb-1" />
-                    <p className="font-cairo font-bold text-lg text-foreground">{mockCamps.length}</p>
-                    <p className="font-cairo text-xs text-muted-foreground">إجمالي الأحداث</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4 text-center">
-                    <Users className="h-5 w-5 text-primary mx-auto mb-1" />
-                    <p className="font-cairo font-bold text-lg text-foreground">{mockRegistrations.length}</p>
-                    <p className="font-cairo text-xs text-muted-foreground">التسجيلات</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4 text-center">
-                    <Heart className="h-5 w-5 text-accent mx-auto mb-1" />
-                    <p className="font-cairo font-bold text-lg text-foreground">
-                      {mockCamps.reduce((a, c) => a + c.raisedFund, 0).toLocaleString()}
-                    </p>
-                    <p className="font-cairo text-xs text-muted-foreground">إجمالي التمويل (ر.ي)</p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4 text-center">
-                    <Calendar className="h-5 w-5 text-emerald-500 mx-auto mb-1" />
-                    <p className="font-cairo font-bold text-lg text-foreground">
-                      {mockCamps.filter(c => c.status === 'published' || c.status === 'active').length}
-                    </p>
-                    <p className="font-cairo text-xs text-muted-foreground">أحداث نشطة</p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Camp list */}
-              <div className="space-y-3">
-                {mockCamps.map(camp => (
-                  <Card key={camp.id} className="cursor-pointer hover:shadow-card-hover transition-shadow" onClick={() => setSelectedCampId(camp.id)}>
-                    <CardContent className="p-4 flex items-center justify-between">
-                      <div className="space-y-1">
-                        <h3 className="font-cairo font-bold text-sm text-foreground">{camp.titleAr}</h3>
-                        <p className="font-cairo text-xs text-muted-foreground">
-                          {camp.locationCity} — {camp.startDate} → {camp.endDate}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="font-cairo text-xs">
-                          {statusLabels[camp.status]}
-                        </Badge>
-                        <Badge variant="outline" className="font-cairo text-xs">
-                          {camp.totalCapacity} مريض
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="registrations">
-              <RegistrationsTable registrations={campRegistrations} onCheckin={handleCheckin} />
-            </TabsContent>
-          </Tabs>
-        )}
+const DashboardEventsAdmin = () => (
+  <DashboardLayout>
+    <div className="space-y-4">
+      <div>
+        <h1 className="font-cairo text-xl font-bold text-foreground">إدارة الأحداث الطبية</h1>
+        <p className="font-cairo text-sm text-muted-foreground">إنشاء وإدارة المخيمات الطبية والتسجيلات والتبرعات</p>
       </div>
-    </DashboardLayout>
-  );
-};
+      <Tabs defaultValue="camps" className="w-full">
+        <TabsList className="w-full justify-start h-auto flex-wrap gap-1 bg-muted/50 p-1">
+          <TabsTrigger value="camps" className="font-cairo text-xs gap-1.5"><Calendar className="h-3.5 w-3.5" /> الأحداث</TabsTrigger>
+          <TabsTrigger value="schedules" className="font-cairo text-xs gap-1.5"><Calendar className="h-3.5 w-3.5" /> الجداول</TabsTrigger>
+          <TabsTrigger value="registrations" className="font-cairo text-xs gap-1.5"><Users className="h-3.5 w-3.5" /> التسجيلات</TabsTrigger>
+          <TabsTrigger value="donations" className="font-cairo text-xs gap-1.5"><Heart className="h-3.5 w-3.5" /> التبرعات</TabsTrigger>
+        </TabsList>
+        <TabsContent value="camps">
+          <DynamicCrud tableName="medical_camps" title="حدث طبي" fields={campFields} nameField="title_ar" />
+        </TabsContent>
+        <TabsContent value="schedules">
+          <DynamicCrud tableName="event_schedules" title="جدول" fields={scheduleFields} nameField="schedule_date" />
+        </TabsContent>
+        <TabsContent value="registrations">
+          <DynamicCrud tableName="registrations" title="تسجيل" fields={registrationFields} nameField="case_code" />
+        </TabsContent>
+        <TabsContent value="donations">
+          <DynamicCrud tableName="donations" title="تبرع" fields={donationFields} nameField="donor_name" />
+        </TabsContent>
+      </Tabs>
+    </div>
+  </DashboardLayout>
+);
 
-export default DashboardEvents;
+export default DashboardEventsAdmin;
