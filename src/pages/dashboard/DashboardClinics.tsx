@@ -9,12 +9,12 @@ const clinicFields: FieldConfig[] = [
   { key: 'city', label: 'المدينة', type: 'text', showInTable: true },
   { key: 'address', label: 'العنوان', type: 'text', showInTable: false },
   { key: 'phone', label: 'الهاتف', type: 'text', showInTable: true, dir: 'ltr' },
-  { key: 'owner_id', label: 'المالك', type: 'relation', required: true, showInTable: false, relationTable: 'profiles', relationLabelField: 'full_name_ar', relationValueField: 'id' },
+  { key: 'owner_id', label: 'المالك', type: 'relation', required: true, showInTable: true, relationTable: 'profiles', relationLabelField: 'full_name_ar', relationValueField: 'id' },
 ];
 
 const doctorFields: FieldConfig[] = [
   { key: 'name_ar', label: 'الاسم بالعربي', type: 'text', required: true, showInTable: true },
-  { key: 'name_en', label: 'الاسم بالإنجليزي', type: 'text', showInTable: true },
+  { key: 'name_en', label: 'الاسم بالإنجليزي', type: 'text', showInTable: false },
   { key: 'specialty_ar', label: 'التخصص', type: 'text', showInTable: true },
   { key: 'city_ar', label: 'المدينة', type: 'text', showInTable: true },
   { key: 'gender', label: 'الجنس', type: 'select', showInTable: true, options: [
@@ -22,11 +22,11 @@ const doctorFields: FieldConfig[] = [
     { value: 'female', label: 'أنثى' },
   ]},
   { key: 'base_price', label: 'السعر الأساسي', type: 'number', showInTable: true, dir: 'ltr' },
-  { key: 'years_experience', label: 'سنوات الخبرة', type: 'number', showInTable: true },
+  { key: 'years_experience', label: 'سنوات الخبرة', type: 'number', showInTable: false },
   { key: 'is_verified', label: 'موثق', type: 'boolean', showInTable: true },
-  { key: 'available_today', label: 'متاح اليوم', type: 'boolean', showInTable: true },
+  { key: 'available_today', label: 'متاح اليوم', type: 'boolean', showInTable: false },
   { key: 'about_ar', label: 'نبذة بالعربي', type: 'text', showInTable: false },
-  { key: 'clinic_id', label: 'العيادة', type: 'relation', required: true, showInTable: false, relationTable: 'clinics', relationLabelField: 'name_ar', relationValueField: 'id' },
+  { key: 'clinic_id', label: 'العيادة', type: 'relation', required: true, showInTable: true, relationTable: 'clinics', relationLabelField: 'name_ar', relationValueField: 'id' },
   { key: 'user_id', label: 'المستخدم', type: 'relation', required: true, showInTable: false, relationTable: 'profiles', relationLabelField: 'full_name_ar', relationValueField: 'id' },
 ];
 
@@ -38,7 +38,7 @@ const staffFields: FieldConfig[] = [
     { value: 'receptionist', label: 'موظف استقبال' },
   ]},
   { key: 'is_active', label: 'نشط', type: 'boolean', showInTable: true },
-  { key: 'clinic_id', label: 'العيادة', type: 'relation', required: true, showInTable: false, relationTable: 'clinics', relationLabelField: 'name_ar', relationValueField: 'id' },
+  { key: 'clinic_id', label: 'العيادة', type: 'relation', required: true, showInTable: true, relationTable: 'clinics', relationLabelField: 'name_ar', relationValueField: 'id' },
   { key: 'user_id', label: 'المستخدم', type: 'relation', required: true, showInTable: false, relationTable: 'profiles', relationLabelField: 'full_name_ar', relationValueField: 'id' },
 ];
 
@@ -55,15 +55,9 @@ const DashboardClinics = () => (
           <TabsTrigger value="doctors" className="font-cairo gap-1.5"><Stethoscope className="h-3.5 w-3.5" /> الأطباء</TabsTrigger>
           <TabsTrigger value="staff" className="font-cairo gap-1.5"><UserCog className="h-3.5 w-3.5" /> الموظفون</TabsTrigger>
         </TabsList>
-        <TabsContent value="clinics">
-          <DynamicCrud tableName="clinics" title="عيادة" fields={clinicFields} nameField="name_ar" />
-        </TabsContent>
-        <TabsContent value="doctors">
-          <DynamicCrud tableName="doctors" title="طبيب" fields={doctorFields} nameField="name_ar" />
-        </TabsContent>
-        <TabsContent value="staff">
-          <DynamicCrud tableName="staff_members" title="موظف" fields={staffFields} nameField="name_ar" />
-        </TabsContent>
+        <TabsContent value="clinics"><DynamicCrud tableName="clinics" title="عيادة" fields={clinicFields} nameField="name_ar" /></TabsContent>
+        <TabsContent value="doctors"><DynamicCrud tableName="doctors" title="طبيب" fields={doctorFields} nameField="name_ar" /></TabsContent>
+        <TabsContent value="staff"><DynamicCrud tableName="staff_members" title="موظف" fields={staffFields} nameField="name_ar" /></TabsContent>
       </Tabs>
     </div>
   </DashboardLayout>

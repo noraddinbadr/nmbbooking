@@ -22,18 +22,18 @@ const campFields: FieldConfig[] = [
   { key: 'is_free', label: 'مجاني', type: 'boolean', showInTable: true },
   { key: 'target_fund', label: 'الهدف التمويلي', type: 'number', showInTable: false, dir: 'ltr' },
   { key: 'raised_fund', label: 'المبلغ المحصّل', type: 'number', showInTable: false, dir: 'ltr' },
-  { key: 'organizer_id', label: 'المنظم', type: 'relation', required: true, showInTable: false, relationTable: 'profiles', relationLabelField: 'full_name_ar', relationValueField: 'id' },
+  { key: 'organizer_id', label: 'المنظم', type: 'relation', required: true, showInTable: true, relationTable: 'profiles', relationLabelField: 'full_name_ar', relationValueField: 'id' },
 ];
 
 const scheduleFields: FieldConfig[] = [
   { key: 'schedule_date', label: 'التاريخ', type: 'date', required: true, showInTable: true },
-  { key: 'start_time', label: 'وقت البداية', type: 'text', required: true, showInTable: true, dir: 'ltr' },
-  { key: 'end_time', label: 'وقت النهاية', type: 'text', required: true, showInTable: true, dir: 'ltr' },
+  { key: 'start_time', label: 'وقت البداية', type: 'time', required: true, showInTable: true, dir: 'ltr' },
+  { key: 'end_time', label: 'وقت النهاية', type: 'time', required: true, showInTable: true, dir: 'ltr' },
   { key: 'service_type', label: 'نوع الخدمة', type: 'text', showInTable: true },
   { key: 'total_slots', label: 'إجمالي المقاعد', type: 'number', showInTable: true },
   { key: 'available_slots', label: 'المقاعد المتاحة', type: 'number', showInTable: true },
   { key: 'location_note', label: 'ملاحظة الموقع', type: 'text', showInTable: false },
-  { key: 'camp_id', label: 'الحدث', type: 'relation', required: true, showInTable: false, relationTable: 'medical_camps', relationLabelField: 'title_ar', relationValueField: 'id' },
+  { key: 'camp_id', label: 'الحدث', type: 'relation', required: true, showInTable: true, relationTable: 'medical_camps', relationLabelField: 'title_ar', relationValueField: 'id' },
 ];
 
 const registrationFields: FieldConfig[] = [
@@ -47,9 +47,9 @@ const registrationFields: FieldConfig[] = [
     { value: 'cancelled', label: 'ملغي' },
   ]},
   { key: 'notes', label: 'ملاحظات', type: 'text', showInTable: true },
-  { key: 'camp_id', label: 'الحدث', type: 'relation', required: true, showInTable: false, relationTable: 'medical_camps', relationLabelField: 'title_ar', relationValueField: 'id' },
+  { key: 'camp_id', label: 'الحدث', type: 'relation', required: true, showInTable: true, relationTable: 'medical_camps', relationLabelField: 'title_ar', relationValueField: 'id' },
   { key: 'schedule_id', label: 'الجدول', type: 'relation', required: true, showInTable: false, relationTable: 'event_schedules', relationLabelField: 'schedule_date', relationValueField: 'id' },
-  { key: 'booked_by', label: 'الحاجز', type: 'relation', required: true, showInTable: false, relationTable: 'profiles', relationLabelField: 'full_name_ar', relationValueField: 'id' },
+  { key: 'booked_by', label: 'الحاجز', type: 'relation', required: true, showInTable: true, relationTable: 'profiles', relationLabelField: 'full_name_ar', relationValueField: 'id' },
 ];
 
 const donationFields: FieldConfig[] = [
@@ -67,7 +67,7 @@ const donationFields: FieldConfig[] = [
     { value: 'refunded', label: 'مسترد' },
   ]},
   { key: 'payment_reference', label: 'مرجع الدفع', type: 'text', showInTable: false, dir: 'ltr' },
-  { key: 'camp_id', label: 'الحدث', type: 'relation', showInTable: false, relationTable: 'medical_camps', relationLabelField: 'title_ar', relationValueField: 'id' },
+  { key: 'camp_id', label: 'الحدث', type: 'relation', showInTable: true, relationTable: 'medical_camps', relationLabelField: 'title_ar', relationValueField: 'id' },
 ];
 
 const DashboardEventsAdmin = () => (
@@ -84,18 +84,10 @@ const DashboardEventsAdmin = () => (
           <TabsTrigger value="registrations" className="font-cairo text-xs gap-1.5"><Users className="h-3.5 w-3.5" /> التسجيلات</TabsTrigger>
           <TabsTrigger value="donations" className="font-cairo text-xs gap-1.5"><Heart className="h-3.5 w-3.5" /> التبرعات</TabsTrigger>
         </TabsList>
-        <TabsContent value="camps">
-          <DynamicCrud tableName="medical_camps" title="حدث طبي" fields={campFields} nameField="title_ar" />
-        </TabsContent>
-        <TabsContent value="schedules">
-          <DynamicCrud tableName="event_schedules" title="جدول" fields={scheduleFields} nameField="schedule_date" />
-        </TabsContent>
-        <TabsContent value="registrations">
-          <DynamicCrud tableName="registrations" title="تسجيل" fields={registrationFields} nameField="case_code" />
-        </TabsContent>
-        <TabsContent value="donations">
-          <DynamicCrud tableName="donations" title="تبرع" fields={donationFields} nameField="donor_name" />
-        </TabsContent>
+        <TabsContent value="camps"><DynamicCrud tableName="medical_camps" title="حدث طبي" fields={campFields} nameField="title_ar" /></TabsContent>
+        <TabsContent value="schedules"><DynamicCrud tableName="event_schedules" title="جدول" fields={scheduleFields} nameField="schedule_date" /></TabsContent>
+        <TabsContent value="registrations"><DynamicCrud tableName="registrations" title="تسجيل" fields={registrationFields} nameField="case_code" /></TabsContent>
+        <TabsContent value="donations"><DynamicCrud tableName="donations" title="تبرع" fields={donationFields} nameField="donor_name" /></TabsContent>
       </Tabs>
     </div>
   </DashboardLayout>

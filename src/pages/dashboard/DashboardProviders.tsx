@@ -31,7 +31,7 @@ const orderFields: FieldConfig[] = [
   ]},
   { key: 'notes', label: 'ملاحظات', type: 'text', showInTable: true },
   { key: 'results_url', label: 'رابط النتائج', type: 'text', showInTable: false, dir: 'ltr' },
-  { key: 'provider_id', label: 'المزود', type: 'relation', required: true, showInTable: false, relationTable: 'providers', relationLabelField: 'name_ar', relationValueField: 'id' },
+  { key: 'provider_id', label: 'المزود', type: 'relation', required: true, showInTable: true, relationTable: 'providers', relationLabelField: 'name_ar', relationValueField: 'id' },
 ];
 
 const DashboardProviders = () => (
@@ -46,12 +46,8 @@ const DashboardProviders = () => (
           <TabsTrigger value="providers" className="font-cairo gap-1.5"><Package className="h-3.5 w-3.5" /> المزودون</TabsTrigger>
           <TabsTrigger value="orders" className="font-cairo gap-1.5"><ShoppingCart className="h-3.5 w-3.5" /> الطلبات</TabsTrigger>
         </TabsList>
-        <TabsContent value="providers">
-          <DynamicCrud tableName="providers" title="مزود خدمة" fields={providerFields} nameField="name_ar" />
-        </TabsContent>
-        <TabsContent value="orders">
-          <DynamicCrud tableName="provider_orders" title="طلب" fields={orderFields} nameField="order_type" />
-        </TabsContent>
+        <TabsContent value="providers"><DynamicCrud tableName="providers" title="مزود خدمة" fields={providerFields} nameField="name_ar" /></TabsContent>
+        <TabsContent value="orders"><DynamicCrud tableName="provider_orders" title="طلب" fields={orderFields} nameField="order_type" /></TabsContent>
       </Tabs>
     </div>
   </DashboardLayout>
