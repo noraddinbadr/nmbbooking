@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Plus, Edit, Trash2, Search, CalendarIcon, ChevronsUpDown, Check } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Plus, Edit, Trash2, Search, CalendarIcon, ChevronsUpDown, Check, Clock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
@@ -18,12 +19,11 @@ import { cn } from '@/lib/utils';
 export interface FieldConfig {
   key: string;
   label: string;
-  type: 'text' | 'number' | 'boolean' | 'select' | 'date' | 'relation';
+  type: 'text' | 'number' | 'boolean' | 'select' | 'date' | 'relation' | 'time';
   required?: boolean;
   options?: { value: string; label: string }[];
   showInTable?: boolean;
   dir?: 'ltr' | 'rtl';
-  // relation config
   relationTable?: string;
   relationLabelField?: string;
   relationValueField?: string;
@@ -34,6 +34,7 @@ interface DynamicCrudProps {
   title: string;
   fields: FieldConfig[];
   nameField: string;
+  filter?: Record<string, any>;
 }
 
 // Searchable relation combobox
@@ -47,9 +48,9 @@ const RelationField = ({ field, value, onChange }: { field: FieldConfig; value: 
     setLoading(true);
     const labelField = field.relationLabelField || 'name_ar';
     const valueField = field.relationValueField || 'id';
-    supabase.from(field.relationTable as any).select(`${valueField},${labelField}`).limit(200)
+    supabase.from(field.relationTable as any).select(`${valueField},${labelField}`).limit(500)
       .then(({ data }) => {
-        setItems((data || []).map((r: any) => ({ value: r[valueField], label: r[labelField] || r[valueField] })));
+        setItems((data || []).map((r: any) => ({ value: r[valueField], label: r[labelField] || r[valueField] || '—' })));
         setLoading(false);
       });
   }, [field.relationTable, field.relationLabelField, field.relationValueField]);
@@ -64,7 +65,7 @@ const RelationField = ({ field, value, onChange }: { field: FieldConfig; value: 
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0 pointer-events-auto" align="start">
+      <PopoverContent className="w-full p-0 pointer-events-auto z-[60]" align="start">
         <Command>
           <CommandInput placeholder="بحث..." className="font-cairo" />
           <CommandList>
@@ -97,7 +98,7 @@ const DateField = ({ value, onChange }: { value: string; onChange: (v: string) =
           {value || 'اختر تاريخ'}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+      <PopoverContent className="w-auto p-0 pointer-events-auto z-[60]" align="start">
         <Calendar
           mode="single"
           selected={dateValue}
@@ -110,39 +111,73 @@ const DateField = ({ value, onChange }: { value: string; onChange: (v: string) =
   );
 };
 
-const DynamicCrud = ({ tableName, title, fields, nameField }: DynamicCrudProps) => {
+// Time picker field
+const TimeField = ({ value, onChange }: { value: string; onChange: (v: string) => void }) => {
+  const hours = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
+  const minutes = ['00', '15', '30', '45'];
+  const currentH = value?.split(':')[0] || '09';
+  const currentM = value?.split(':')[1] || '00';
+
+  return (
+    <div className="flex items-center gap-2 mt-1">
+      <Clock className="h-4 w-4 text-muted-foreground" />
+      <Select value={currentH} onValueChange={(h) => onChange(`${h}:${currentM}`)}>
+        <SelectTrigger className="w-20 h-10 font-cairo" dir="ltr">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className="max-h-48">
+          {hours.map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}
+        </SelectContent>
+      </Select>
+      <span className="text-lg font-bold">:</span>
+      <Select value={currentM} onValueChange={(m) => onChange(`${currentH}:${m}`)}>
+        <SelectTrigger className="w-20 h-10 font-cairo" dir="ltr">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {minutes.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};
+
+const DynamicCrud = ({ tableName, title, fields, nameField, filter }: DynamicCrudProps) => {
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRow, setEditingRow] = useState<any | null>(null);
   const [formData, setFormData] = useState<Record<string, any>>({});
-  // Cache for relation labels in table display
   const [relationLabels, setRelationLabels] = useState<Record<string, Record<string, string>>>({});
 
   const tableFields = fields.filter(f => f.showInTable !== false);
 
   const fetchRows = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase.from(tableName as any).select('*').order('created_at', { ascending: false });
+    let query = supabase.from(tableName as any).select('*').order('created_at', { ascending: false });
+    if (filter) {
+      Object.entries(filter).forEach(([k, v]) => { query = query.eq(k, v); });
+    }
+    const { data, error } = await query;
     if (error) {
       toast({ title: 'خطأ', description: error.message, variant: 'destructive' });
     } else {
       setRows(data || []);
     }
     setLoading(false);
-  }, [tableName]);
+  }, [tableName, filter]);
 
-  // Fetch relation labels for table display
+  // Fetch relation labels for ALL relation fields (not just showInTable)
   useEffect(() => {
-    const relationFields = fields.filter(f => f.type === 'relation' && f.relationTable && f.showInTable);
+    const relationFields = fields.filter(f => f.type === 'relation' && f.relationTable);
     relationFields.forEach(f => {
       const labelField = f.relationLabelField || 'name_ar';
       const valueField = f.relationValueField || 'id';
       supabase.from(f.relationTable as any).select(`${valueField},${labelField}`).limit(500)
         .then(({ data }) => {
           const map: Record<string, string> = {};
-          (data || []).forEach((r: any) => { map[r[valueField]] = r[labelField] || r[valueField]; });
+          (data || []).forEach((r: any) => { map[r[valueField]] = r[labelField] || r[valueField] || '—'; });
           setRelationLabels(prev => ({ ...prev, [f.key]: map }));
         });
     });
@@ -156,6 +191,7 @@ const DynamicCrud = ({ tableName, title, fields, nameField }: DynamicCrudProps) 
     fields.forEach(f => {
       if (f.type === 'boolean') defaults[f.key] = true;
       else if (f.type === 'number') defaults[f.key] = 0;
+      else if (f.type === 'time') defaults[f.key] = '09:00';
       else defaults[f.key] = '';
     });
     setFormData(defaults);
@@ -165,13 +201,13 @@ const DynamicCrud = ({ tableName, title, fields, nameField }: DynamicCrudProps) 
   const openEdit = (row: any) => {
     setEditingRow(row);
     const data: Record<string, any> = {};
-    fields.forEach(f => { data[f.key] = row[f.key] ?? ''; });
+    fields.forEach(f => { data[f.key] = row[f.key] ?? (f.type === 'time' ? '09:00' : ''); });
     setFormData(data);
     setModalOpen(true);
   };
 
   const handleSave = async () => {
-    const requiredMissing = fields.filter(f => f.required && !formData[f.key]);
+    const requiredMissing = fields.filter(f => f.required && !formData[f.key] && formData[f.key] !== 0 && formData[f.key] !== false);
     if (requiredMissing.length > 0) {
       toast({ title: 'خطأ', description: `يرجى ملء: ${requiredMissing.map(f => f.label).join(', ')}`, variant: 'destructive' });
       return;
@@ -181,6 +217,10 @@ const DynamicCrud = ({ tableName, title, fields, nameField }: DynamicCrudProps) 
     fields.forEach(f => {
       let val = formData[f.key];
       if (f.type === 'number') val = Number(val) || 0;
+      // Skip empty non-required fields
+      if (!f.required && val === '' && f.type !== 'boolean') {
+        val = null;
+      }
       payload[f.key] = val;
     });
 
@@ -206,7 +246,12 @@ const DynamicCrud = ({ tableName, title, fields, nameField }: DynamicCrudProps) 
 
   const filtered = rows.filter(r => {
     if (!search) return true;
-    return fields.some(f => (f.type === 'text' || f.type === 'date' || f.type === 'relation') && String(r[f.key] || '').includes(search));
+    return fields.some(f => {
+      if (f.type === 'relation' && relationLabels[f.key]) {
+        return (relationLabels[f.key][r[f.key]] || '').includes(search);
+      }
+      return (f.type === 'text' || f.type === 'date' || f.type === 'time') && String(r[f.key] || '').includes(search);
+    });
   });
 
   const renderCellValue = (row: any, field: FieldConfig) => {
@@ -216,8 +261,9 @@ const DynamicCrud = ({ tableName, title, fields, nameField }: DynamicCrudProps) 
     if (field.type === 'relation' && relationLabels[field.key]) return relationLabels[field.key][val] || val || '—';
     if (field.type === 'select' && field.options) {
       const opt = field.options.find(o => o.value === val);
-      return opt ? opt.label : val || '—';
+      return opt ? <Badge variant="outline" className="font-cairo text-[10px]">{opt.label}</Badge> : val || '—';
     }
+    if (field.type === 'time') return <span dir="ltr" className="font-mono text-xs">{val || '—'}</span>;
     return val || '—';
   };
 
@@ -233,25 +279,28 @@ const DynamicCrud = ({ tableName, title, fields, nameField }: DynamicCrudProps) 
     if (f.type === 'date') {
       return <DateField value={formData[f.key] || ''} onChange={v => setFormData(prev => ({ ...prev, [f.key]: v }))} />;
     }
+    if (f.type === 'time') {
+      return <TimeField value={formData[f.key] || '09:00'} onChange={v => setFormData(prev => ({ ...prev, [f.key]: v }))} />;
+    }
     if (f.type === 'relation') {
       return <RelationField field={f} value={formData[f.key] || ''} onChange={v => setFormData(prev => ({ ...prev, [f.key]: v }))} />;
     }
     if (f.type === 'select' && f.options) {
       return (
-        <select
-          value={formData[f.key] || ''}
-          onChange={e => setFormData(prev => ({ ...prev, [f.key]: e.target.value }))}
-          className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm font-cairo mt-1"
-        >
-          <option value="">اختر</option>
-          {f.options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
+        <Select value={formData[f.key] || ''} onValueChange={v => setFormData(prev => ({ ...prev, [f.key]: v }))}>
+          <SelectTrigger className="w-full font-cairo mt-1 h-10">
+            <SelectValue placeholder="اختر" />
+          </SelectTrigger>
+          <SelectContent>
+            {f.options.map(o => <SelectItem key={o.value} value={o.value} className="font-cairo">{o.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
       );
     }
     return (
       <Input
         type={f.type === 'number' ? 'number' : 'text'}
-        value={formData[f.key] || ''}
+        value={formData[f.key] ?? ''}
         onChange={e => setFormData(prev => ({ ...prev, [f.key]: e.target.value }))}
         className="font-cairo mt-1"
         dir={f.dir}
@@ -322,7 +371,7 @@ const DynamicCrud = ({ tableName, title, fields, nameField }: DynamicCrudProps) 
           <div className="space-y-3">
             {fields.map(f => (
               <div key={f.key}>
-                <Label className="font-cairo text-sm">{f.label} {f.required && '*'}</Label>
+                <Label className="font-cairo text-sm">{f.label} {f.required && <span className="text-destructive">*</span>}</Label>
                 {renderFormField(f)}
               </div>
             ))}

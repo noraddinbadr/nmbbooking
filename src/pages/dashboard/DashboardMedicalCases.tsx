@@ -2,11 +2,11 @@ import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import DynamicCrud, { type FieldConfig } from '@/components/admin/DynamicCrud';
 
 const caseFields: FieldConfig[] = [
-  { key: 'case_code', label: 'كود الحالة', type: 'text', required: true, showInTable: true, dir: 'ltr' },
+  { key: 'case_code', label: 'كود الحالة', type: 'text', showInTable: true, dir: 'ltr' },
   { key: 'diagnosis_summary', label: 'ملخص التشخيص', type: 'text', showInTable: true },
   { key: 'treatment_plan', label: 'خطة العلاج', type: 'text', showInTable: false },
   { key: 'estimated_cost', label: 'التكلفة المقدرة', type: 'number', showInTable: true, dir: 'ltr' },
-  { key: 'funded_amount', label: 'المبلغ الممول', type: 'number', showInTable: true, dir: 'ltr' },
+  { key: 'funded_amount', label: 'المبلغ الممول', type: 'number', showInTable: false, dir: 'ltr' },
   { key: 'status', label: 'الحالة', type: 'select', showInTable: true, options: [
     { value: 'open', label: 'مفتوحة' },
     { value: 'funded', label: 'ممولة' },
@@ -20,7 +20,7 @@ const caseFields: FieldConfig[] = [
     { value: 'male', label: 'ذكر' },
     { value: 'female', label: 'أنثى' },
   ]},
-  { key: 'created_by', label: 'المنشئ', type: 'relation', required: true, showInTable: false, relationTable: 'profiles', relationLabelField: 'full_name_ar', relationValueField: 'id' },
+  { key: 'created_by', label: 'المنشئ', type: 'relation', required: true, showInTable: true, relationTable: 'profiles', relationLabelField: 'full_name_ar', relationValueField: 'id' },
   { key: 'registration_id', label: 'التسجيل', type: 'relation', showInTable: false, relationTable: 'registrations', relationLabelField: 'case_code', relationValueField: 'id' },
 ];
 
