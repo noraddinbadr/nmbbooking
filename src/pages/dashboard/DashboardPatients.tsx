@@ -9,7 +9,7 @@ const profileFields: FieldConfig[] = [
     { value: 'male', label: 'ذكر' },
     { value: 'female', label: 'أنثى' },
   ]},
-  { key: 'date_of_birth', label: 'تاريخ الميلاد', type: 'text', showInTable: true, dir: 'ltr' },
+  { key: 'date_of_birth', label: 'تاريخ الميلاد', type: 'date', showInTable: true },
   { key: 'avatar_url', label: 'رابط الصورة', type: 'text', showInTable: false, dir: 'ltr' },
 ];
 

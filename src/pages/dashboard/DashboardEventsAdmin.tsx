@@ -1,6 +1,6 @@
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar, Users, FileText, Heart } from 'lucide-react';
+import { Calendar, Users, Heart } from 'lucide-react';
 import DynamicCrud, { type FieldConfig } from '@/components/admin/DynamicCrud';
 
 const campFields: FieldConfig[] = [
@@ -16,24 +16,24 @@ const campFields: FieldConfig[] = [
     { value: 'completed', label: 'مكتمل' },
     { value: 'cancelled', label: 'ملغي' },
   ]},
-  { key: 'start_date', label: 'تاريخ البداية', type: 'text', showInTable: true, dir: 'ltr' },
-  { key: 'end_date', label: 'تاريخ النهاية', type: 'text', showInTable: false, dir: 'ltr' },
+  { key: 'start_date', label: 'تاريخ البداية', type: 'date', showInTable: true },
+  { key: 'end_date', label: 'تاريخ النهاية', type: 'date', showInTable: false },
   { key: 'total_capacity', label: 'السعة الكلية', type: 'number', showInTable: true },
   { key: 'is_free', label: 'مجاني', type: 'boolean', showInTable: true },
   { key: 'target_fund', label: 'الهدف التمويلي', type: 'number', showInTable: false, dir: 'ltr' },
   { key: 'raised_fund', label: 'المبلغ المحصّل', type: 'number', showInTable: false, dir: 'ltr' },
-  { key: 'organizer_id', label: 'معرف المنظم', type: 'text', required: true, showInTable: false, dir: 'ltr' },
+  { key: 'organizer_id', label: 'المنظم', type: 'relation', required: true, showInTable: false, relationTable: 'profiles', relationLabelField: 'full_name_ar', relationValueField: 'id' },
 ];
 
 const scheduleFields: FieldConfig[] = [
-  { key: 'schedule_date', label: 'التاريخ', type: 'text', required: true, showInTable: true, dir: 'ltr' },
+  { key: 'schedule_date', label: 'التاريخ', type: 'date', required: true, showInTable: true },
   { key: 'start_time', label: 'وقت البداية', type: 'text', required: true, showInTable: true, dir: 'ltr' },
   { key: 'end_time', label: 'وقت النهاية', type: 'text', required: true, showInTable: true, dir: 'ltr' },
   { key: 'service_type', label: 'نوع الخدمة', type: 'text', showInTable: true },
   { key: 'total_slots', label: 'إجمالي المقاعد', type: 'number', showInTable: true },
   { key: 'available_slots', label: 'المقاعد المتاحة', type: 'number', showInTable: true },
   { key: 'location_note', label: 'ملاحظة الموقع', type: 'text', showInTable: false },
-  { key: 'camp_id', label: 'معرف الحدث', type: 'text', required: true, showInTable: false, dir: 'ltr' },
+  { key: 'camp_id', label: 'الحدث', type: 'relation', required: true, showInTable: false, relationTable: 'medical_camps', relationLabelField: 'title_ar', relationValueField: 'id' },
 ];
 
 const registrationFields: FieldConfig[] = [
@@ -47,9 +47,9 @@ const registrationFields: FieldConfig[] = [
     { value: 'cancelled', label: 'ملغي' },
   ]},
   { key: 'notes', label: 'ملاحظات', type: 'text', showInTable: true },
-  { key: 'camp_id', label: 'معرف الحدث', type: 'text', required: true, showInTable: false, dir: 'ltr' },
-  { key: 'schedule_id', label: 'معرف الجدول', type: 'text', required: true, showInTable: false, dir: 'ltr' },
-  { key: 'booked_by', label: 'معرف الحاجز', type: 'text', required: true, showInTable: false, dir: 'ltr' },
+  { key: 'camp_id', label: 'الحدث', type: 'relation', required: true, showInTable: false, relationTable: 'medical_camps', relationLabelField: 'title_ar', relationValueField: 'id' },
+  { key: 'schedule_id', label: 'الجدول', type: 'relation', required: true, showInTable: false, relationTable: 'event_schedules', relationLabelField: 'schedule_date', relationValueField: 'id' },
+  { key: 'booked_by', label: 'الحاجز', type: 'relation', required: true, showInTable: false, relationTable: 'profiles', relationLabelField: 'full_name_ar', relationValueField: 'id' },
 ];
 
 const donationFields: FieldConfig[] = [
@@ -67,6 +67,7 @@ const donationFields: FieldConfig[] = [
     { value: 'refunded', label: 'مسترد' },
   ]},
   { key: 'payment_reference', label: 'مرجع الدفع', type: 'text', showInTable: false, dir: 'ltr' },
+  { key: 'camp_id', label: 'الحدث', type: 'relation', showInTable: false, relationTable: 'medical_camps', relationLabelField: 'title_ar', relationValueField: 'id' },
 ];
 
 const DashboardEventsAdmin = () => (

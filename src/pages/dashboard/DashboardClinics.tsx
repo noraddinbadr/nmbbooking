@@ -9,7 +9,7 @@ const clinicFields: FieldConfig[] = [
   { key: 'city', label: 'المدينة', type: 'text', showInTable: true },
   { key: 'address', label: 'العنوان', type: 'text', showInTable: false },
   { key: 'phone', label: 'الهاتف', type: 'text', showInTable: true, dir: 'ltr' },
-  { key: 'owner_id', label: 'معرف المالك', type: 'text', required: true, showInTable: false, dir: 'ltr' },
+  { key: 'owner_id', label: 'المالك', type: 'relation', required: true, showInTable: false, relationTable: 'profiles', relationLabelField: 'full_name_ar', relationValueField: 'id' },
 ];
 
 const doctorFields: FieldConfig[] = [
@@ -26,8 +26,8 @@ const doctorFields: FieldConfig[] = [
   { key: 'is_verified', label: 'موثق', type: 'boolean', showInTable: true },
   { key: 'available_today', label: 'متاح اليوم', type: 'boolean', showInTable: true },
   { key: 'about_ar', label: 'نبذة بالعربي', type: 'text', showInTable: false },
-  { key: 'clinic_id', label: 'معرف العيادة', type: 'text', required: true, showInTable: false, dir: 'ltr' },
-  { key: 'user_id', label: 'معرف المستخدم', type: 'text', required: true, showInTable: false, dir: 'ltr' },
+  { key: 'clinic_id', label: 'العيادة', type: 'relation', required: true, showInTable: false, relationTable: 'clinics', relationLabelField: 'name_ar', relationValueField: 'id' },
+  { key: 'user_id', label: 'المستخدم', type: 'relation', required: true, showInTable: false, relationTable: 'profiles', relationLabelField: 'full_name_ar', relationValueField: 'id' },
 ];
 
 const staffFields: FieldConfig[] = [
@@ -38,8 +38,8 @@ const staffFields: FieldConfig[] = [
     { value: 'receptionist', label: 'موظف استقبال' },
   ]},
   { key: 'is_active', label: 'نشط', type: 'boolean', showInTable: true },
-  { key: 'clinic_id', label: 'معرف العيادة', type: 'text', required: true, showInTable: false, dir: 'ltr' },
-  { key: 'user_id', label: 'معرف المستخدم', type: 'text', required: true, showInTable: false, dir: 'ltr' },
+  { key: 'clinic_id', label: 'العيادة', type: 'relation', required: true, showInTable: false, relationTable: 'clinics', relationLabelField: 'name_ar', relationValueField: 'id' },
+  { key: 'user_id', label: 'المستخدم', type: 'relation', required: true, showInTable: false, relationTable: 'profiles', relationLabelField: 'full_name_ar', relationValueField: 'id' },
 ];
 
 const DashboardClinics = () => (
