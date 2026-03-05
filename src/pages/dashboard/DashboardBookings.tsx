@@ -2,7 +2,7 @@ import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import DynamicCrud, { type FieldConfig } from '@/components/admin/DynamicCrud';
 
 const bookingFields: FieldConfig[] = [
-  { key: 'booking_date', label: 'تاريخ الحجز', type: 'text', required: true, showInTable: true, dir: 'ltr' },
+  { key: 'booking_date', label: 'تاريخ الحجز', type: 'date', required: true, showInTable: true },
   { key: 'start_time', label: 'وقت البداية', type: 'text', showInTable: true, dir: 'ltr' },
   { key: 'end_time', label: 'وقت النهاية', type: 'text', showInTable: false, dir: 'ltr' },
   { key: 'status', label: 'الحالة', type: 'select', showInTable: true, options: [
@@ -24,8 +24,8 @@ const bookingFields: FieldConfig[] = [
   { key: 'is_free_case', label: 'حالة مجانية', type: 'boolean', showInTable: true },
   { key: 'queue_position', label: 'ترتيب الطابور', type: 'number', showInTable: false },
   { key: 'notes', label: 'ملاحظات', type: 'text', showInTable: false },
-  { key: 'patient_id', label: 'معرف المريض', type: 'text', required: true, showInTable: false, dir: 'ltr' },
-  { key: 'doctor_id', label: 'معرف الطبيب', type: 'text', required: true, showInTable: false, dir: 'ltr' },
+  { key: 'patient_id', label: 'المريض', type: 'relation', required: true, showInTable: false, relationTable: 'profiles', relationLabelField: 'full_name_ar', relationValueField: 'id' },
+  { key: 'doctor_id', label: 'الطبيب', type: 'relation', required: true, showInTable: false, relationTable: 'doctors', relationLabelField: 'name_ar', relationValueField: 'id' },
 ];
 
 const DashboardBookings = () => (

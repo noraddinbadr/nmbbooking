@@ -31,7 +31,7 @@ const orderFields: FieldConfig[] = [
   ]},
   { key: 'notes', label: 'ملاحظات', type: 'text', showInTable: true },
   { key: 'results_url', label: 'رابط النتائج', type: 'text', showInTable: false, dir: 'ltr' },
-  { key: 'provider_id', label: 'معرف المزود', type: 'text', required: true, showInTable: false, dir: 'ltr' },
+  { key: 'provider_id', label: 'المزود', type: 'relation', required: true, showInTable: false, relationTable: 'providers', relationLabelField: 'name_ar', relationValueField: 'id' },
 ];
 
 const DashboardProviders = () => (

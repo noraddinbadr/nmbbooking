@@ -20,7 +20,8 @@ const caseFields: FieldConfig[] = [
     { value: 'male', label: 'ذكر' },
     { value: 'female', label: 'أنثى' },
   ]},
-  { key: 'created_by', label: 'معرف المنشئ', type: 'text', required: true, showInTable: false, dir: 'ltr' },
+  { key: 'created_by', label: 'المنشئ', type: 'relation', required: true, showInTable: false, relationTable: 'profiles', relationLabelField: 'full_name_ar', relationValueField: 'id' },
+  { key: 'registration_id', label: 'التسجيل', type: 'relation', showInTable: false, relationTable: 'registrations', relationLabelField: 'case_code', relationValueField: 'id' },
 ];
 
 const DashboardMedicalCases = () => (
