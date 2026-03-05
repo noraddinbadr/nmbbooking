@@ -1,68 +1,60 @@
-import { useState } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import ProviderOrderCard from '@/components/events/ProviderOrderCard';
-import { mockProviders, mockProviderOrders } from '@/data/eventsMockData';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
-import { Package } from 'lucide-react';
+import { Package, ShoppingCart } from 'lucide-react';
+import DynamicCrud, { type FieldConfig } from '@/components/admin/DynamicCrud';
 
-const DashboardProviders = () => {
-  const { toast } = useToast();
-  const [orders, setOrders] = useState(mockProviderOrders);
+const providerFields: FieldConfig[] = [
+  { key: 'name_ar', label: 'الاسم بالعربي', type: 'text', required: true, showInTable: true },
+  { key: 'name_en', label: 'الاسم بالإنجليزي', type: 'text', showInTable: true },
+  { key: 'provider_type', label: 'النوع', type: 'select', showInTable: true, options: [
+    { value: 'lab', label: 'مختبر' },
+    { value: 'pharmacy', label: 'صيدلية' },
+    { value: 'imaging', label: 'أشعة' },
+    { value: 'supplies', label: 'مستلزمات' },
+  ]},
+  { key: 'contact_phone', label: 'الهاتف', type: 'text', showInTable: true, dir: 'ltr' },
+  { key: 'is_active', label: 'الحالة', type: 'boolean', showInTable: true },
+];
 
-  const handleUpdateStatus = (orderId: string, newStatus: string) => {
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus as typeof o.status } : o));
-    toast({ title: 'تم تحديث حالة الطلب' });
-  };
+const orderFields: FieldConfig[] = [
+  { key: 'order_type', label: 'نوع الطلب', type: 'select', showInTable: true, options: [
+    { value: 'lab_test', label: 'تحليل مخبري' },
+    { value: 'medicine', label: 'دواء' },
+    { value: 'imaging', label: 'أشعة' },
+  ]},
+  { key: 'status', label: 'الحالة', type: 'select', showInTable: true, options: [
+    { value: 'pending', label: 'معلّق' },
+    { value: 'received', label: 'مستلم' },
+    { value: 'sample_taken', label: 'تم أخذ العينة' },
+    { value: 'results_uploaded', label: 'تم رفع النتائج' },
+    { value: 'delivered', label: 'تم التسليم' },
+  ]},
+  { key: 'notes', label: 'ملاحظات', type: 'text', showInTable: true },
+  { key: 'results_url', label: 'رابط النتائج', type: 'text', showInTable: false, dir: 'ltr' },
+  { key: 'provider_id', label: 'معرف المزود', type: 'text', required: true, showInTable: false, dir: 'ltr' },
+];
 
-  return (
-    <DashboardLayout>
-      <div className="space-y-6" dir="rtl">
-        <div>
-          <h1 className="font-cairo font-bold text-xl text-foreground">بوابة مزودي الخدمات</h1>
-          <p className="font-cairo text-sm text-muted-foreground">إدارة المختبرات والصيدليات ومراكز الأشعة</p>
-        </div>
-
-        {/* Providers */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {mockProviders.map(p => (
-            <Card key={p.id}>
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Package className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-cairo font-bold text-sm text-foreground">{p.nameAr}</h3>
-                    <p className="font-cairo text-xs text-muted-foreground">{p.type === 'lab' ? 'مختبر' : p.type === 'pharmacy' ? 'صيدلية' : 'أشعة'}</p>
-                  </div>
-                </div>
-                <Badge variant={p.isActive ? 'default' : 'secondary'} className="font-cairo text-xs">
-                  {p.isActive ? 'نشط' : 'غير نشط'}
-                </Badge>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Orders */}
-        <div>
-          <h2 className="font-cairo font-bold text-base mb-4">الطلبات الواردة</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {orders.map(order => (
-              <ProviderOrderCard
-                key={order.id}
-                order={order}
-                onUpdateStatus={handleUpdateStatus}
-              />
-            ))}
-          </div>
-        </div>
+const DashboardProviders = () => (
+  <DashboardLayout>
+    <div className="space-y-4">
+      <div>
+        <h1 className="font-cairo text-xl font-bold text-foreground">مزودو الخدمات</h1>
+        <p className="font-cairo text-sm text-muted-foreground">إدارة المختبرات والصيدليات ومراكز الأشعة وطلباتها</p>
       </div>
-    </DashboardLayout>
-  );
-};
+      <Tabs defaultValue="providers" className="w-full">
+        <TabsList className="font-cairo">
+          <TabsTrigger value="providers" className="font-cairo gap-1.5"><Package className="h-3.5 w-3.5" /> المزودون</TabsTrigger>
+          <TabsTrigger value="orders" className="font-cairo gap-1.5"><ShoppingCart className="h-3.5 w-3.5" /> الطلبات</TabsTrigger>
+        </TabsList>
+        <TabsContent value="providers">
+          <DynamicCrud tableName="providers" title="مزود خدمة" fields={providerFields} nameField="name_ar" />
+        </TabsContent>
+        <TabsContent value="orders">
+          <DynamicCrud tableName="provider_orders" title="طلب" fields={orderFields} nameField="order_type" />
+        </TabsContent>
+      </Tabs>
+    </div>
+  </DashboardLayout>
+);
 
 export default DashboardProviders;
