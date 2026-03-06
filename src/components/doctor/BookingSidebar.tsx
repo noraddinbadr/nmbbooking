@@ -1,18 +1,36 @@
 import { useState, useMemo } from 'react';
-import { MapPin, Clock, Users, Gift } from 'lucide-react';
+import { MapPin, Clock, Users, Gift, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { Doctor, BookingType } from '@/data/types';
-import { generateTimeSlots, getShiftsForDate } from '@/lib/slots';
+import { BookingType } from '@/data/types';
+import { ShiftInfo, getShiftsForDate, generateSlotsForDate, markAvailability } from '@/lib/slots';
 import { bookingTypeLabels } from '@/data/mockData';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+
+interface DoctorData {
+  id: string;
+  nameAr: string;
+  basePrice: number;
+  discountType: 'none' | 'percentage' | 'fixed';
+  discountValue: number;
+  freeCasesPerShift: number;
+  bookingTypes: BookingType[];
+  waitTime: string;
+  clinicNameAr: string;
+  clinicAddress: string;
+}
 
 interface Props {
-  doctor: Doctor;
+  doctor: DoctorData & { shifts?: any[] };
 }
 
 const BookingSidebar = ({ doctor }: Props) => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [selectedShift, setSelectedShift] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
@@ -20,14 +38,67 @@ const BookingSidebar = ({ doctor }: Props) => {
   const [showBookingDialog, setShowBookingDialog] = useState(false);
   const [patientName, setPatientName] = useState('');
   const [patientPhone, setPatientPhone] = useState('');
+  const [booking, setBooking] = useState(false);
 
-  const shifts = useMemo(() => getShiftsForDate(doctor, selectedDate), [doctor, selectedDate]);
-  const slots = useMemo(() => generateTimeSlots(doctor, selectedDate), [doctor, selectedDate]);
+  // Fetch shifts from DB
+  const { data: dbShifts = [] } = useQuery({
+    queryKey: ['doctor-shifts', doctor.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('doctor_shifts')
+        .select('*')
+        .eq('doctor_id', doctor.id);
+      if (error) throw error;
+      return (data || []).map((s: any): ShiftInfo => ({
+        id: s.id,
+        label: s.label,
+        startTime: s.start_time,
+        endTime: s.end_time,
+        daysOfWeek: s.days_of_week || [],
+        enableSlotGeneration: s.enable_slot_generation || false,
+        consultationDurationMin: s.consultation_duration_min,
+        maxCapacity: s.max_capacity,
+      }));
+    },
+  });
 
-  const activeShiftId = selectedShift || (shifts.length > 0 ? shifts[0].id : null);
-  const activeShift = shifts.find(s => s.id === activeShiftId);
-  const shiftSlots = slots.filter(s => s.shiftId === activeShiftId);
-  const availableSlots = shiftSlots.filter(s => s.isAvailable);
+  // Fetch existing bookings for the selected date
+  const { data: existingBookings = [] } = useQuery({
+    queryKey: ['bookings-for-date', doctor.id, selectedDate],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('shift_id, start_time, status')
+        .eq('doctor_id', doctor.id)
+        .eq('booking_date', selectedDate);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Use DB shifts, fallback to doctor.shifts from the hook
+  const shifts: ShiftInfo[] = dbShifts.length > 0 ? dbShifts : (doctor.shifts || []).map((s: any) => ({
+    id: s.id,
+    label: s.label || s.label,
+    startTime: s.startTime || s.start_time,
+    endTime: s.endTime || s.end_time,
+    daysOfWeek: s.daysOfWeek || s.days_of_week || [],
+    enableSlotGeneration: s.enableSlotGeneration ?? s.enable_slot_generation ?? false,
+    consultationDurationMin: s.consultationDurationMin || s.consultation_duration_min,
+    maxCapacity: s.maxCapacity || s.max_capacity,
+  }));
+
+  const dateShifts = useMemo(() => getShiftsForDate(shifts, selectedDate), [shifts, selectedDate]);
+  const generatedSlots = useMemo(() => generateSlotsForDate(doctor.id, shifts, selectedDate), [doctor.id, shifts, selectedDate]);
+  const availableSlots = useMemo(
+    () => markAvailability(generatedSlots, shifts, existingBookings),
+    [generatedSlots, shifts, existingBookings]
+  );
+
+  const activeShiftId = selectedShift || (dateShifts.length > 0 ? dateShifts[0].id : null);
+  const activeShift = dateShifts.find(s => s.id === activeShiftId);
+  const shiftSlots = availableSlots.filter(s => s.shiftId === activeShiftId);
+  const freeSlots = shiftSlots.filter(s => s.isAvailable);
   const isFlexibleShift = activeShift && !activeShift.enableSlotGeneration;
 
   const dates = useMemo(() => {
@@ -52,15 +123,46 @@ const BookingSidebar = ({ doctor }: Props) => {
     return doctor.basePrice;
   }, [doctor]);
 
-  const handleConfirmBooking = () => {
+  const handleConfirmBooking = async () => {
     if (!patientName.trim()) return;
+    if (!user) {
+      toast({ title: 'يرجى تسجيل الدخول أولاً', variant: 'destructive' });
+      return;
+    }
+
+    setBooking(true);
     const slotInfo = shiftSlots.find(s => s.id === selectedSlot);
+
+    const { error } = await supabase.from('bookings').insert({
+      doctor_id: doctor.id,
+      patient_id: user.id,
+      booking_date: selectedDate,
+      shift_id: activeShiftId,
+      start_time: slotInfo?.isFlexible ? null : (slotInfo?.startTime || null),
+      end_time: slotInfo?.isFlexible ? null : (slotInfo?.endTime || null),
+      booking_type: selectedType,
+      queue_position: slotInfo?.queuePosition || null,
+      final_price: computedPrice,
+      status: 'pending',
+      notes: `الاسم: ${patientName}${patientPhone ? ` — الهاتف: ${patientPhone}` : ''}`,
+    });
+
+    setBooking(false);
+
+    if (error) {
+      toast({ title: 'خطأ في الحجز', description: error.message, variant: 'destructive' });
+      return;
+    }
+
     toast({
       title: '✅ تم الحجز بنجاح!',
       description: `تم حجز موعدك مع ${doctor.nameAr} — ${selectedDate} ${
-        isFlexibleShift ? `(${activeShift?.label} — ترتيبك: ${slotInfo?.queuePosition})` : `الساعة ${slotInfo?.startTime}`
+        isFlexibleShift ? `(${activeShift?.label})` : `الساعة ${slotInfo?.startTime}`
       }`,
     });
+
+    // Refresh bookings to update availability
+    queryClient.invalidateQueries({ queryKey: ['bookings-for-date', doctor.id, selectedDate] });
     setShowBookingDialog(false);
     setSelectedSlot(null);
     setPatientName('');
@@ -148,11 +250,11 @@ const BookingSidebar = ({ doctor }: Props) => {
           </div>
 
           {/* Shift selector */}
-          {shifts.length > 0 ? (
+          {dateShifts.length > 0 ? (
             <div>
               <p className="font-cairo text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> اختر الفترة</p>
               <div className="flex gap-2">
-                {shifts.map(shift => (
+                {dateShifts.map(shift => (
                   <button key={shift.id} onClick={() => { setSelectedShift(shift.id); setSelectedSlot(null); }} className={`flex-1 rounded-xl px-3 py-2.5 font-cairo text-xs transition-all text-center ${activeShiftId === shift.id ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-primary/10'}`}>
                     <p className="font-bold">{shift.label}</p>
                     <p className="mt-0.5 opacity-80">{shift.startTime} — {shift.endTime}</p>
@@ -173,10 +275,10 @@ const BookingSidebar = ({ doctor }: Props) => {
               {isFlexibleShift ? (
                 <div>
                   <p className="font-cairo text-xs font-medium text-muted-foreground mb-2">حجز بأسبقية الحضور</p>
-                  {availableSlots.length > 0 ? (
-                    <button onClick={() => setSelectedSlot(availableSlots[0].id)} className={`w-full rounded-xl p-4 font-cairo text-center transition-all ${selectedSlot === availableSlots[0].id ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground hover:bg-primary/10'}`}>
+                  {freeSlots.length > 0 ? (
+                    <button onClick={() => setSelectedSlot(freeSlots[0].id)} className={`w-full rounded-xl p-4 font-cairo text-center transition-all ${selectedSlot === freeSlots[0].id ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground hover:bg-primary/10'}`}>
                       <p className="text-sm font-bold">📋 احجز مكانك في الطابور</p>
-                      <p className="text-xs mt-1 opacity-80">ترتيبك: {availableSlots[0].queuePosition}{activeShift.maxCapacity && ` من ${activeShift.maxCapacity}`}</p>
+                      <p className="text-xs mt-1 opacity-80">ترتيبك: {freeSlots[0].queuePosition}{activeShift.maxCapacity && ` من ${activeShift.maxCapacity}`}</p>
                       <p className="text-xs mt-0.5 opacity-70">{activeShift.startTime} — {activeShift.endTime}</p>
                     </button>
                   ) : (
@@ -186,9 +288,9 @@ const BookingSidebar = ({ doctor }: Props) => {
               ) : (
                 <div>
                   <p className="font-cairo text-xs font-medium text-muted-foreground mb-2">المواعيد المتاحة</p>
-                  {availableSlots.length > 0 ? (
+                  {freeSlots.length > 0 ? (
                     <div className="grid grid-cols-3 gap-2">
-                      {availableSlots.map(slot => (
+                      {freeSlots.map(slot => (
                         <button key={slot.id} onClick={() => setSelectedSlot(slot.id)} className={`rounded-xl px-2 py-2.5 font-cairo text-sm font-medium transition-all ${selectedSlot === slot.id ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground hover:bg-primary/10'}`}>
                           {slot.startTime}
                         </button>
@@ -202,8 +304,8 @@ const BookingSidebar = ({ doctor }: Props) => {
             </div>
           )}
 
-          <Button className="w-full font-cairo bg-hero-gradient text-primary-foreground hover:opacity-90 text-base" size="lg" disabled={!selectedSlot} onClick={() => setShowBookingDialog(true)}>
-            احجز
+          <Button className="w-full font-cairo bg-hero-gradient text-primary-foreground hover:opacity-90 text-base" size="lg" disabled={!selectedSlot || booking} onClick={() => setShowBookingDialog(true)}>
+            {booking ? <Loader2 className="h-4 w-4 animate-spin" /> : 'احجز'}
           </Button>
           <p className="text-center font-cairo text-xs text-muted-foreground">الحجز مسبقاً والدفع عند الوصول للعيادة</p>
         </div>
@@ -234,7 +336,8 @@ const BookingSidebar = ({ doctor }: Props) => {
               <label className="font-cairo text-sm font-medium text-foreground mb-1.5 block">رقم الهاتف</label>
               <input type="tel" value={patientPhone} onChange={(e) => setPatientPhone(e.target.value)} placeholder="7XX-XXX-XXX" className="w-full rounded-xl bg-muted px-4 py-3 font-cairo text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" maxLength={15} />
             </div>
-            <Button className="w-full font-cairo bg-hero-gradient text-primary-foreground hover:opacity-90" size="lg" disabled={!patientName.trim()} onClick={handleConfirmBooking}>
+            <Button className="w-full font-cairo bg-hero-gradient text-primary-foreground hover:opacity-90" size="lg" disabled={!patientName.trim() || booking} onClick={handleConfirmBooking}>
+              {booking ? <Loader2 className="h-4 w-4 animate-spin ml-2" /> : null}
               تأكيد الحجز ✅
             </Button>
           </div>
