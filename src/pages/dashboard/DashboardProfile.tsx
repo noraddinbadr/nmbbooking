@@ -3,24 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { Camera, Upload, Save, MapPin, Phone, Globe, Clock } from 'lucide-react';
+import { Camera, Upload, Save } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
-const DAYS = [
-  { key: 'sat', label: 'السبت' },
-  { key: 'sun', label: 'الأحد' },
-  { key: 'mon', label: 'الاثنين' },
-  { key: 'tue', label: 'الثلاثاء' },
-  { key: 'wed', label: 'الأربعاء' },
-  { key: 'thu', label: 'الخميس' },
-  { key: 'fri', label: 'الجمعة' },
-];
 
 const DashboardProfile = () => {
   const { profile, hasRole, user } = useAuth();
@@ -144,64 +133,8 @@ const DashboardProfile = () => {
 
 /** Doctor-specific profile sections — only rendered for doctors */
 const DoctorProfileSections = () => {
-  const [workDays, setWorkDays] = useState(['sat', 'sun', 'mon', 'tue', 'wed']);
-
   return (
     <>
-      {/* Working Hours */}
-      <Card className="shadow-card">
-        <CardHeader><CardTitle className="font-cairo flex items-center gap-2"><Clock className="h-5 w-5" /> ساعات العمل</CardTitle></CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {DAYS.map(day => {
-              const isActive = workDays.includes(day.key);
-              return (
-                <div key={day.key} className="flex items-center gap-4">
-                  <Switch checked={isActive} onCheckedChange={checked => {
-                    setWorkDays(prev => checked ? [...prev, day.key] : prev.filter(d => d !== day.key));
-                  }} />
-                  <span className={`font-cairo text-sm w-20 ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>{day.label}</span>
-                  {isActive && (
-                    <div className="flex items-center gap-2" dir="ltr">
-                      <Input type="time" defaultValue="09:00" className="w-28 text-sm" />
-                      <span className="text-muted-foreground">→</span>
-                      <Input type="time" defaultValue="21:00" className="w-28 text-sm" />
-                    </div>
-                  )}
-                  {!isActive && <span className="font-cairo text-xs text-muted-foreground">عطلة</span>}
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Services & Pricing */}
-      <Card className="shadow-card">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="font-cairo">الخدمات والأسعار</CardTitle>
-            <Button variant="outline" size="sm" className="font-cairo">+ إضافة خدمة</Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {[
-              { name: 'كشف عيادة', duration: 30, price: 5000 },
-              { name: 'استشارة فيديو', duration: 20, price: 4000 },
-            ].map((s, i) => (
-              <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 font-cairo text-sm">
-                <span className="font-medium">{s.name}</span>
-                <div className="flex items-center gap-4">
-                  <span className="text-muted-foreground">{s.duration} دقيقة</span>
-                  <span className="font-bold text-primary">{s.price.toLocaleString()} ر.ي</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Languages */}
       <Card className="shadow-card">
         <CardHeader><CardTitle className="font-cairo">اللغات</CardTitle></CardHeader>
@@ -210,6 +143,15 @@ const DoctorProfileSections = () => {
             <Badge key={l} variant="secondary" className="font-cairo">{l}</Badge>
           ))}
           <Button variant="ghost" size="sm" className="font-cairo text-xs">+ إضافة</Button>
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-card bg-muted/30">
+        <CardContent className="py-6 text-center">
+          <p className="font-cairo text-sm text-muted-foreground">
+            لإعداد فترات العمل وساعات الدوام والأسعار والحالات المجانية، انتقل إلى{' '}
+            <a href="/dashboard/settings" className="text-primary font-bold hover:underline">صفحة الإعدادات</a>
+          </p>
         </CardContent>
       </Card>
     </>
