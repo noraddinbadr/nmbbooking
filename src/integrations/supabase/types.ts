@@ -160,8 +160,11 @@ export type Database = {
           doctor_id: string
           enable_slot_generation: boolean | null
           end_time: string
+          free_cases_count: number | null
+          free_cases_frequency: string | null
           id: string
           label: string
+          late_tolerance_min: number | null
           max_capacity: number | null
           start_time: string
         }
@@ -172,8 +175,11 @@ export type Database = {
           doctor_id: string
           enable_slot_generation?: boolean | null
           end_time?: string
+          free_cases_count?: number | null
+          free_cases_frequency?: string | null
           id?: string
           label?: string
+          late_tolerance_min?: number | null
           max_capacity?: number | null
           start_time?: string
         }
@@ -184,8 +190,11 @@ export type Database = {
           doctor_id?: string
           enable_slot_generation?: boolean | null
           end_time?: string
+          free_cases_count?: number | null
+          free_cases_frequency?: string | null
           id?: string
           label?: string
+          late_tolerance_min?: number | null
           max_capacity?: number | null
           start_time?: string
         }
