@@ -546,6 +546,42 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body_ar: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          is_read: boolean
+          title_ar: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          body_ar?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          is_read?: boolean
+          title_ar: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          body_ar?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          is_read?: boolean
+          title_ar?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       prescription_items: {
         Row: {
           dosage: string | null

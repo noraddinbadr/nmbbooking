@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Calendar, ClipboardList, Users,
   Stethoscope, BarChart3, Bell, LogOut, Menu, X, ChevronLeft,
-  UserCog, Settings, Heart, Package, UserCheck, ShieldCheck
+  UserCog, Settings, Heart, Package, UserCheck, ShieldCheck, Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +13,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from '@/hooks/useNotifications';
+import { toast } from 'sonner';
 import type { Database } from '@/integrations/supabase/types';
 
 type AppRole = Database['public']['Enums']['app_role'];
@@ -39,7 +41,6 @@ const allNavItems: NavItem[] = [
   { path: '/dashboard/users', icon: ShieldCheck, label: 'إدارة المستخدمين', roles: ['admin'] },
   { path: '/dashboard/catalog', icon: Stethoscope, label: 'إدارة الكتالوج', roles: ['admin'] },
   { path: '/dashboard/settings', icon: Settings, label: 'الإعدادات' },
-  // Patient-specific
   { path: '/my-bookings', icon: ClipboardList, label: 'حجوزاتي', roles: ['patient'] },
   { path: '/dashboard/profile', icon: UserCog, label: 'ملفي الشخصي', roles: ['patient'] },
 ];
@@ -48,7 +49,27 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { profile, roles, hasRole, signOut } = useAuth();
+  const { profile, roles, signOut } = useAuth();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, realtimeNotification, clearRealtimeNotification } = useNotifications();
+
+  // Show toast on realtime notification
+  useEffect(() => {
+    if (realtimeNotification) {
+      toast(realtimeNotification.title_ar, {
+        description: realtimeNotification.body_ar || '',
+        action: {
+          label: 'عرض',
+          onClick: () => {
+            markAsRead(realtimeNotification.id);
+            if (realtimeNotification.entity_type === 'booking') {
+              navigate('/dashboard/bookings');
+            }
+          },
+        },
+      });
+      clearRealtimeNotification();
+    }
+  }, [realtimeNotification]);
 
   const navItems = allNavItems.filter(item => {
     if (!item.roles) return true;
@@ -58,14 +79,14 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const displayName = profile?.full_name || profile?.full_name_ar || 'المستخدم';
   const initials = displayName.charAt(0);
   const roleLabelMap: Partial<Record<AppRole, string>> = {
-    admin: 'مدير النظام',
-    doctor: 'طبيب',
-    clinic_admin: 'مدير عيادة',
-    staff: 'موظف',
-    patient: 'مريض',
+    admin: 'مدير النظام', doctor: 'طبيب', clinic_admin: 'مدير عيادة', staff: 'موظف', patient: 'مريض',
   };
   const primaryRole = (['admin', 'doctor', 'clinic_admin', 'staff', 'patient'] as AppRole[]).find(r => roles.includes(r));
   const roleLabel = primaryRole ? roleLabelMap[primaryRole] || '' : '';
+
+  const typeIcons: Record<string, string> = {
+    booking: '📅', review: '⭐', lab: '🧪', cancel: '❌', reminder: '🔔',
+  };
 
   return (
     <div className="min-h-screen bg-background flex" dir="rtl">
@@ -140,19 +161,61 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             </div>
 
             <div className="flex items-center gap-1.5">
+              {/* Notifications dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative h-9 w-9">
                     <Bell className="h-4 w-4" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-72 font-cairo">
-                  <DropdownMenuLabel>الإشعارات</DropdownMenuLabel>
+                <DropdownMenuContent align="start" className="w-80 font-cairo max-h-96 overflow-y-auto">
+                  <div className="flex items-center justify-between px-2">
+                    <DropdownMenuLabel>الإشعارات</DropdownMenuLabel>
+                    {unreadCount > 0 && (
+                      <Button variant="ghost" size="sm" className="font-cairo text-xs h-7" onClick={markAllAsRead}>
+                        <Check className="h-3 w-3 ml-1" /> قراءة الكل
+                      </Button>
+                    )}
+                  </div>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-sm text-muted-foreground">لا توجد إشعارات جديدة</DropdownMenuItem>
+                  {notifications.length === 0 ? (
+                    <DropdownMenuItem className="text-sm text-muted-foreground justify-center py-6">
+                      لا توجد إشعارات
+                    </DropdownMenuItem>
+                  ) : (
+                    notifications.slice(0, 10).map(n => (
+                      <DropdownMenuItem
+                        key={n.id}
+                        className={cn(
+                          "flex flex-col items-start gap-1 p-3 cursor-pointer",
+                          !n.is_read && "bg-primary/5"
+                        )}
+                        onClick={() => {
+                          markAsRead(n.id);
+                          if (n.entity_type === 'booking') navigate('/dashboard/bookings');
+                        }}
+                      >
+                        <div className="flex items-center gap-2 w-full">
+                          <span>{typeIcons[n.type] || '🔔'}</span>
+                          <span className="font-medium text-foreground text-sm">{n.title_ar}</span>
+                          {!n.is_read && <span className="mr-auto h-2 w-2 rounded-full bg-primary" />}
+                        </div>
+                        {n.body_ar && <p className="text-xs text-muted-foreground pr-6">{n.body_ar}</p>}
+                        <p className="text-[10px] text-muted-foreground pr-6">
+                          {new Date(n.created_at).toLocaleString('ar-YE', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })}
+                        </p>
+                      </DropdownMenuItem>
+                    ))
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
 
+              {/* User menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-muted transition-colors">
