@@ -3,12 +3,28 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { dashboardStats, dashboardAppointments } from '@/data/dashboardMockData';
-import { Download, TrendingUp, TrendingDown, Users, DollarSign, Star, CalendarCheck, PieChart, BarChart3 } from 'lucide-react';
+import { useDashboardStats } from '@/hooks/useDashboardStats';
+import { Download, TrendingUp, Users, DollarSign, Star, CalendarCheck, PieChart, BarChart3, Loader2 } from 'lucide-react';
 
 const DashboardReports = () => {
-  const stats = dashboardStats.monthlyStats;
-  const tomorrowAppts = dashboardAppointments.filter(a => a.slotDate === '2026-02-23');
+  const { data: stats, isLoading } = useDashboardStats();
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const rating = stats?.rating || 0;
+  const totalReviews = stats?.totalReviews || 0;
+  const dailyRevenue = stats?.dailyRevenue || 0;
+  const todayTotal = stats?.todayTotal || 0;
+  const todayCompleted = stats?.todayCompleted || 0;
+  const attendanceRate = todayTotal > 0 ? Math.round((todayCompleted / todayTotal) * 100) : 0;
 
   return (
     <DashboardLayout>
@@ -18,16 +34,15 @@ const DashboardReports = () => {
           <Button variant="outline" className="font-cairo gap-2"><Download className="h-4 w-4" /> تصدير PDF</Button>
         </div>
 
-        {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="shadow-card">
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <Users className="h-5 w-5 text-primary" />
-                <Badge className="font-cairo text-xs bg-emerald-500/10 text-emerald-600"><TrendingUp className="h-3 w-3 inline" /> +12%</Badge>
+                <Badge className="font-cairo text-xs bg-emerald-500/10 text-emerald-600"><TrendingUp className="h-3 w-3 inline" /> ديناميكي</Badge>
               </div>
-              <p className="font-cairo text-2xl font-bold text-foreground">{stats.patientsTreated}</p>
-              <p className="font-cairo text-xs text-muted-foreground">مرضى معالجون هذا الشهر</p>
+              <p className="font-cairo text-2xl font-bold text-foreground">{todayTotal}</p>
+              <p className="font-cairo text-xs text-muted-foreground">مرضى اليوم</p>
             </CardContent>
           </Card>
 
@@ -35,10 +50,9 @@ const DashboardReports = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <DollarSign className="h-5 w-5 text-emerald-500" />
-                <Badge className="font-cairo text-xs bg-emerald-500/10 text-emerald-600"><TrendingUp className="h-3 w-3 inline" /> +8%</Badge>
               </div>
-              <p className="font-cairo text-2xl font-bold text-foreground">{stats.totalRevenue.toLocaleString()}</p>
-              <p className="font-cairo text-xs text-muted-foreground">ريال — إيرادات الشهر</p>
+              <p className="font-cairo text-2xl font-bold text-foreground">{dailyRevenue.toLocaleString()}</p>
+              <p className="font-cairo text-xs text-muted-foreground">ريال — إيرادات اليوم</p>
             </CardContent>
           </Card>
 
@@ -47,24 +61,8 @@ const DashboardReports = () => {
               <div className="flex items-center justify-between mb-2">
                 <Star className="h-5 w-5 text-amber-500" />
               </div>
-              <p className="font-cairo text-2xl font-bold text-foreground">4.8★</p>
-              <p className="font-cairo text-xs text-muted-foreground">من 127 تقييم</p>
-              {/* Rating breakdown */}
-              <div className="mt-2 space-y-1">
-                {[
-                  { stars: 5, pct: 72 },
-                  { stars: 4, pct: 18 },
-                  { stars: 3, pct: 6 },
-                  { stars: 2, pct: 3 },
-                  { stars: 1, pct: 1 },
-                ].map(r => (
-                  <div key={r.stars} className="flex items-center gap-2">
-                    <span className="font-cairo text-[10px] w-4">{r.stars}★</span>
-                    <Progress value={r.pct} className="h-1.5 flex-1" />
-                    <span className="font-cairo text-[10px] text-muted-foreground w-8">{r.pct}%</span>
-                  </div>
-                ))}
-              </div>
+              <p className="font-cairo text-2xl font-bold text-foreground">{rating}★</p>
+              <p className="font-cairo text-xs text-muted-foreground">من {totalReviews} تقييم</p>
             </CardContent>
           </Card>
 
@@ -73,80 +71,45 @@ const DashboardReports = () => {
               <div className="flex items-center justify-between mb-2">
                 <CalendarCheck className="h-5 w-5 text-primary" />
               </div>
-              <p className="font-cairo text-2xl font-bold text-foreground">{stats.attendanceRate}%</p>
-              <p className="font-cairo text-xs text-muted-foreground">معدل الحضور</p>
-              <Progress value={stats.attendanceRate} className="mt-2 h-2" />
-              <p className="font-cairo text-[10px] text-muted-foreground mt-1">{100 - stats.attendanceRate}% لم يحضروا</p>
+              <p className="font-cairo text-2xl font-bold text-foreground">{attendanceRate}%</p>
+              <p className="font-cairo text-xs text-muted-foreground">معدل الإكمال</p>
+              <Progress value={attendanceRate} className="mt-2 h-2" />
             </CardContent>
           </Card>
         </div>
 
-        {/* Revenue Chart + Top Services */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Revenue Trend */}
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="font-cairo text-lg flex items-center gap-2"><BarChart3 className="h-5 w-5" /> اتجاه الإيرادات (6 أشهر)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-end gap-3 h-40">
-                {[180000, 200000, 220000, 195000, 240000, 250000].map((v, i) => {
-                  const months = ['سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر', 'يناير', 'فبراير'];
-                  const max = 250000;
-                  return (
-                    <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                      <span className="font-cairo text-[10px] text-muted-foreground">{(v / 1000).toFixed(0)}K</span>
-                      <div className="w-full rounded-t bg-primary/80 transition-all" style={{ height: `${(v / max) * 120}px` }} />
-                      <span className="font-cairo text-[10px] text-muted-foreground">{months[i]}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Top Services */}
-          <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="font-cairo text-lg flex items-center gap-2"><PieChart className="h-5 w-5" /> أكثر الخدمات طلباً</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {stats.topServices.map((service, i) => {
-                const colors = ['bg-primary', 'bg-emerald-500', 'bg-amber-500', 'bg-blue-500'];
-                return (
-                  <div key={i}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-cairo text-sm text-foreground">{service.name}</span>
-                      <span className="font-cairo text-sm font-bold text-foreground">{service.percentage}%</span>
-                    </div>
-                    <div className="w-full h-2.5 bg-muted rounded-full">
-                      <div className={`h-full rounded-full ${colors[i]} transition-all`} style={{ width: `${service.percentage}%` }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Tomorrow's Schedule */}
         <Card className="shadow-card">
           <CardHeader>
-            <CardTitle className="font-cairo text-lg">جدول الغد — {stats.tomorrowAppointments} موعد</CardTitle>
+            <CardTitle className="font-cairo text-lg flex items-center gap-2"><BarChart3 className="h-5 w-5" /> ملخص المواعيد اليوم</CardTitle>
           </CardHeader>
           <CardContent>
-            {tomorrowAppts.length > 0 ? (
-              <div className="space-y-2">
-                {tomorrowAppts.map(a => (
-                  <div key={a.id} className="flex items-center justify-between p-2 rounded bg-muted/50 font-cairo text-sm">
-                    <span>{a.patientName} — {a.slotTime}</span>
-                    <Badge variant="secondary" className="font-cairo text-xs">{a.bookingType === 'video' ? '📹' : '🏥'}</Badge>
-                  </div>
-                ))}
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="rounded-xl bg-emerald-500/10 p-4">
+                <p className="font-cairo text-2xl font-bold text-emerald-600">{todayCompleted}</p>
+                <p className="font-cairo text-xs text-muted-foreground">مكتمل</p>
               </div>
-            ) : (
-              <p className="font-cairo text-sm text-muted-foreground text-center py-6">لا توجد مواعيد غداً بعد</p>
-            )}
+              <div className="rounded-xl bg-amber-500/10 p-4">
+                <p className="font-cairo text-2xl font-bold text-amber-600">{stats?.todayPending || 0}</p>
+                <p className="font-cairo text-xs text-muted-foreground">معلّق</p>
+              </div>
+              <div className="rounded-xl bg-primary/10 p-4">
+                <p className="font-cairo text-2xl font-bold text-primary">{stats?.waitingPatients || 0}</p>
+                <p className="font-cairo text-xs text-muted-foreground">بالانتظار</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="shadow-card">
+          <CardHeader>
+            <CardTitle className="font-cairo text-lg">مواعيد الغد — {stats?.tomorrowCount || 0} موعد</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="font-cairo text-sm text-muted-foreground text-center py-6">
+              {(stats?.tomorrowCount || 0) > 0
+                ? `لديك ${stats?.tomorrowCount} موعد غداً`
+                : 'لا توجد مواعيد غداً بعد'}
+            </p>
           </CardContent>
         </Card>
       </div>

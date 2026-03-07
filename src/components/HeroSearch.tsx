@@ -1,7 +1,8 @@
-import { Search } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useHomeStats } from '@/hooks/useHomeStats';
 import { specialties, cities } from '@/data/mockData';
 
 const HeroSearch = () => {
@@ -9,6 +10,7 @@ const HeroSearch = () => {
   const [city, setCity] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
+  const { data: stats, isLoading } = useHomeStats();
 
   const handleSearch = () => {
     const params = new URLSearchParams();
@@ -20,7 +22,6 @@ const HeroSearch = () => {
 
   return (
     <section className="relative overflow-hidden bg-hero-gradient py-20 md:py-28">
-      {/* Background decoration */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-primary-foreground blur-3xl" />
         <div className="absolute -bottom-20 -left-20 h-96 w-96 rounded-full bg-primary-foreground blur-3xl" />
@@ -31,10 +32,9 @@ const HeroSearch = () => {
           احجز موعدك مع أفضل الأطباء
         </h1>
         <p className="mx-auto mt-4 max-w-2xl font-cairo text-lg text-primary-foreground/80">
-          ابحث عن طبيبك المفضل واحجز موعدك بسهولة. أكثر من 500 طبيب في مختلف التخصصات.
+          ابحث عن طبيبك المفضل واحجز موعدك بسهولة. أكثر من {stats?.doctorCount || '...'} طبيب في مختلف التخصصات.
         </p>
 
-        {/* Search bar */}
         <div className="mx-auto mt-10 max-w-4xl">
           <div className="flex flex-col gap-3 rounded-2xl bg-card p-3 shadow-hero md:flex-row md:items-center">
             <div className="flex-1">
@@ -80,19 +80,23 @@ const HeroSearch = () => {
           </div>
         </div>
 
-        {/* Stats */}
+        {/* Dynamic Stats */}
         <div className="mt-12 flex flex-wrap items-center justify-center gap-8 md:gap-16">
-          {[
-            { value: '+500', label: 'طبيب' },
-            { value: '+50K', label: 'حجز ناجح' },
-            { value: '4.8', label: 'تقييم' },
-            { value: '6', label: 'مدن' },
-          ].map((stat) => (
-            <div key={stat.label} className="text-center">
-              <div className="font-cairo text-3xl font-extrabold text-primary-foreground">{stat.value}</div>
-              <div className="mt-1 font-cairo text-sm text-primary-foreground/70">{stat.label}</div>
-            </div>
-          ))}
+          {isLoading ? (
+            <Loader2 className="h-6 w-6 animate-spin text-primary-foreground" />
+          ) : (
+            [
+              { value: `+${stats?.doctorCount || 0}`, label: 'طبيب' },
+              { value: `+${stats?.bookingCount || 0}`, label: 'حجز ناجح' },
+              { value: stats?.avgRating?.toFixed(1) || '0', label: 'تقييم' },
+              { value: String(stats?.cityCount || 0), label: 'مدن' },
+            ].map((stat) => (
+              <div key={stat.label} className="text-center">
+                <div className="font-cairo text-3xl font-extrabold text-primary-foreground">{stat.value}</div>
+                <div className="mt-1 font-cairo text-sm text-primary-foreground/70">{stat.label}</div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </section>
