@@ -99,16 +99,24 @@ const ActiveConsultation = () => {
 
   // Load booking, patient, doctor, history
   useEffect(() => {
-    if (!bookingId || !user) return;
+    if (!consultationBookingId || !user) {
+      setLoading(false);
+      return;
+    }
+
     const load = async () => {
       setLoading(true);
+
       // Get doctor record
       const { data: doc } = await supabase.from('doctors').select('id').eq('user_id', user.id).maybeSingle();
       if (doc) setDoctorId(doc.id);
 
       // Get booking
-      const { data: bk } = await supabase.from('bookings').select('*').eq('id', bookingId).maybeSingle();
-      if (!bk) { setLoading(false); return; }
+      const { data: bk } = await supabase.from('bookings').select('*').eq('id', consultationBookingId).maybeSingle();
+      if (!bk) {
+        setLoading(false);
+        return;
+      }
       setBooking(bk as BookingRecord);
 
       // Get patient profile
@@ -123,17 +131,21 @@ const ActiveConsultation = () => {
       const [sessRes, rxRes, ordRes, visitsRes] = await Promise.all([
         supabase.from('treatment_sessions').select('*').eq('patient_id', bk.patient_id).order('session_date', { ascending: false }).limit(10),
         supabase.from('prescriptions').select('*, prescription_items(*)').eq('patient_id', bk.patient_id).order('created_at', { ascending: false }).limit(10),
-        supabase.from('provider_orders').select('*, providers(name_ar)').order('created_at', { ascending: false }).limit(10),
+        supabase.from('provider_orders').select('*, providers(name_ar)').order('created_at', { ascending: false }).limit(50),
         supabase.from('bookings').select('id', { count: 'exact' }).eq('patient_id', bk.patient_id),
       ]);
+
+      const patientOrders = (ordRes.data || []).filter((order: any) => order?.order_details?.patient_id === bk.patient_id);
+
       setPastSessions(sessRes.data || []);
       setPastPrescriptions(rxRes.data || []);
-      setPastOrders(ordRes.data || []);
+      setPastOrders(patientOrders);
       setTotalVisits(visitsRes.count || 0);
       setLoading(false);
     };
+
     load();
-  }, [bookingId, user]);
+  }, [consultationBookingId, user]);
 
   const patientName = patient?.full_name_ar || patient?.full_name || 'مريض';
   const patientAge = patient?.date_of_birth
