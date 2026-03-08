@@ -95,7 +95,7 @@ const DashboardSettings = () => {
   const [newStaffName, setNewStaffName] = useState('');
   const [newStaffRole, setNewStaffRole] = useState<StaffRole>('receptionist');
 
-  // ─── Overlap detection ───
+  // ─── Overlap & invalid time detection ───
   const overlappingShiftIds = useMemo(() => {
     const ids = new Set<string>();
     for (let i = 0; i < shifts.length; i++) {
@@ -112,7 +112,17 @@ const DashboardSettings = () => {
     return ids;
   }, [shifts]);
 
+  const invalidTimeShiftIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const s of shifts) {
+      if (s.start_time >= s.end_time) ids.add(s.id);
+    }
+    return ids;
+  }, [shifts]);
+
   const hasOverlap = overlappingShiftIds.size > 0;
+  const hasInvalidTime = invalidTimeShiftIds.size > 0;
+  const hasShiftErrors = hasOverlap || hasInvalidTime;
 
   const [saving, setSaving] = useState(false);
 
