@@ -434,12 +434,12 @@ const DashboardSettings = () => {
                   <div className="flex items-center gap-4" dir="ltr">
                     <div className="flex items-center gap-2">
                       <Label className="text-xs text-muted-foreground w-10">From</Label>
-                      <Input type="time" value={shift.start_time} onChange={e => updateShift(shift.id, { start_time: e.target.value })} className="w-28 text-sm" />
+                      <Input type="time" value={shift.start_time} onChange={e => updateShift(shift.id, { start_time: e.target.value })} className={`w-28 text-sm ${isConflict ? 'border-destructive text-destructive' : ''}`} />
                     </div>
                     <span className="text-muted-foreground">→</span>
                     <div className="flex items-center gap-2">
                       <Label className="text-xs text-muted-foreground w-10">To</Label>
-                      <Input type="time" value={shift.end_time} onChange={e => updateShift(shift.id, { end_time: e.target.value })} className="w-28 text-sm" />
+                      <Input type="time" value={shift.end_time} onChange={e => updateShift(shift.id, { end_time: e.target.value })} className={`w-28 text-sm ${isConflict ? 'border-destructive text-destructive' : ''}`} />
                     </div>
                   </div>
 
