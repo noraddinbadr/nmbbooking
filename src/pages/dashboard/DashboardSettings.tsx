@@ -95,6 +95,25 @@ const DashboardSettings = () => {
   const [newStaffName, setNewStaffName] = useState('');
   const [newStaffRole, setNewStaffRole] = useState<StaffRole>('receptionist');
 
+  // ─── Overlap detection ───
+  const overlappingShiftIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (let i = 0; i < shifts.length; i++) {
+      for (let j = i + 1; j < shifts.length; j++) {
+        const a = shifts[i], b = shifts[j];
+        const daysOverlap = a.days_of_week.some(d => b.days_of_week.includes(d));
+        const timeOverlap = a.start_time < b.end_time && a.end_time > b.start_time;
+        if (daysOverlap && timeOverlap) {
+          ids.add(a.id);
+          ids.add(b.id);
+        }
+      }
+    }
+    return ids;
+  }, [shifts]);
+
+  const hasOverlap = overlappingShiftIds.size > 0;
+
   const [saving, setSaving] = useState(false);
 
   // ─── Load data ───
