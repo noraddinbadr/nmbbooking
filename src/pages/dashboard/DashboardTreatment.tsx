@@ -14,7 +14,7 @@ import {
   TestTube, History, Printer, Share2, Download, Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { ar } from 'date-fns/locale';
+import { toast } from '@/hooks/use-toast';
 
 interface BookingWithPatient {
   id: string;

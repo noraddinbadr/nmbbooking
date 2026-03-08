@@ -49,13 +49,13 @@ interface BookingRecord {
 const ActiveConsultation = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const bookingId = searchParams.get('booking');
+  const consultationBookingId = searchParams.get('booking') || searchParams.get('appointment');
   const { user } = useAuth();
 
   const [booking, setBooking] = useState<BookingRecord | null>(null);
   const [patient, setPatient] = useState<PatientProfile | null>(null);
   const [doctorId, setDoctorId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(consultationBookingId));
   const [saving, setSaving] = useState(false);
 
   // Patient history
