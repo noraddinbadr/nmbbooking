@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { toast } from '@/hooks/use-toast';
 import { BookingType } from '@/data/types';
 import { ShiftInfo, getShiftsForDate, generateSlotsForDate, markAvailability } from '@/lib/slots';
-import { bookingTypeLabels } from '@/data/mockData';
+import { bookingTypeLabels } from '@/data/constants';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
