@@ -95,7 +95,7 @@ const DashboardSettings = () => {
   const [newStaffName, setNewStaffName] = useState('');
   const [newStaffRole, setNewStaffRole] = useState<StaffRole>('receptionist');
 
-  // ─── Overlap detection ───
+  // ─── Overlap & invalid time detection ───
   const overlappingShiftIds = useMemo(() => {
     const ids = new Set<string>();
     for (let i = 0; i < shifts.length; i++) {
@@ -112,7 +112,17 @@ const DashboardSettings = () => {
     return ids;
   }, [shifts]);
 
+  const invalidTimeShiftIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const s of shifts) {
+      if (s.start_time >= s.end_time) ids.add(s.id);
+    }
+    return ids;
+  }, [shifts]);
+
   const hasOverlap = overlappingShiftIds.size > 0;
+  const hasInvalidTime = invalidTimeShiftIds.size > 0;
+  const hasShiftErrors = hasOverlap || hasInvalidTime;
 
   const [saving, setSaving] = useState(false);
 
@@ -266,6 +276,10 @@ const DashboardSettings = () => {
   // ─── SAVE ALL ───
   const handleSave = async () => {
     if (!doctorId) return;
+    if (hasInvalidTime) {
+      toast({ title: '⚠️ خطأ في الأوقات', description: 'وقت البداية يجب أن يكون قبل وقت النهاية', variant: 'destructive' });
+      return;
+    }
     if (hasOverlap) {
       toast({ title: '⚠️ يوجد تعارض في الفترات', description: 'عدّل الفترات المتعارضة (المحددة بالأحمر) قبل الحفظ', variant: 'destructive' });
       return;
@@ -409,11 +423,19 @@ const DashboardSettings = () => {
                 <p className="font-cairo text-sm text-destructive font-medium">يوجد تعارض بين الفترات المحددة بالأحمر — عدّل الأوقات أو الأيام قبل الحفظ</p>
               </div>
             )}
+            {hasInvalidTime && (
+              <div className="flex items-center gap-2 rounded-xl border border-destructive bg-destructive/10 px-4 py-3">
+                <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
+                <p className="font-cairo text-sm text-destructive font-medium">بعض الفترات بها خطأ: وقت البداية يجب أن يكون قبل وقت النهاية</p>
+              </div>
+            )}
 
             {shifts.map(shift => {
               const isConflict = overlappingShiftIds.has(shift.id);
+              const isInvalidTime = invalidTimeShiftIds.has(shift.id);
+              const hasError = isConflict || isInvalidTime;
               return (
-              <Card key={shift.id} className={`shadow-card transition-all ${isConflict ? 'border-2 border-destructive ring-2 ring-destructive/20' : ''}`}>
+              <Card key={shift.id} className={`shadow-card transition-all ${hasError ? 'border-2 border-destructive ring-2 ring-destructive/20' : ''}`}>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -423,6 +445,7 @@ const DashboardSettings = () => {
                         className="font-cairo font-bold text-base border-none bg-transparent p-0 h-auto w-48 focus-visible:ring-0"
                       />
                       {isConflict && <Badge variant="destructive" className="font-cairo text-xs">⚠️ تعارض</Badge>}
+                      {isInvalidTime && <Badge variant="destructive" className="font-cairo text-xs">⏰ وقت خاطئ</Badge>}
                     </div>
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeShift(shift.id)}>
                       <Trash2 className="h-4 w-4" />
@@ -434,12 +457,12 @@ const DashboardSettings = () => {
                   <div className="flex items-center gap-4" dir="ltr">
                     <div className="flex items-center gap-2">
                       <Label className="text-xs text-muted-foreground w-10">From</Label>
-                      <Input type="time" value={shift.start_time} onChange={e => updateShift(shift.id, { start_time: e.target.value })} className={`w-28 text-sm ${isConflict ? 'border-destructive text-destructive' : ''}`} />
+                      <Input type="time" value={shift.start_time} onChange={e => updateShift(shift.id, { start_time: e.target.value })} className={`w-28 text-sm ${hasError ? 'border-destructive text-destructive' : ''}`} />
                     </div>
                     <span className="text-muted-foreground">→</span>
                     <div className="flex items-center gap-2">
                       <Label className="text-xs text-muted-foreground w-10">To</Label>
-                      <Input type="time" value={shift.end_time} onChange={e => updateShift(shift.id, { end_time: e.target.value })} className={`w-28 text-sm ${isConflict ? 'border-destructive text-destructive' : ''}`} />
+                      <Input type="time" value={shift.end_time} onChange={e => updateShift(shift.id, { end_time: e.target.value })} className={`w-28 text-sm ${hasError ? 'border-destructive text-destructive' : ''}`} />
                     </div>
                   </div>
 
