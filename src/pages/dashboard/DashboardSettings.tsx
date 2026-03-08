@@ -403,15 +403,27 @@ const DashboardSettings = () => {
               </Card>
             )}
 
-            {shifts.map(shift => (
-              <Card key={shift.id} className="shadow-card">
+            {hasOverlap && (
+              <div className="flex items-center gap-2 rounded-xl border border-destructive bg-destructive/10 px-4 py-3">
+                <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
+                <p className="font-cairo text-sm text-destructive font-medium">يوجد تعارض بين الفترات المحددة بالأحمر — عدّل الأوقات أو الأيام قبل الحفظ</p>
+              </div>
+            )}
+
+            {shifts.map(shift => {
+              const isConflict = overlappingShiftIds.has(shift.id);
+              return (
+              <Card key={shift.id} className={`shadow-card transition-all ${isConflict ? 'border-2 border-destructive ring-2 ring-destructive/20' : ''}`}>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <Input
-                      value={shift.label}
-                      onChange={e => updateShift(shift.id, { label: e.target.value })}
-                      className="font-cairo font-bold text-base border-none bg-transparent p-0 h-auto w-48 focus-visible:ring-0"
-                    />
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={shift.label}
+                        onChange={e => updateShift(shift.id, { label: e.target.value })}
+                        className="font-cairo font-bold text-base border-none bg-transparent p-0 h-auto w-48 focus-visible:ring-0"
+                      />
+                      {isConflict && <Badge variant="destructive" className="font-cairo text-xs">⚠️ تعارض</Badge>}
+                    </div>
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeShift(shift.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
