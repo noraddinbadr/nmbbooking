@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Clock, Users } from 'lucide-react';
 import type { EventSchedule } from '@/data/eventsTypes';
-import { serviceLabels } from '@/data/eventsMockData';
+import { serviceLabels } from '@/data/constants';
 
 interface SlotButtonProps {
   schedule: EventSchedule;

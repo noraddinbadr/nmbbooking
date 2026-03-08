@@ -7,14 +7,15 @@ import DoctorAbout from '@/components/doctor/DoctorAbout';
 import DoctorReviews from '@/components/doctor/DoctorReviews';
 import BookingSidebar from '@/components/doctor/BookingSidebar';
 import { useDoctor } from '@/hooks/useDoctors';
-import { reviews as allReviews } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
 
 const DoctorProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: doctor, isLoading } = useDoctor(id || '');
-  const doctorReviews = allReviews.filter(r => r.doctorId === id);
+
+  // TODO: fetch reviews from DB when reviews table is created
+  const doctorReviews: any[] = [];
 
   if (isLoading) {
     return (

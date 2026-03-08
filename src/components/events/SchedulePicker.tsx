@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { EventSchedule } from '@/data/eventsTypes';
-import { serviceLabels } from '@/data/eventsMockData';
+import { serviceLabels } from '@/data/constants';
 import SlotButton from './SlotButton';
 
 interface SchedulePickerProps {

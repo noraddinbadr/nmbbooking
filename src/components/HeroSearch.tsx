@@ -3,7 +3,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useHomeStats } from '@/hooks/useHomeStats';
-import { specialties, cities } from '@/data/mockData';
+import { cities, serviceLabels } from '@/data/constants';
+import { useDoctors } from '@/hooks/useDoctors';
 
 const HeroSearch = () => {
   const [specialty, setSpecialty] = useState('');
@@ -11,6 +12,12 @@ const HeroSearch = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const { data: stats, isLoading } = useHomeStats();
+  const { data: doctors = [] } = useDoctors();
+
+  // Build specialties from actual DB doctors
+  const specialties = Array.from(
+    new Map(doctors.filter(d => d.specialty).map(d => [d.specialty, d.specialtyAr])).entries()
+  ).map(([id, nameAr]) => ({ id, nameAr }));
 
   const handleSearch = () => {
     const params = new URLSearchParams();

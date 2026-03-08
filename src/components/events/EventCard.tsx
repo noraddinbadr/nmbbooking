@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import type { MedicalCamp } from '@/data/eventsTypes';
-import { serviceLabels, statusLabels } from '@/data/eventsMockData';
+import { serviceLabels, statusLabels } from '@/data/constants';
 import { Link } from 'react-router-dom';
 
 interface EventCardProps {

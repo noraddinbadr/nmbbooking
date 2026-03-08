@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CheckCircle, Search } from 'lucide-react';
 import type { Registration, RegistrationStatus } from '@/data/eventsTypes';
-import { statusLabels } from '@/data/eventsMockData';
+import { statusLabels } from '@/data/constants';
 import CSVExport from './CSVExport';
 
 interface RegistrationsTableProps {

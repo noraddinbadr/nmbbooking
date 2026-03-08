@@ -4,34 +4,62 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { mockRegistrations, statusLabels } from '@/data/eventsMockData';
-import { Search, CheckCircle, UserCheck } from 'lucide-react';
+import { statusLabels } from '@/data/constants';
+import { Search, CheckCircle, UserCheck, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+
+interface RegistrationResult {
+  id: string;
+  case_code: string;
+  status: string | null;
+  patient_info: any;
+}
 
 const KioskCheckin = () => {
   const [search, setSearch] = useState('');
-  const [found, setFound] = useState<typeof mockRegistrations[0] | null>(null);
+  const [found, setFound] = useState<RegistrationResult | null>(null);
   const [checkedIn, setCheckedIn] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleSearch = () => {
-    const result = mockRegistrations.find(
-      r => r.caseCode.toLowerCase() === search.toLowerCase() ||
-           r.patientInfo?.phone === search
-    );
-    setFound(result || null);
+  const handleSearch = async () => {
+    if (!search.trim()) return;
+    setLoading(true);
+    setFound(null);
     setCheckedIn(false);
-    if (!result) {
+
+    const { data } = await supabase
+      .from('registrations')
+      .select('id, case_code, status, patient_info')
+      .or(`case_code.ilike.${search},patient_info->>phone.eq.${search}`)
+      .limit(1)
+      .maybeSingle();
+
+    setLoading(false);
+    if (data) {
+      setFound(data as RegistrationResult);
+    } else {
       toast({ title: 'لم يتم العثور على تسجيل', variant: 'destructive' });
     }
   };
 
-  const handleCheckin = () => {
+  const handleCheckin = async () => {
     if (!found) return;
-    // TODO: supabase update
+    const { error } = await supabase
+      .from('registrations')
+      .update({ status: 'checked_in', checked_in_at: new Date().toISOString() })
+      .eq('id', found.id);
+
+    if (error) {
+      toast({ title: 'خطأ', description: error.message, variant: 'destructive' });
+      return;
+    }
     setCheckedIn(true);
     toast({ title: 'تم تسجيل الحضور بنجاح' });
   };
+
+  const patientInfo = found?.patient_info as { name?: string; phone?: string } | null;
 
   return (
     <DashboardLayout>
@@ -53,8 +81,8 @@ const KioskCheckin = () => {
             className="font-cairo text-lg text-center"
             autoFocus
           />
-          <Button onClick={handleSearch} className="font-cairo gap-1">
-            <Search className="h-4 w-4" /> بحث
+          <Button onClick={handleSearch} className="font-cairo gap-1" disabled={loading}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />} بحث
           </Button>
         </div>
 
@@ -62,12 +90,12 @@ const KioskCheckin = () => {
           <Card className="animate-fade-in">
             <CardContent className="p-6 space-y-4 text-center">
               <Badge className="text-sm font-cairo" variant={found.status === 'confirmed' ? 'default' : 'secondary'}>
-                {statusLabels[found.status]}
+                {statusLabels[found.status || 'held']}
               </Badge>
               <div className="space-y-2">
-                <p className="font-cairo font-bold text-lg text-foreground">{found.patientInfo?.name}</p>
-                <p className="font-cairo text-sm text-muted-foreground">كود: {found.caseCode}</p>
-                <p className="font-cairo text-sm text-muted-foreground">هاتف: {found.patientInfo?.phone}</p>
+                <p className="font-cairo font-bold text-lg text-foreground">{patientInfo?.name || 'مريض'}</p>
+                <p className="font-cairo text-sm text-muted-foreground">كود: {found.case_code}</p>
+                {patientInfo?.phone && <p className="font-cairo text-sm text-muted-foreground">هاتف: {patientInfo.phone}</p>}
               </div>
 
               {checkedIn ? (
@@ -81,7 +109,7 @@ const KioskCheckin = () => {
                 </Button>
               ) : (
                 <p className="font-cairo text-destructive text-sm">
-                  لا يمكن تسجيل الحضور — الحالة: {statusLabels[found.status]}
+                  لا يمكن تسجيل الحضور — الحالة: {statusLabels[found.status || 'held']}
                 </p>
               )}
             </CardContent>

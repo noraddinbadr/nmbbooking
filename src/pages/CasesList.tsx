@@ -1,22 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { mockCases, statusLabels } from '@/data/eventsMockData';
+import { statusLabels } from '@/data/constants';
 import DonateModal from '@/components/events/DonateModal';
 import type { MedicalCase } from '@/data/eventsTypes';
-import { Heart, User } from 'lucide-react';
+import { Heart, User, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const CasesList = () => {
   const [donateCase, setDonateCase] = useState<MedicalCase | null>(null);
+  const [cases, setCases] = useState<MedicalCase[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetch = async () => {
+      const { data } = await supabase.from('medical_cases').select('*').in('status', ['open', 'partially_funded']).order('created_at', { ascending: false });
+      setCases((data || []).map((mc: any): MedicalCase => ({
+        id: mc.id, registrationId: mc.registration_id || '', caseCode: mc.case_code,
+        diagnosisSummary: mc.diagnosis_summary || '', treatmentPlan: mc.treatment_plan || '',
+        estimatedCost: mc.estimated_cost || 0, fundedAmount: mc.funded_amount || 0,
+        status: mc.status || 'open', isAnonymous: mc.is_anonymous ?? true,
+        patientAge: mc.patient_age, patientGender: mc.patient_gender || '',
+        createdBy: mc.created_by, createdAt: mc.created_at,
+      })));
+      setLoading(false);
+    };
+    fetch();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
       <Navbar />
-
       <section className="bg-hero-gradient py-10 px-4">
         <div className="container max-w-4xl mx-auto text-center">
           <Heart className="h-8 w-8 text-primary-foreground/80 mx-auto mb-3" />
@@ -26,75 +44,52 @@ const CasesList = () => {
       </section>
 
       <section className="container max-w-4xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {mockCases.map(c => {
-            const percent = c.estimatedCost > 0 ? Math.round((c.fundedAmount / c.estimatedCost) * 100) : 0;
-            const remaining = c.estimatedCost - c.fundedAmount;
-
-            return (
-              <Card key={c.id} className="overflow-hidden">
-                <CardContent className="p-5 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                        <User className="h-4 w-4 text-muted-foreground" />
+        {loading ? (
+          <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+        ) : cases.length === 0 ? (
+          <div className="text-center py-16"><p className="font-cairo text-muted-foreground">لا توجد حالات حالياً</p></div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {cases.map(c => {
+              const percent = c.estimatedCost > 0 ? Math.round((c.fundedAmount / c.estimatedCost) * 100) : 0;
+              const remaining = c.estimatedCost - c.fundedAmount;
+              return (
+                <Card key={c.id} className="overflow-hidden">
+                  <CardContent className="p-5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center"><User className="h-4 w-4 text-muted-foreground" /></div>
+                        <div>
+                          <span className="font-mono text-xs text-muted-foreground">{c.caseCode}</span>
+                          {c.patientAge && <p className="text-[10px] text-muted-foreground font-cairo">{c.patientGender === 'male' ? 'ذكر' : 'أنثى'} — {c.patientAge} سنة</p>}
+                        </div>
                       </div>
-                      <div>
-                        <span className="font-mono text-xs text-muted-foreground">{c.caseCode}</span>
-                        {c.patientAge && (
-                          <p className="text-[10px] text-muted-foreground font-cairo">
-                            {c.patientGender === 'male' ? 'ذكر' : 'أنثى'} — {c.patientAge} سنة
-                          </p>
-                        )}
+                      <Badge className={c.status === 'open' ? 'bg-destructive/10 text-destructive' : 'bg-amber-50 text-amber-500'} variant="secondary">{statusLabels[c.status]}</Badge>
+                    </div>
+                    <div>
+                      <h3 className="font-cairo font-bold text-sm text-foreground mb-1">{c.diagnosisSummary}</h3>
+                      <p className="font-cairo text-xs text-muted-foreground">{c.treatmentPlan}</p>
+                    </div>
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs font-cairo"><span className="text-muted-foreground">التمويل</span><span className="text-primary font-bold">{percent}%</span></div>
+                      <Progress value={percent} className="h-2" />
+                      <div className="flex justify-between text-[10px] font-cairo text-muted-foreground">
+                        <span>تم تمويل {c.fundedAmount.toLocaleString()} ر.ي</span>
+                        <span>المتبقي {remaining.toLocaleString()} ر.ي</span>
                       </div>
                     </div>
-                    <Badge
-                      className={c.status === 'open' ? 'bg-destructive/10 text-destructive' : 'bg-amber-50 text-amber-500'}
-                      variant="secondary"
-                    >
-                      {statusLabels[c.status]}
-                    </Badge>
-                  </div>
-
-                  <div>
-                    <h3 className="font-cairo font-bold text-sm text-foreground mb-1">{c.diagnosisSummary}</h3>
-                    <p className="font-cairo text-xs text-muted-foreground">{c.treatmentPlan}</p>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <div className="flex justify-between text-xs font-cairo">
-                      <span className="text-muted-foreground">التمويل</span>
-                      <span className="text-primary font-bold">{percent}%</span>
-                    </div>
-                    <Progress value={percent} className="h-2" />
-                    <div className="flex justify-between text-[10px] font-cairo text-muted-foreground">
-                      <span>تم تمويل {c.fundedAmount.toLocaleString()} ر.ي</span>
-                      <span>المتبقي {remaining.toLocaleString()} ر.ي</span>
-                    </div>
-                  </div>
-
-                  <Button
-                    onClick={() => setDonateCase(c)}
-                    className="w-full font-cairo gap-1"
-                    variant={c.status === 'open' ? 'default' : 'outline'}
-                  >
-                    <Heart className="h-4 w-4" /> تبرع الآن
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                    <Button onClick={() => setDonateCase(c)} className="w-full font-cairo gap-1" variant={c.status === 'open' ? 'default' : 'outline'}>
+                      <Heart className="h-4 w-4" /> تبرع الآن
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
       </section>
 
-      {donateCase && (
-        <DonateModal
-          open={!!donateCase}
-          onClose={() => setDonateCase(null)}
-          medicalCase={donateCase}
-        />
-      )}
-
+      {donateCase && <DonateModal open={!!donateCase} onClose={() => setDonateCase(null)} medicalCase={donateCase} />}
       <Footer />
     </div>
   );

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, Package } from 'lucide-react';
 import type { ProviderOrder } from '@/data/eventsTypes';
-import { statusLabels } from '@/data/eventsMockData';
+import { statusLabels } from '@/data/constants';
 
 interface ProviderOrderCardProps {
   order: ProviderOrder;

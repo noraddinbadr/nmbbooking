@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Star, MapPin, Clock, CheckCircle, Sparkles } from 'lucide-react';
 import { Doctor } from '@/data/types';
-import { bookingTypeLabels } from '@/data/mockData';
+import { bookingTypeLabels } from '@/data/constants';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 

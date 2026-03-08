@@ -4,7 +4,7 @@ import { Filter, SlidersHorizontal, Loader2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import DoctorCard from '@/components/DoctorCard';
-import { specialties, cities } from '@/data/mockData';
+import { cities } from '@/data/constants';
 import { useDoctors } from '@/hooks/useDoctors';
 import { Button } from '@/components/ui/button';
 
@@ -23,9 +23,19 @@ const Doctors = () => {
 
   const { data: doctors = [], isLoading } = useDoctors();
 
+  // Build specialties from DB doctors
+  const specialties = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const d of doctors) {
+      if (d.specialty && !map.has(d.specialty)) {
+        map.set(d.specialty, d.specialtyAr || d.specialty);
+      }
+    }
+    return Array.from(map.entries()).map(([id, nameAr]) => ({ id, nameAr }));
+  }, [doctors]);
+
   const filtered = useMemo(() => {
     let result = [...doctors];
-
     if (specialty) result = result.filter(d => d.specialty === specialty);
     if (city) result = result.filter(d => d.city === city);
     if (gender) result = result.filter(d => d.gender === gender);
@@ -35,12 +45,10 @@ const Doctors = () => {
         d.nameAr.includes(q) || d.nameEn.toLowerCase().includes(q) || d.specialtyAr.includes(q)
       );
     }
-
     if (sortBy === 'rating') result.sort((a, b) => b.rating - a.rating);
     else if (sortBy === 'price_low') result.sort((a, b) => a.basePrice - b.basePrice);
     else if (sortBy === 'price_high') result.sort((a, b) => b.basePrice - a.basePrice);
     else if (sortBy === 'reviews') result.sort((a, b) => b.totalReviews - a.totalReviews);
-
     return result;
   }, [doctors, specialty, city, gender, query, sortBy]);
 
