@@ -281,12 +281,30 @@ const DashboardSettings = () => {
         };
 
         if (shift.id.startsWith('new-')) {
-          const { data } = await supabase.from('doctor_shifts').insert(payload).select('id').single();
+          const { data, error: shiftErr } = await supabase.from('doctor_shifts').insert(payload).select('id').single();
+          if (shiftErr) {
+            if (shiftErr.message.includes('تعارض') || shiftErr.code === '23505') {
+              toast({ title: '⚠️ تعارض في الفترات', description: `الفترة "${shift.label}" تتعارض مع فترة أخرى في نفس الأيام والأوقات`, variant: 'destructive' });
+            } else {
+              toast({ title: 'خطأ', description: shiftErr.message, variant: 'destructive' });
+            }
+            setSaving(false);
+            return;
+          }
           if (data) {
             setShifts(prev => prev.map(s => s.id === shift.id ? { ...s, id: data.id } : s));
           }
         } else {
-          await supabase.from('doctor_shifts').update(payload).eq('id', shift.id);
+          const { error: shiftErr } = await supabase.from('doctor_shifts').update(payload).eq('id', shift.id);
+          if (shiftErr) {
+            if (shiftErr.message.includes('تعارض') || shiftErr.code === '23505') {
+              toast({ title: '⚠️ تعارض في الفترات', description: `الفترة "${shift.label}" تتعارض مع فترة أخرى في نفس الأيام والأوقات`, variant: 'destructive' });
+            } else {
+              toast({ title: 'خطأ', description: shiftErr.message, variant: 'destructive' });
+            }
+            setSaving(false);
+            return;
+          }
         }
       }
 
