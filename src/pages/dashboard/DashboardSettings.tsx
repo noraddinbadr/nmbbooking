@@ -555,7 +555,8 @@ const DashboardSettings = () => {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </TabsContent>
 
           {/* ═══════ PRICING TAB ═══════ */}
