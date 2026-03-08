@@ -423,11 +423,19 @@ const DashboardSettings = () => {
                 <p className="font-cairo text-sm text-destructive font-medium">يوجد تعارض بين الفترات المحددة بالأحمر — عدّل الأوقات أو الأيام قبل الحفظ</p>
               </div>
             )}
+            {hasInvalidTime && (
+              <div className="flex items-center gap-2 rounded-xl border border-destructive bg-destructive/10 px-4 py-3">
+                <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
+                <p className="font-cairo text-sm text-destructive font-medium">بعض الفترات بها خطأ: وقت البداية يجب أن يكون قبل وقت النهاية</p>
+              </div>
+            )}
 
             {shifts.map(shift => {
               const isConflict = overlappingShiftIds.has(shift.id);
+              const isInvalidTime = invalidTimeShiftIds.has(shift.id);
+              const hasError = isConflict || isInvalidTime;
               return (
-              <Card key={shift.id} className={`shadow-card transition-all ${isConflict ? 'border-2 border-destructive ring-2 ring-destructive/20' : ''}`}>
+              <Card key={shift.id} className={`shadow-card transition-all ${hasError ? 'border-2 border-destructive ring-2 ring-destructive/20' : ''}`}>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
