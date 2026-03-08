@@ -276,6 +276,10 @@ const DashboardSettings = () => {
   // ─── SAVE ALL ───
   const handleSave = async () => {
     if (!doctorId) return;
+    if (hasInvalidTime) {
+      toast({ title: '⚠️ خطأ في الأوقات', description: 'وقت البداية يجب أن يكون قبل وقت النهاية', variant: 'destructive' });
+      return;
+    }
     if (hasOverlap) {
       toast({ title: '⚠️ يوجد تعارض في الفترات', description: 'عدّل الفترات المتعارضة (المحددة بالأحمر) قبل الحفظ', variant: 'destructive' });
       return;
