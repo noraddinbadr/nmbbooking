@@ -143,7 +143,7 @@ const DashboardHome = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       {(appt.status === 'confirmed' || appt.status === 'pending') && (
-                        <Button size="sm" variant="outline" className="font-cairo text-xs gap-1 h-7" onClick={() => navigate(`/dashboard/consultation?appointment=${appt.id}`)}>
+                        <Button size="sm" variant="outline" className="font-cairo text-xs gap-1 h-7" onClick={() => navigate(`/dashboard/consultation?booking=${appt.id}`)}>
                           ▶ بدء
                         </Button>
                       )}

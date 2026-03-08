@@ -120,7 +120,7 @@ const MyBookings = () => {
         ) : !user ? (
           <div className="rounded-2xl border border-border bg-card p-12 text-center shadow-card">
             <p className="font-cairo text-lg text-muted-foreground">يرجى تسجيل الدخول لعرض حجوزاتك</p>
-            <Button className="mt-4 font-cairo" onClick={() => navigate('/signin')}>تسجيل الدخول</Button>
+            <Button className="mt-4 font-cairo" onClick={() => navigate('/sign-in')}>تسجيل الدخول</Button>
           </div>
         ) : (
           <Tabs defaultValue="upcoming" className="w-full">

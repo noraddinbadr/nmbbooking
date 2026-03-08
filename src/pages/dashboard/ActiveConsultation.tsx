@@ -49,13 +49,13 @@ interface BookingRecord {
 const ActiveConsultation = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const bookingId = searchParams.get('booking');
+  const consultationBookingId = searchParams.get('booking') || searchParams.get('appointment');
   const { user } = useAuth();
 
   const [booking, setBooking] = useState<BookingRecord | null>(null);
   const [patient, setPatient] = useState<PatientProfile | null>(null);
   const [doctorId, setDoctorId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(consultationBookingId));
   const [saving, setSaving] = useState(false);
 
   // Patient history
@@ -99,16 +99,24 @@ const ActiveConsultation = () => {
 
   // Load booking, patient, doctor, history
   useEffect(() => {
-    if (!bookingId || !user) return;
+    if (!consultationBookingId || !user) {
+      setLoading(false);
+      return;
+    }
+
     const load = async () => {
       setLoading(true);
+
       // Get doctor record
       const { data: doc } = await supabase.from('doctors').select('id').eq('user_id', user.id).maybeSingle();
       if (doc) setDoctorId(doc.id);
 
       // Get booking
-      const { data: bk } = await supabase.from('bookings').select('*').eq('id', bookingId).maybeSingle();
-      if (!bk) { setLoading(false); return; }
+      const { data: bk } = await supabase.from('bookings').select('*').eq('id', consultationBookingId).maybeSingle();
+      if (!bk) {
+        setLoading(false);
+        return;
+      }
       setBooking(bk as BookingRecord);
 
       // Get patient profile
@@ -123,17 +131,21 @@ const ActiveConsultation = () => {
       const [sessRes, rxRes, ordRes, visitsRes] = await Promise.all([
         supabase.from('treatment_sessions').select('*').eq('patient_id', bk.patient_id).order('session_date', { ascending: false }).limit(10),
         supabase.from('prescriptions').select('*, prescription_items(*)').eq('patient_id', bk.patient_id).order('created_at', { ascending: false }).limit(10),
-        supabase.from('provider_orders').select('*, providers(name_ar)').order('created_at', { ascending: false }).limit(10),
+        supabase.from('provider_orders').select('*, providers(name_ar)').order('created_at', { ascending: false }).limit(50),
         supabase.from('bookings').select('id', { count: 'exact' }).eq('patient_id', bk.patient_id),
       ]);
+
+      const patientOrders = (ordRes.data || []).filter((order: any) => order?.order_details?.patient_id === bk.patient_id);
+
       setPastSessions(sessRes.data || []);
       setPastPrescriptions(rxRes.data || []);
-      setPastOrders(ordRes.data || []);
+      setPastOrders(patientOrders);
       setTotalVisits(visitsRes.count || 0);
       setLoading(false);
     };
+
     load();
-  }, [bookingId, user]);
+  }, [consultationBookingId, user]);
 
   const patientName = patient?.full_name_ar || patient?.full_name || 'مريض';
   const patientAge = patient?.date_of_birth
@@ -185,34 +197,47 @@ const ActiveConsultation = () => {
 
       // 3. Create provider orders for labs/imaging/procedures
       if (selectedProvider && (selectedLabs.length > 0 || selectedImaging.length > 0 || selectedProcedures.length > 0)) {
+        const baseOrderContext = {
+          patient_id: booking.patient_id,
+          booking_id: booking.id,
+          doctor_id: doctorId,
+        };
+
         const orders: any[] = [];
+
         if (selectedLabs.length > 0) {
-          const labNames = selectedLabs.map(id => catalogLabTests.find(t => t.id === id)?.nameAr).filter(Boolean);
+          const labItems = selectedLabs.map(id => catalogLabTests.find(t => t.id === id)).filter(Boolean);
+          const labNames = labItems.map((item: any) => item.nameAr).filter(Boolean);
           orders.push({
             provider_id: selectedProvider,
             order_type: 'lab',
             notes: `تحاليل: ${labNames.join('، ')}`,
-            order_details: { items: selectedLabs.map(id => catalogLabTests.find(t => t.id === id)) },
+            order_details: { ...baseOrderContext, items: labItems },
           });
         }
+
         if (selectedImaging.length > 0) {
-          const imgNames = selectedImaging.map(id => catalogImaging.find(i => i.id === id)?.nameAr).filter(Boolean);
+          const imagingItems = selectedImaging.map(id => catalogImaging.find(i => i.id === id)).filter(Boolean);
+          const imgNames = imagingItems.map((item: any) => item.nameAr).filter(Boolean);
           orders.push({
             provider_id: selectedProvider,
             order_type: 'imaging',
             notes: `أشعة: ${imgNames.join('، ')}`,
-            order_details: { items: selectedImaging.map(id => catalogImaging.find(i => i.id === id)) },
+            order_details: { ...baseOrderContext, items: imagingItems },
           });
         }
+
         if (selectedProcedures.length > 0) {
-          const procNames = selectedProcedures.map(id => catalogProcedures.find(p => p.id === id)?.nameAr).filter(Boolean);
+          const procedureItems = selectedProcedures.map(id => catalogProcedures.find(p => p.id === id)).filter(Boolean);
+          const procNames = procedureItems.map((item: any) => item.nameAr).filter(Boolean);
           orders.push({
             provider_id: selectedProvider,
             order_type: 'procedure',
             notes: `إجراءات: ${procNames.join('، ')}`,
-            order_details: { items: selectedProcedures.map(id => catalogProcedures.find(p => p.id === id)) },
+            order_details: { ...baseOrderContext, items: procedureItems },
           });
         }
+
         if (orders.length > 0) {
           await supabase.from('provider_orders').insert(orders);
         }

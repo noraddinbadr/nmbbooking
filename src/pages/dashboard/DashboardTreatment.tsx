@@ -14,7 +14,7 @@ import {
   TestTube, History, Printer, Share2, Download, Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { ar } from 'date-fns/locale';
+import { toast } from '@/hooks/use-toast';
 
 interface BookingWithPatient {
   id: string;
@@ -119,6 +119,20 @@ const DashboardTreatment = () => {
     fetchBookings();
   }, [doctorId, dateFilter]);
 
+  // Update booking status (approve/cancel)
+  const updateBookingStatus = async (bookingId: string, status: 'confirmed' | 'cancelled') => {
+    const { error } = await supabase.from('bookings').update({ status }).eq('id', bookingId);
+
+    if (error) {
+      toast({ title: 'خطأ', description: error.message, variant: 'destructive' });
+      return false;
+    }
+
+    setBookings(prev => prev.map(b => (b.id === bookingId ? { ...b, status } : b)));
+    toast({ title: 'تم', description: status === 'confirmed' ? 'تم تأكيد الحجز' : 'تم إلغاء الحجز' });
+    return true;
+  };
+
   // Fetch patient medical history
   const openPatientHistory = async (patientId: string, patientName: string) => {
     setSelectedPatientId(patientId);
@@ -142,14 +156,21 @@ const DashboardTreatment = () => {
         .order('created_at', { ascending: false }),
     ]);
 
+    const patientOrders = (ordersRes.data || []).filter((order: any) => order?.order_details?.patient_id === patientId);
+
     setSessions((sessionsRes.data as TreatmentSession[]) || []);
     setPrescriptions((prescriptionsRes.data as PrescriptionWithItems[]) || []);
-    setLabOrders(ordersRes.data || []);
+    setLabOrders(patientOrders);
     setHistoryLoading(false);
   };
 
-  const startConsultation = (bookingId: string) => {
-    navigate(`/dashboard/consultation?booking=${bookingId}`);
+  const startConsultation = async (booking: BookingWithPatient) => {
+    if (booking.status === 'pending') {
+      const confirmed = await updateBookingStatus(booking.id, 'confirmed');
+      if (!confirmed) return;
+    }
+
+    navigate(`/dashboard/consultation?booking=${booking.id}`);
   };
 
   const todayBookings = bookings.filter(b => !search ||
@@ -243,9 +264,29 @@ const DashboardTreatment = () => {
                     )}
 
                     <div className="flex items-center gap-2">
+                      {booking.status === 'pending' && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="font-cairo text-xs"
+                          onClick={() => updateBookingStatus(booking.id, 'confirmed')}
+                        >
+                          تأكيد
+                        </Button>
+                      )}
                       {(booking.status === 'confirmed' || booking.status === 'pending') && (
-                        <Button size="sm" className="font-cairo text-xs gap-1" onClick={() => startConsultation(booking.id)}>
+                        <Button size="sm" className="font-cairo text-xs gap-1" onClick={() => startConsultation(booking)}>
                           <Play className="h-3 w-3" /> بدء الجلسة
+                        </Button>
+                      )}
+                      {(booking.status === 'confirmed' || booking.status === 'pending') && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="font-cairo text-xs"
+                          onClick={() => updateBookingStatus(booking.id, 'cancelled')}
+                        >
+                          إلغاء
                         </Button>
                       )}
                       <Button size="sm" variant="outline" className="font-cairo text-xs gap-1"
