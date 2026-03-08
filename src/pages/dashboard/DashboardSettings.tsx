@@ -445,6 +445,7 @@ const DashboardSettings = () => {
                         className="font-cairo font-bold text-base border-none bg-transparent p-0 h-auto w-48 focus-visible:ring-0"
                       />
                       {isConflict && <Badge variant="destructive" className="font-cairo text-xs">⚠️ تعارض</Badge>}
+                      {isInvalidTime && <Badge variant="destructive" className="font-cairo text-xs">⏰ وقت خاطئ</Badge>}
                     </div>
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeShift(shift.id)}>
                       <Trash2 className="h-4 w-4" />
