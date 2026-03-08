@@ -8,7 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useHolds } from '@/hooks/useHolds';
 import HoldCountdown from './HoldCountdown';
 import type { EventSchedule, MedicalCamp } from '@/data/eventsTypes';
-import { serviceLabels } from '@/data/eventsMockData';
+import { serviceLabels } from '@/data/constants';
 import { CheckCircle, Loader2 } from 'lucide-react';
 
 interface RegisterModalProps {
