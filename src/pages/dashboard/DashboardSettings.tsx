@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -94,6 +94,25 @@ const DashboardSettings = () => {
   const [showAddStaff, setShowAddStaff] = useState(false);
   const [newStaffName, setNewStaffName] = useState('');
   const [newStaffRole, setNewStaffRole] = useState<StaffRole>('receptionist');
+
+  // ─── Overlap detection ───
+  const overlappingShiftIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (let i = 0; i < shifts.length; i++) {
+      for (let j = i + 1; j < shifts.length; j++) {
+        const a = shifts[i], b = shifts[j];
+        const daysOverlap = a.days_of_week.some(d => b.days_of_week.includes(d));
+        const timeOverlap = a.start_time < b.end_time && a.end_time > b.start_time;
+        if (daysOverlap && timeOverlap) {
+          ids.add(a.id);
+          ids.add(b.id);
+        }
+      }
+    }
+    return ids;
+  }, [shifts]);
+
+  const hasOverlap = overlappingShiftIds.size > 0;
 
   const [saving, setSaving] = useState(false);
 
@@ -247,6 +266,10 @@ const DashboardSettings = () => {
   // ─── SAVE ALL ───
   const handleSave = async () => {
     if (!doctorId) return;
+    if (hasOverlap) {
+      toast({ title: '⚠️ يوجد تعارض في الفترات', description: 'عدّل الفترات المتعارضة (المحددة بالأحمر) قبل الحفظ', variant: 'destructive' });
+      return;
+    }
     setSaving(true);
 
     try {
@@ -380,15 +403,27 @@ const DashboardSettings = () => {
               </Card>
             )}
 
-            {shifts.map(shift => (
-              <Card key={shift.id} className="shadow-card">
+            {hasOverlap && (
+              <div className="flex items-center gap-2 rounded-xl border border-destructive bg-destructive/10 px-4 py-3">
+                <AlertCircle className="h-5 w-5 text-destructive shrink-0" />
+                <p className="font-cairo text-sm text-destructive font-medium">يوجد تعارض بين الفترات المحددة بالأحمر — عدّل الأوقات أو الأيام قبل الحفظ</p>
+              </div>
+            )}
+
+            {shifts.map(shift => {
+              const isConflict = overlappingShiftIds.has(shift.id);
+              return (
+              <Card key={shift.id} className={`shadow-card transition-all ${isConflict ? 'border-2 border-destructive ring-2 ring-destructive/20' : ''}`}>
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <Input
-                      value={shift.label}
-                      onChange={e => updateShift(shift.id, { label: e.target.value })}
-                      className="font-cairo font-bold text-base border-none bg-transparent p-0 h-auto w-48 focus-visible:ring-0"
-                    />
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={shift.label}
+                        onChange={e => updateShift(shift.id, { label: e.target.value })}
+                        className="font-cairo font-bold text-base border-none bg-transparent p-0 h-auto w-48 focus-visible:ring-0"
+                      />
+                      {isConflict && <Badge variant="destructive" className="font-cairo text-xs">⚠️ تعارض</Badge>}
+                    </div>
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeShift(shift.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -399,12 +434,12 @@ const DashboardSettings = () => {
                   <div className="flex items-center gap-4" dir="ltr">
                     <div className="flex items-center gap-2">
                       <Label className="text-xs text-muted-foreground w-10">From</Label>
-                      <Input type="time" value={shift.start_time} onChange={e => updateShift(shift.id, { start_time: e.target.value })} className="w-28 text-sm" />
+                      <Input type="time" value={shift.start_time} onChange={e => updateShift(shift.id, { start_time: e.target.value })} className={`w-28 text-sm ${isConflict ? 'border-destructive text-destructive' : ''}`} />
                     </div>
                     <span className="text-muted-foreground">→</span>
                     <div className="flex items-center gap-2">
                       <Label className="text-xs text-muted-foreground w-10">To</Label>
-                      <Input type="time" value={shift.end_time} onChange={e => updateShift(shift.id, { end_time: e.target.value })} className="w-28 text-sm" />
+                      <Input type="time" value={shift.end_time} onChange={e => updateShift(shift.id, { end_time: e.target.value })} className={`w-28 text-sm ${isConflict ? 'border-destructive text-destructive' : ''}`} />
                     </div>
                   </div>
 
@@ -520,7 +555,8 @@ const DashboardSettings = () => {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+              );
+            })}
           </TabsContent>
 
           {/* ═══════ PRICING TAB ═══════ */}
