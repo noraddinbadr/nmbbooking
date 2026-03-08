@@ -197,34 +197,47 @@ const ActiveConsultation = () => {
 
       // 3. Create provider orders for labs/imaging/procedures
       if (selectedProvider && (selectedLabs.length > 0 || selectedImaging.length > 0 || selectedProcedures.length > 0)) {
+        const baseOrderContext = {
+          patient_id: booking.patient_id,
+          booking_id: booking.id,
+          doctor_id: doctorId,
+        };
+
         const orders: any[] = [];
+
         if (selectedLabs.length > 0) {
-          const labNames = selectedLabs.map(id => catalogLabTests.find(t => t.id === id)?.nameAr).filter(Boolean);
+          const labItems = selectedLabs.map(id => catalogLabTests.find(t => t.id === id)).filter(Boolean);
+          const labNames = labItems.map((item: any) => item.nameAr).filter(Boolean);
           orders.push({
             provider_id: selectedProvider,
             order_type: 'lab',
             notes: `تحاليل: ${labNames.join('، ')}`,
-            order_details: { items: selectedLabs.map(id => catalogLabTests.find(t => t.id === id)) },
+            order_details: { ...baseOrderContext, items: labItems },
           });
         }
+
         if (selectedImaging.length > 0) {
-          const imgNames = selectedImaging.map(id => catalogImaging.find(i => i.id === id)?.nameAr).filter(Boolean);
+          const imagingItems = selectedImaging.map(id => catalogImaging.find(i => i.id === id)).filter(Boolean);
+          const imgNames = imagingItems.map((item: any) => item.nameAr).filter(Boolean);
           orders.push({
             provider_id: selectedProvider,
             order_type: 'imaging',
             notes: `أشعة: ${imgNames.join('، ')}`,
-            order_details: { items: selectedImaging.map(id => catalogImaging.find(i => i.id === id)) },
+            order_details: { ...baseOrderContext, items: imagingItems },
           });
         }
+
         if (selectedProcedures.length > 0) {
-          const procNames = selectedProcedures.map(id => catalogProcedures.find(p => p.id === id)?.nameAr).filter(Boolean);
+          const procedureItems = selectedProcedures.map(id => catalogProcedures.find(p => p.id === id)).filter(Boolean);
+          const procNames = procedureItems.map((item: any) => item.nameAr).filter(Boolean);
           orders.push({
             provider_id: selectedProvider,
             order_type: 'procedure',
             notes: `إجراءات: ${procNames.join('، ')}`,
-            order_details: { items: selectedProcedures.map(id => catalogProcedures.find(p => p.id === id)) },
+            order_details: { ...baseOrderContext, items: procedureItems },
           });
         }
+
         if (orders.length > 0) {
           await supabase.from('provider_orders').insert(orders);
         }

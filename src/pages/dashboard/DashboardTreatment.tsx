@@ -264,9 +264,29 @@ const DashboardTreatment = () => {
                     )}
 
                     <div className="flex items-center gap-2">
+                      {booking.status === 'pending' && (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="font-cairo text-xs"
+                          onClick={() => updateBookingStatus(booking.id, 'confirmed')}
+                        >
+                          تأكيد
+                        </Button>
+                      )}
                       {(booking.status === 'confirmed' || booking.status === 'pending') && (
-                        <Button size="sm" className="font-cairo text-xs gap-1" onClick={() => startConsultation(booking.id)}>
+                        <Button size="sm" className="font-cairo text-xs gap-1" onClick={() => startConsultation(booking)}>
                           <Play className="h-3 w-3" /> بدء الجلسة
+                        </Button>
+                      )}
+                      {(booking.status === 'confirmed' || booking.status === 'pending') && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="font-cairo text-xs"
+                          onClick={() => updateBookingStatus(booking.id, 'cancelled')}
+                        >
+                          إلغاء
                         </Button>
                       )}
                       <Button size="sm" variant="outline" className="font-cairo text-xs gap-1"
