@@ -78,7 +78,7 @@ const DashboardBookings = () => {
       // Resolve patient names
       const patientIds = [...new Set(rawBookings.map(b => b.patient_id))];
       const doctorIds = [...new Set(rawBookings.map(b => b.doctor_id))];
-      const familyIds = rawBookings.map(b => b.family_member_id).filter(Boolean) as string[];
+      const familyIds = rawBookings.map(b => b.family_member_id).filter((id): id is string => !!id);
 
       const [profilesRes, doctorsRes, familyRes] = await Promise.all([
         patientIds.length > 0 ? supabase.from('profiles').select('id, full_name_ar, full_name').in('id', patientIds) : Promise.resolve({ data: [] }),
