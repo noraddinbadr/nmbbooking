@@ -68,7 +68,7 @@ const DashboardBookings = () => {
 
       if (activeTab === 'today') query = query.eq('booking_date', today);
       if (dateFilter) query = query.eq('booking_date', dateFilter);
-      if (statusFilter !== 'all') query = query.eq('status', statusFilter);
+      if (statusFilter !== 'all') query = query.eq('status', statusFilter as BookingStatus);
 
       const { data: bData, error } = await query;
       if (error) throw error;
