@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Users, ChevronLeft, Loader2 } from 'lucide-react';
+import { Search, Users, ChevronLeft, Loader2, UserPlus } from 'lucide-react';
 
 interface PatientRow {
   id: string;
@@ -16,6 +18,7 @@ interface PatientRow {
   gender: string | null;
   date_of_birth: string | null;
   visit_count?: number;
+  last_visit?: string;
 }
 
 function calcAge(dob: string | null): string {
@@ -27,41 +30,78 @@ function calcAge(dob: string | null): string {
 
 const DashboardPatients = () => {
   const navigate = useNavigate();
+  const { user, hasRole } = useAuth();
+  const isAdmin = hasRole('admin');
+  const isDoctor = hasRole('doctor');
   const [search, setSearch] = useState('');
   const [genderFilter, setGenderFilter] = useState('all');
 
-  // Fetch patient user_ids
-  const { data: patientIds = [], isLoading: loadingIds } = useQuery({
-    queryKey: ['patient-ids'],
+  // Get doctor record for current user (if doctor)
+  const { data: doctorRecord } = useQuery({
+    queryKey: ['my-doctor-id', user?.id],
+    enabled: !!user && isDoctor,
     queryFn: async () => {
-      const { data } = await supabase.from('user_roles' as any).select('user_id').eq('role', 'patient');
-      return (data || []).map((r: any) => r.user_id as string);
+      const { data } = await supabase.from('doctors').select('id').eq('user_id', user!.id).maybeSingle();
+      return data;
     },
   });
 
-  // Fetch profiles for patients
-  const { data: patients = [], isLoading: loadingProfiles } = useQuery({
-    queryKey: ['patient-profiles', patientIds],
-    enabled: patientIds.length > 0,
+  // Fetch patients — for doctors: only patients who booked with them; for admin: all patients
+  const { data: patients = [], isLoading } = useQuery({
+    queryKey: ['doctor-patients', doctorRecord?.id, isAdmin],
+    enabled: !!user && (isAdmin || !!doctorRecord),
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('*').in('id', patientIds).order('created_at', { ascending: false });
-      return (data || []) as PatientRow[];
+      if (isAdmin) {
+        // Admin sees all patients
+        const { data: roleData } = await supabase.from('user_roles' as any).select('user_id').eq('role', 'patient');
+        const ids = (roleData || []).map((r: any) => r.user_id as string);
+        if (ids.length === 0) return [];
+        const { data } = await supabase.from('profiles').select('*').in('id', ids).order('created_at', { ascending: false });
+        return (data || []) as PatientRow[];
+      }
+
+      // Doctor: get unique patient_ids from bookings
+      const { data: bookingsData } = await supabase
+        .from('bookings')
+        .select('patient_id, booking_date')
+        .eq('doctor_id', doctorRecord!.id)
+        .order('booking_date', { ascending: false });
+
+      if (!bookingsData || bookingsData.length === 0) return [];
+
+      const patientMap = new Map<string, string>();
+      bookingsData.forEach(b => {
+        if (!patientMap.has(b.patient_id)) {
+          patientMap.set(b.patient_id, b.booking_date);
+        }
+      });
+
+      const patientIds = [...patientMap.keys()];
+      const { data: profiles } = await supabase.from('profiles').select('*').in('id', patientIds);
+
+      return (profiles || []).map(p => ({
+        ...p,
+        last_visit: patientMap.get(p.id) || null,
+      })) as PatientRow[];
     },
   });
 
   // Visit counts
+  const patientIds = patients.map(p => p.id);
   const { data: visitCounts = {} } = useQuery({
     queryKey: ['patient-visit-counts', patientIds],
     enabled: patientIds.length > 0,
     queryFn: async () => {
-      const { data } = await supabase.from('treatment_sessions').select('patient_id').in('patient_id', patientIds);
+      let query = supabase.from('treatment_sessions').select('patient_id').in('patient_id', patientIds);
+      if (doctorRecord) {
+        query = query.eq('doctor_id', doctorRecord.id);
+      }
+      const { data } = await query;
       const counts: Record<string, number> = {};
       (data || []).forEach((s: any) => { counts[s.patient_id] = (counts[s.patient_id] || 0) + 1; });
       return counts;
     },
   });
-
-  const loading = loadingIds || loadingProfiles;
 
   const filtered = patients.filter(p => {
     const name = (p.full_name_ar || p.full_name || '').toLowerCase();
@@ -77,9 +117,15 @@ const DashboardPatients = () => {
     <DashboardLayout>
       <div className="space-y-5">
         {/* Header */}
-        <div>
-          <h1 className="font-cairo text-xl font-bold text-foreground">إدارة المرضى</h1>
-          <p className="font-cairo text-sm text-muted-foreground">قائمة المرضى المسجلين وسجلاتهم الطبية</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="font-cairo text-xl font-bold text-foreground">
+              {isDoctor && !isAdmin ? 'مرضاي' : 'إدارة المرضى'}
+            </h1>
+            <p className="font-cairo text-sm text-muted-foreground">
+              {isDoctor && !isAdmin ? 'المرضى الذين زاروك سابقاً' : 'قائمة المرضى المسجلين وسجلاتهم الطبية'}
+            </p>
+          </div>
         </div>
 
         {/* Stats */}
@@ -117,14 +163,14 @@ const DashboardPatients = () => {
         </div>
 
         {/* Table */}
-        {loading ? (
+        {isLoading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground font-cairo">
             <Users className="h-12 w-12 mx-auto mb-3 opacity-30" />
-            <p>لا يوجد مرضى</p>
+            <p>{isDoctor ? 'لم يزرك أي مريض بعد' : 'لا يوجد مرضى'}</p>
           </div>
         ) : (
           <div className="rounded-xl border border-border overflow-hidden">
@@ -137,6 +183,7 @@ const DashboardPatients = () => {
                   <th className="font-cairo text-right text-xs font-semibold text-muted-foreground px-4 py-3 hidden md:table-cell">الجنس</th>
                   <th className="font-cairo text-right text-xs font-semibold text-muted-foreground px-4 py-3 hidden md:table-cell">العمر</th>
                   <th className="font-cairo text-right text-xs font-semibold text-muted-foreground px-4 py-3">الزيارات</th>
+                  {isDoctor && <th className="font-cairo text-right text-xs font-semibold text-muted-foreground px-4 py-3 hidden lg:table-cell">آخر زيارة</th>}
                   <th className="px-4 py-3 w-8" />
                 </tr>
               </thead>
@@ -169,6 +216,11 @@ const DashboardPatients = () => {
                         {visitCounts[p.id] || 0}
                       </Badge>
                     </td>
+                    {isDoctor && (
+                      <td className="font-cairo text-xs text-muted-foreground px-4 py-3 hidden lg:table-cell">
+                        {(p as any).last_visit || '—'}
+                      </td>
+                    )}
                     <td className="px-4 py-3">
                       <ChevronLeft className="h-4 w-4 text-muted-foreground" />
                     </td>
