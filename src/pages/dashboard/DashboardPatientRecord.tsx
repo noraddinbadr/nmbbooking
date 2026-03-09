@@ -353,8 +353,11 @@ const DashboardPatientRecord = () => {
               </div>
             )}
           </TabsContent>
+          {/* Files Tab */}
+          <TabsContent value="files" className="mt-4">
+            <MedicalFileUpload patientId={patientId!} />
+          </TabsContent>
         </Tabs>
-      </div>
     </DashboardLayout>
   );
 };
