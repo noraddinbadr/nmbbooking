@@ -207,6 +207,9 @@ const DashboardPatientRecord = () => {
             <TabsTrigger value="orders" className="font-cairo gap-1.5">
               <TestTube className="h-3.5 w-3.5" /> الطلبات ({orders.length})
             </TabsTrigger>
+            <TabsTrigger value="files" className="font-cairo gap-1.5">
+              <FileImage className="h-3.5 w-3.5" /> الملفات
+            </TabsTrigger>
           </TabsList>
 
           {/* Sessions Tab */}
