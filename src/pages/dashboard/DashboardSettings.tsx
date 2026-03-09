@@ -735,4 +735,65 @@ const DashboardSettings = () => {
   );
 };
 
+/** Patient-specific settings — notifications, language, theme */
+const PatientSettings = () => {
+  const [emailNotif, setEmailNotif] = useState(true);
+  const [smsNotif, setSmsNotif] = useState(false);
+  const [reminderBefore, setReminderBefore] = useState('30');
+
+  return (
+    <>
+      {/* Notification preferences */}
+      <Card className="shadow-card">
+        <CardHeader><CardTitle className="font-cairo">تفضيلات الإشعارات</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label className="font-cairo">إشعارات البريد الإلكتروني</Label>
+            <Switch checked={emailNotif} onCheckedChange={setEmailNotif} />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label className="font-cairo">إشعارات SMS</Label>
+            <Switch checked={smsNotif} onCheckedChange={setSmsNotif} />
+          </div>
+          <div>
+            <Label className="font-cairo">تذكير قبل الموعد بـ</Label>
+            <Select value={reminderBefore} onValueChange={setReminderBefore}>
+              <SelectTrigger className="font-cairo mt-1 w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="font-cairo">
+                <SelectItem value="15">15 دقيقة</SelectItem>
+                <SelectItem value="30">30 دقيقة</SelectItem>
+                <SelectItem value="60">ساعة</SelectItem>
+                <SelectItem value="120">ساعتين</SelectItem>
+                <SelectItem value="1440">يوم كامل</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* General preferences */}
+      <Card className="shadow-card">
+        <CardHeader><CardTitle className="font-cairo">التفضيلات العامة</CardTitle></CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label className="font-cairo">اللغة</Label>
+            <Select defaultValue="ar">
+              <SelectTrigger className="font-cairo mt-1 w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="font-cairo">
+                <SelectItem value="ar">العربية</SelectItem>
+                <SelectItem value="en">English</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <p className="font-cairo text-xs text-muted-foreground">هذه الإعدادات محفوظة محلياً حالياً — سيتم ربطها بالحساب لاحقاً.</p>
+        </CardContent>
+      </Card>
+    </>
+  );
+};
+
 export default DashboardSettings;
