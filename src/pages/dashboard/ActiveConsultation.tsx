@@ -180,7 +180,24 @@ const ActiveConsultation = () => {
     load();
   }, [consultationBookingId, user]);
 
-  const patientName = patient?.full_name_ar || patient?.full_name || 'مريض';
+  // Auto-save every 30 seconds
+  useEffect(() => {
+    if (!sessionId) return;
+    const interval = setInterval(async () => {
+      if (!symptoms && !examination && !diagnosis && !notes) return;
+      await supabase.from('treatment_sessions').update({
+        symptoms: symptoms || null,
+        examination: examination || null,
+        diagnosis: diagnosis || null,
+        notes: notes || null,
+        follow_up_date: followUpDate || null,
+      }).eq('id', sessionId);
+      setLastAutoSave(new Date());
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [sessionId, symptoms, examination, diagnosis, notes, followUpDate]);
+
+
   const patientAge = patient?.date_of_birth
     ? Math.floor((Date.now() - new Date(patient.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
     : null;
