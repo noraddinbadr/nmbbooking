@@ -5,7 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, User, Phone, Calendar, Heart, Stethoscope, FileText, FlaskConical, ClipboardList, Loader2, TestTube } from 'lucide-react';
+import { ArrowRight, User, Phone, Calendar, Heart, Stethoscope, FileText, FlaskConical, ClipboardList, Loader2, TestTube, FileImage } from 'lucide-react';
+import { MedicalFileUpload } from '@/components/medical/MedicalFileUpload';
 
 function calcAge(dob: string | null): string {
   if (!dob) return '—';
@@ -206,6 +207,9 @@ const DashboardPatientRecord = () => {
             <TabsTrigger value="orders" className="font-cairo gap-1.5">
               <TestTube className="h-3.5 w-3.5" /> الطلبات ({orders.length})
             </TabsTrigger>
+            <TabsTrigger value="files" className="font-cairo gap-1.5">
+              <FileImage className="h-3.5 w-3.5" /> الملفات
+            </TabsTrigger>
           </TabsList>
 
           {/* Sessions Tab */}
@@ -348,6 +352,10 @@ const DashboardPatientRecord = () => {
                 })}
               </div>
             )}
+          </TabsContent>
+          {/* Files Tab */}
+          <TabsContent value="files" className="mt-4">
+            <MedicalFileUpload patientId={patientId!} />
           </TabsContent>
         </Tabs>
       </div>

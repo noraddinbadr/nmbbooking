@@ -598,6 +598,79 @@ export type Database = {
           },
         ]
       }
+      medical_files: {
+        Row: {
+          booking_id: string | null
+          category: string
+          created_at: string
+          description: string | null
+          doctor_id: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string
+          id: string
+          mime_type: string | null
+          patient_id: string
+          session_id: string | null
+          uploaded_by: string
+        }
+        Insert: {
+          booking_id?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          doctor_id?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type?: string
+          id?: string
+          mime_type?: string | null
+          patient_id: string
+          session_id?: string | null
+          uploaded_by: string
+        }
+        Update: {
+          booking_id?: string | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          doctor_id?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string
+          id?: string
+          mime_type?: string | null
+          patient_id?: string
+          session_id?: string | null
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_files_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_files_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_files_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "treatment_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body_ar: string | null

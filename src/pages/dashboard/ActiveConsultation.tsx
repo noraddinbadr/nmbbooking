@@ -15,6 +15,7 @@ import {
   Plus, Printer, Send, Clock, Phone, Calendar, X, CheckCircle2, History, Search, Loader2
 } from 'lucide-react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import { MedicalFileUpload } from '@/components/medical/MedicalFileUpload';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -434,6 +435,16 @@ const ActiveConsultation = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Medical Files */}
+            {booking && doctorId && (
+              <MedicalFileUpload
+                patientId={booking.patient_id}
+                doctorId={doctorId}
+                sessionId={sessionId || undefined}
+                bookingId={booking.id}
+              />
+            )}
           </div>
 
           {/* CENTER + LEFT: Consultation workspace */}
