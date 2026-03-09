@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
-import { MapPin, Clock, Users, Gift, Loader2 } from 'lucide-react';
+import { MapPin, Clock, Users, Gift, Loader2, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { BookingType } from '@/data/types';
 import { ShiftInfo, getShiftsForDate, generateSlotsForDate, markAvailability } from '@/lib/slots';
@@ -28,8 +29,17 @@ interface Props {
   doctor: DoctorData & { shifts?: any[] };
 }
 
+const RELATIONSHIP_LABELS: Record<string, string> = {
+  self: 'نفسي',
+  spouse: 'الزوج/الزوجة',
+  child: 'ابن/ابنة',
+  parent: 'أحد الوالدين',
+  sibling: 'أخ/أخت',
+  other: 'آخر',
+};
+
 const BookingSidebar = ({ doctor }: Props) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [selectedShift, setSelectedShift] = useState<string | null>(null);
@@ -39,6 +49,28 @@ const BookingSidebar = ({ doctor }: Props) => {
   const [patientName, setPatientName] = useState('');
   const [patientPhone, setPatientPhone] = useState('');
   const [booking, setBooking] = useState(false);
+
+  // Family member selection
+  const [selectedMember, setSelectedMember] = useState<string>('self');
+  const [showAddFamily, setShowAddFamily] = useState(false);
+  const [newFamilyName, setNewFamilyName] = useState('');
+  const [newFamilyRelation, setNewFamilyRelation] = useState('child');
+  const [addingFamily, setAddingFamily] = useState(false);
+
+  // Fetch family members
+  const { data: familyMembers = [], refetch: refetchFamily } = useQuery({
+    queryKey: ['family-members', user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('family_members')
+        .select('*')
+        .eq('user_id', user!.id)
+        .eq('is_active', true)
+        .order('created_at');
+      return data || [];
+    },
+  });
 
   // Fetch shifts from DB
   const { data: dbShifts = [] } = useQuery({
@@ -76,7 +108,6 @@ const BookingSidebar = ({ doctor }: Props) => {
     },
   });
 
-  // Use DB shifts, fallback to doctor.shifts from the hook
   const shifts: ShiftInfo[] = dbShifts.length > 0 ? dbShifts : (doctor.shifts || []).map((s: any) => ({
     id: s.id,
     label: s.label || s.label,
@@ -123,8 +154,31 @@ const BookingSidebar = ({ doctor }: Props) => {
     return doctor.basePrice;
   }, [doctor]);
 
+  // Get selected member info
+  const selectedFamilyMember = familyMembers.find((m: any) => m.id === selectedMember);
+  const bookingName = selectedMember === 'self'
+    ? (patientName || profile?.full_name_ar || profile?.full_name || '')
+    : (selectedFamilyMember?.full_name_ar || '');
+
+  const handleAddFamilyMember = async () => {
+    if (!newFamilyName.trim() || !user) return;
+    setAddingFamily(true);
+    const { error } = await supabase.from('family_members').insert({
+      user_id: user.id,
+      full_name_ar: newFamilyName.trim(),
+      relationship: newFamilyRelation,
+      is_active: true,
+    });
+    setAddingFamily(false);
+    if (error) { toast({ title: 'خطأ', description: error.message, variant: 'destructive' }); return; }
+    toast({ title: '✅ تمت الإضافة', description: `تم إضافة ${newFamilyName} لقائمة العائلة` });
+    setNewFamilyName('');
+    setShowAddFamily(false);
+    refetchFamily();
+  };
+
   const handleConfirmBooking = async () => {
-    if (!patientName.trim()) return;
+    if (selectedMember === 'self' && !patientName.trim()) return;
     if (!user) {
       toast({ title: 'يرجى تسجيل الدخول أولاً', variant: 'destructive' });
       return;
@@ -132,10 +186,13 @@ const BookingSidebar = ({ doctor }: Props) => {
 
     setBooking(true);
     const slotInfo = shiftSlots.find(s => s.id === selectedSlot);
+    const finalName = selectedMember === 'self' ? patientName : (selectedFamilyMember?.full_name_ar || '');
+    const familyMemberId = selectedMember !== 'self' ? selectedMember : null;
 
     const { error } = await supabase.from('bookings').insert({
       doctor_id: doctor.id,
       patient_id: user.id,
+      family_member_id: familyMemberId,
       booking_date: selectedDate,
       shift_id: activeShiftId,
       start_time: slotInfo?.isFlexible ? null : (slotInfo?.startTime || null),
@@ -144,7 +201,7 @@ const BookingSidebar = ({ doctor }: Props) => {
       queue_position: slotInfo?.queuePosition || null,
       final_price: computedPrice,
       status: 'pending',
-      notes: `الاسم: ${patientName}${patientPhone ? ` — الهاتف: ${patientPhone}` : ''}`,
+      notes: `الاسم: ${finalName}${patientPhone ? ` — الهاتف: ${patientPhone}` : ''}`,
     });
 
     setBooking(false);
@@ -156,12 +213,11 @@ const BookingSidebar = ({ doctor }: Props) => {
 
     toast({
       title: '✅ تم الحجز بنجاح!',
-      description: `تم حجز موعدك مع ${doctor.nameAr} — ${selectedDate} ${
+      description: `تم حجز موعد ${familyMemberId ? `لـ ${finalName}` : 'لك'} مع ${doctor.nameAr} — ${selectedDate} ${
         isFlexibleShift ? `(${activeShift?.label})` : `الساعة ${slotInfo?.startTime}`
       }`,
     });
 
-    // Refresh bookings to update availability
     queryClient.invalidateQueries({ queryKey: ['bookings-for-date', doctor.id, selectedDate] });
     setShowBookingDialog(false);
     setSelectedSlot(null);
@@ -328,15 +384,72 @@ const BookingSidebar = ({ doctor }: Props) => {
               <div className="flex justify-between font-cairo text-sm"><span className="text-muted-foreground">نوع الحجز</span><span className="font-semibold text-foreground">{bookingTypeLabels[selectedType]?.ar}</span></div>
               <div className="flex justify-between font-cairo text-sm border-t border-border pt-2"><span className="text-muted-foreground">المبلغ</span><span className="font-bold text-primary text-lg">{computedPrice.toLocaleString()} ر.ي</span></div>
             </div>
-            <div>
-              <label className="font-cairo text-sm font-medium text-foreground mb-1.5 block">الاسم الكامل *</label>
-              <input type="text" value={patientName} onChange={(e) => setPatientName(e.target.value)} placeholder="أدخل اسمك" className="w-full rounded-xl bg-muted px-4 py-3 font-cairo text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" maxLength={100} />
-            </div>
+
+            {/* For whom selector */}
+            {user && (
+              <div>
+                <label className="font-cairo text-sm font-medium text-foreground mb-1.5 block">الحجز لـ</label>
+                <Select value={selectedMember} onValueChange={setSelectedMember}>
+                  <SelectTrigger className="font-cairo w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="font-cairo">
+                    <SelectItem value="self">نفسي</SelectItem>
+                    {familyMembers.map((m: any) => (
+                      <SelectItem key={m.id} value={m.id}>
+                        {m.full_name_ar} — {RELATIONSHIP_LABELS[m.relationship] || m.relationship}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {/* Add family member inline */}
+                {!showAddFamily ? (
+                  <button onClick={() => setShowAddFamily(true)} className="mt-1.5 flex items-center gap-1 font-cairo text-xs text-primary hover:underline">
+                    <Plus className="h-3 w-3" /> إضافة فرد عائلة جديد
+                  </button>
+                ) : (
+                  <div className="mt-2 rounded-xl bg-muted p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="font-cairo text-xs font-semibold text-foreground">إضافة فرد عائلة</p>
+                      <button onClick={() => setShowAddFamily(false)}><X className="h-3.5 w-3.5 text-muted-foreground" /></button>
+                    </div>
+                    <input
+                      type="text"
+                      value={newFamilyName}
+                      onChange={e => setNewFamilyName(e.target.value)}
+                      placeholder="الاسم بالعربي"
+                      className="w-full rounded-lg bg-background px-3 py-2 font-cairo text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    />
+                    <Select value={newFamilyRelation} onValueChange={setNewFamilyRelation}>
+                      <SelectTrigger className="font-cairo w-full h-9 text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="font-cairo">
+                        {Object.entries(RELATIONSHIP_LABELS).filter(([k]) => k !== 'self').map(([k, v]) => (
+                          <SelectItem key={k} value={k}>{v}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button size="sm" className="w-full font-cairo" onClick={handleAddFamilyMember} disabled={!newFamilyName.trim() || addingFamily}>
+                      {addingFamily ? <Loader2 className="h-3 w-3 animate-spin ml-1" /> : null} حفظ
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Name / phone — only for self booking */}
+            {selectedMember === 'self' && (
+              <div>
+                <label className="font-cairo text-sm font-medium text-foreground mb-1.5 block">الاسم الكامل *</label>
+                <input type="text" value={patientName} onChange={(e) => setPatientName(e.target.value)} placeholder="أدخل اسمك" className="w-full rounded-xl bg-muted px-4 py-3 font-cairo text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" maxLength={100} />
+              </div>
+            )}
             <div>
               <label className="font-cairo text-sm font-medium text-foreground mb-1.5 block">رقم الهاتف</label>
               <input type="tel" value={patientPhone} onChange={(e) => setPatientPhone(e.target.value)} placeholder="7XX-XXX-XXX" className="w-full rounded-xl bg-muted px-4 py-3 font-cairo text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" maxLength={15} />
             </div>
-            <Button className="w-full font-cairo bg-hero-gradient text-primary-foreground hover:opacity-90" size="lg" disabled={!patientName.trim() || booking} onClick={handleConfirmBooking}>
+            <Button className="w-full font-cairo bg-hero-gradient text-primary-foreground hover:opacity-90" size="lg" disabled={(selectedMember === 'self' && !patientName.trim()) || booking} onClick={handleConfirmBooking}>
               {booking ? <Loader2 className="h-4 w-4 animate-spin ml-2" /> : null}
               تأكيد الحجز ✅
             </Button>

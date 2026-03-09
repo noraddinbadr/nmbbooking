@@ -51,6 +51,7 @@ export type Database = {
           created_at: string
           doctor_id: string
           end_time: string | null
+          family_member_id: string | null
           final_price: number | null
           funding_amount: number | null
           id: string
@@ -69,6 +70,7 @@ export type Database = {
           created_at?: string
           doctor_id: string
           end_time?: string | null
+          family_member_id?: string | null
           final_price?: number | null
           funding_amount?: number | null
           id?: string
@@ -87,6 +89,7 @@ export type Database = {
           created_at?: string
           doctor_id?: string
           end_time?: string | null
+          family_member_id?: string | null
           final_price?: number | null
           funding_amount?: number | null
           id?: string
@@ -105,6 +108,13 @@ export type Database = {
             columns: ["doctor_id"]
             isOneToOne: false
             referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_family_member_id_fkey"
+            columns: ["family_member_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
             referencedColumns: ["id"]
           },
           {
@@ -412,6 +422,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      family_members: {
+        Row: {
+          created_at: string | null
+          date_of_birth: string | null
+          full_name: string | null
+          full_name_ar: string
+          gender: string | null
+          id: string
+          is_active: boolean | null
+          phone: string | null
+          relationship: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date_of_birth?: string | null
+          full_name?: string | null
+          full_name_ar: string
+          gender?: string | null
+          id?: string
+          is_active?: boolean | null
+          phone?: string | null
+          relationship?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date_of_birth?: string | null
+          full_name?: string | null
+          full_name_ar?: string
+          gender?: string | null
+          id?: string
+          is_active?: boolean | null
+          phone?: string | null
+          relationship?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       medical_camps: {
         Row: {
