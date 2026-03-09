@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { useAuth } from '@/contexts/AuthContext';
-import { Calendar, FileText, Clock, MapPin, CheckCircle, Loader2, XCircle, Bell } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Calendar, FileText, Clock, MapPin, CheckCircle, Loader2, XCircle, Bell, Pill, FlaskConical, Stethoscope } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -39,21 +39,38 @@ const PatientDashboard = () => {
   const { profile, user } = useAuth();
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<BookingRow[]>([]);
+  const [prescriptions, setPrescriptions] = useState<any[]>([]);
+  const [sessions, setSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
-    const fetchBookings = async () => {
+    const fetchAll = async () => {
       setLoading(true);
-      const { data } = await supabase
-        .from('bookings')
-        .select('id, booking_date, start_time, status, booking_type, final_price, funding_amount, created_at, doctor_id, doctors(name_ar, specialty_ar, city_ar)')
-        .eq('patient_id', user.id)
-        .order('booking_date', { ascending: false });
-      setBookings((data as BookingRow[]) || []);
+      const [bookingsRes, rxRes, sessRes] = await Promise.all([
+        supabase
+          .from('bookings')
+          .select('id, booking_date, start_time, status, booking_type, final_price, funding_amount, created_at, doctor_id, doctors(name_ar, specialty_ar, city_ar)')
+          .eq('patient_id', user.id)
+          .order('booking_date', { ascending: false }),
+        supabase
+          .from('prescriptions')
+          .select('*, prescription_items(*), doctors(name_ar)')
+          .eq('patient_id', user.id)
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('treatment_sessions')
+          .select('*, doctors(name_ar)')
+          .eq('patient_id', user.id)
+          .eq('status', 'completed')
+          .order('session_date', { ascending: false }),
+      ]);
+      setBookings((bookingsRes.data as BookingRow[]) || []);
+      setPrescriptions(rxRes.data || []);
+      setSessions(sessRes.data || []);
       setLoading(false);
     };
-    fetchBookings();
+    fetchAll();
   }, [user]);
 
   const handleCancel = async (id: string) => {
@@ -96,7 +113,6 @@ const PatientDashboard = () => {
           </div>
           <Badge className={`${status.color} border font-cairo text-[10px] shrink-0`}>{status.label}</Badge>
         </div>
-
         <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
           <div className="font-cairo">
             <span className="text-xs text-muted-foreground">المبلغ: </span>
@@ -132,7 +148,7 @@ const PatientDashboard = () => {
             { label: 'إجمالي الحجوزات', value: stats.total, icon: Calendar, color: 'text-primary' },
             { label: 'القادمة', value: stats.upcoming, icon: Clock, color: 'text-amber-500' },
             { label: 'المكتملة', value: stats.completed, icon: CheckCircle, color: 'text-emerald-500' },
-            { label: 'الملغية', value: stats.cancelled, icon: XCircle, color: 'text-destructive' },
+            { label: 'الوصفات', value: prescriptions.length, icon: Pill, color: 'text-purple-500' },
           ].map(s => (
             <Card key={s.label} className="shadow-sm">
               <CardContent className="p-3 text-center">
@@ -157,29 +173,29 @@ const PatientDashboard = () => {
           </Button>
         </div>
 
-        {/* Bookings */}
+        {/* Main Tabs */}
         {loading ? (
           <div className="flex justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : bookings.length === 0 ? (
-          <Card className="shadow-sm">
-            <CardContent className="py-12 text-center">
-              <Calendar className="mx-auto h-12 w-12 text-muted-foreground/30 mb-3" />
-              <p className="font-cairo text-muted-foreground">لا توجد حجوزات بعد</p>
-              <Button className="mt-4 font-cairo" onClick={() => navigate('/doctors')}>احجز موعدك الأول</Button>
-            </CardContent>
-          </Card>
         ) : (
           <Tabs defaultValue="upcoming" dir="rtl">
             <TabsList className="font-cairo w-full sm:w-auto">
-              <TabsTrigger value="upcoming" className="font-cairo gap-1.5">
+              <TabsTrigger value="upcoming" className="font-cairo gap-1">
                 <CheckCircle className="h-3.5 w-3.5" /> القادمة ({upcoming.length})
               </TabsTrigger>
-              <TabsTrigger value="past" className="font-cairo gap-1.5">
+              <TabsTrigger value="past" className="font-cairo gap-1">
                 <Clock className="h-3.5 w-3.5" /> السابقة ({past.length})
               </TabsTrigger>
+              <TabsTrigger value="prescriptions" className="font-cairo gap-1">
+                <Pill className="h-3.5 w-3.5" /> الوصفات ({prescriptions.length})
+              </TabsTrigger>
+              <TabsTrigger value="sessions" className="font-cairo gap-1">
+                <Stethoscope className="h-3.5 w-3.5" /> الجلسات ({sessions.length})
+              </TabsTrigger>
             </TabsList>
+
+            {/* Upcoming bookings */}
             <TabsContent value="upcoming" className="space-y-3 mt-3">
               {upcoming.length === 0 ? (
                 <Card className="shadow-sm">
@@ -190,10 +206,77 @@ const PatientDashboard = () => {
                 </Card>
               ) : upcoming.map(renderBooking)}
             </TabsContent>
+
+            {/* Past bookings */}
             <TabsContent value="past" className="space-y-3 mt-3">
               {past.length === 0 ? (
                 <p className="font-cairo text-sm text-muted-foreground text-center py-8">لا توجد حجوزات سابقة</p>
               ) : past.map(renderBooking)}
+            </TabsContent>
+
+            {/* Prescriptions */}
+            <TabsContent value="prescriptions" className="space-y-3 mt-3">
+              {prescriptions.length === 0 ? (
+                <div className="text-center py-8 font-cairo text-muted-foreground">
+                  <Pill className="h-10 w-10 mx-auto mb-2 opacity-30" />
+                  <p>لا توجد وصفات طبية</p>
+                </div>
+              ) : prescriptions.map((rx: any) => (
+                <div key={rx.id} className="rounded-xl border border-border bg-card p-4 shadow-sm">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <p className="font-cairo text-sm font-semibold text-foreground">
+                        {new Date(rx.created_at).toLocaleDateString('ar-YE')}
+                      </p>
+                      {rx.doctors?.name_ar && <p className="font-cairo text-xs text-muted-foreground">د. {rx.doctors.name_ar}</p>}
+                    </div>
+                    {rx.pharmacy_sent && (
+                      <Badge variant="outline" className="font-cairo text-[10px] border-emerald-300 text-emerald-700">أُرسل للصيدلية</Badge>
+                    )}
+                  </div>
+                  {rx.prescription_items?.length > 0 && (
+                    <div className="space-y-2">
+                      {rx.prescription_items.map((item: any) => (
+                        <div key={item.id} className="rounded-lg bg-muted px-3 py-2">
+                          <p className="font-cairo text-sm font-medium text-foreground">{item.medicine_name}</p>
+                          <div className="flex flex-wrap gap-3 text-xs text-muted-foreground font-cairo mt-0.5">
+                            {item.dosage && <span>الجرعة: {item.dosage}</span>}
+                            {item.frequency && <span>التكرار: {item.frequency}</span>}
+                            {item.duration && <span>المدة: {item.duration}</span>}
+                          </div>
+                          {item.instructions && <p className="font-cairo text-xs text-muted-foreground mt-1">{item.instructions}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {rx.notes && <p className="font-cairo text-xs text-muted-foreground mt-2">{rx.notes}</p>}
+                </div>
+              ))}
+            </TabsContent>
+
+            {/* Treatment Sessions */}
+            <TabsContent value="sessions" className="space-y-3 mt-3">
+              {sessions.length === 0 ? (
+                <div className="text-center py-8 font-cairo text-muted-foreground">
+                  <Stethoscope className="h-10 w-10 mx-auto mb-2 opacity-30" />
+                  <p>لا توجد جلسات علاج سابقة</p>
+                </div>
+              ) : sessions.map((s: any) => (
+                <div key={s.id} className="rounded-xl border border-border bg-card p-4 shadow-sm">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="font-cairo text-sm font-semibold text-foreground">{s.session_date}</p>
+                      {s.doctors?.name_ar && <p className="font-cairo text-xs text-muted-foreground">د. {s.doctors.name_ar}</p>}
+                    </div>
+                    <Badge variant="outline" className="font-cairo text-[10px] border-emerald-300 text-emerald-700">مكتملة</Badge>
+                  </div>
+                  {s.symptoms && <p className="font-cairo text-xs text-muted-foreground mb-1"><span className="font-medium text-foreground">الأعراض:</span> {s.symptoms}</p>}
+                  {s.diagnosis && <p className="font-cairo text-xs text-muted-foreground mb-1"><span className="font-medium text-foreground">التشخيص:</span> {s.diagnosis}</p>}
+                  {s.examination && <p className="font-cairo text-xs text-muted-foreground mb-1"><span className="font-medium text-foreground">الفحص:</span> {s.examination}</p>}
+                  {s.notes && <p className="font-cairo text-xs text-muted-foreground"><span className="font-medium text-foreground">ملاحظات:</span> {s.notes}</p>}
+                  {s.follow_up_date && <p className="font-cairo text-xs text-primary mt-1">📅 متابعة: {s.follow_up_date}</p>}
+                </div>
+              ))}
             </TabsContent>
           </Tabs>
         )}

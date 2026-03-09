@@ -58,6 +58,7 @@ const ActiveConsultation = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(Boolean(consultationBookingId));
   const [saving, setSaving] = useState(false);
+  const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null);
 
   // Patient history
   const [pastSessions, setPastSessions] = useState<any[]>([]);
