@@ -185,30 +185,26 @@ const ActiveConsultation = () => {
     : null;
 
   const handleEndSession = async () => {
-    if (!booking || !doctorId) return;
+    if (!booking || !doctorId || !sessionId) return;
     setSaving(true);
     try {
-      // 1. Create treatment session
-      const { data: session, error: sessErr } = await supabase.from('treatment_sessions').insert({
-        booking_id: booking.id,
-        patient_id: booking.patient_id,
-        doctor_id: doctorId,
-        session_date: booking.booking_date,
+      // 1. Update treatment session to completed
+      const { error: sessErr } = await supabase.from('treatment_sessions').update({
         symptoms: symptoms || null,
         examination: examination || null,
         diagnosis: diagnosis || null,
         notes: notes || null,
         follow_up_date: followUpDate || null,
         status: 'completed',
-      }).select('id').single();
+      }).eq('id', sessionId);
 
       if (sessErr) throw sessErr;
 
       // 2. Create prescription if medicines exist
       const validMeds = medicines.filter(m => m.name.trim());
-      if (validMeds.length > 0 && session) {
+      if (validMeds.length > 0) {
         const { data: rx, error: rxErr } = await supabase.from('prescriptions').insert({
-          session_id: session.id,
+          session_id: sessionId,
           patient_id: booking.patient_id,
           doctor_id: doctorId,
         }).select('id').single();
