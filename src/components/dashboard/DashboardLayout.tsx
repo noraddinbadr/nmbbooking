@@ -40,6 +40,7 @@ const allNavItems: NavItem[] = [
   { path: '/dashboard/reports', icon: BarChart3, label: 'التقارير', roles: ['doctor', 'admin', 'clinic_admin'] },
   { path: '/dashboard/users', icon: ShieldCheck, label: 'إدارة المستخدمين', roles: ['admin'] },
   { path: '/dashboard/catalog', icon: Stethoscope, label: 'إدارة الكتالوج', roles: ['admin'] },
+  { path: '/dashboard/notifications', icon: Bell, label: 'الإشعارات' },
   { path: '/dashboard/settings', icon: Settings, label: 'الإعدادات' },
   { path: '/my-bookings', icon: ClipboardList, label: 'حجوزاتي', roles: ['patient'] },
   { path: '/dashboard/profile', icon: UserCog, label: 'ملفي الشخصي', roles: ['patient'] },
