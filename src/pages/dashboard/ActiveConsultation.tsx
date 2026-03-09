@@ -343,6 +343,11 @@ const ActiveConsultation = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {lastAutoSave && (
+              <span className="font-cairo text-[10px] text-muted-foreground">
+                💾 حُفظ {lastAutoSave.toLocaleTimeString('ar')}
+              </span>
+            )}
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border">
               <Clock className="h-3.5 w-3.5 text-primary" />
               <span className="font-cairo text-sm font-medium text-foreground">{booking.start_time || '--:--'}</span>
