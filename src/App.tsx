@@ -35,6 +35,7 @@ import DashboardUsers from "./pages/dashboard/DashboardUsers";
 import DashboardCatalog from "./pages/dashboard/DashboardCatalog";
 import DashboardClinics from "./pages/dashboard/DashboardClinics";
 import DashboardMedicalCases from "./pages/dashboard/DashboardMedicalCases";
+import DashboardPatientRecord from "./pages/dashboard/DashboardPatientRecord";
 
 const queryClient = new QueryClient();
 
