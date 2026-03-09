@@ -5,7 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, User, Phone, Calendar, Heart, Stethoscope, FileText, FlaskConical, ClipboardList, Loader2, TestTube } from 'lucide-react';
+import { ArrowRight, User, Phone, Calendar, Heart, Stethoscope, FileText, FlaskConical, ClipboardList, Loader2, TestTube, FileImage } from 'lucide-react';
+import { MedicalFileUpload } from '@/components/medical/MedicalFileUpload';
 
 function calcAge(dob: string | null): string {
   if (!dob) return '—';
