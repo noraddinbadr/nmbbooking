@@ -68,6 +68,7 @@ const App = () => (
             <Route path="/dashboard/calendar" element={<ProtectedRoute requiredRoles={['doctor', 'admin', 'clinic_admin', 'staff']}><DashboardCalendar /></ProtectedRoute>} />
             <Route path="/dashboard/bookings" element={<ProtectedRoute requiredRoles={['doctor', 'admin', 'clinic_admin', 'staff']}><DashboardBookings /></ProtectedRoute>} />
             <Route path="/dashboard/patients" element={<ProtectedRoute requiredRoles={['doctor', 'admin', 'clinic_admin', 'staff']}><DashboardPatients /></ProtectedRoute>} />
+            <Route path="/dashboard/patients/:patientId" element={<ProtectedRoute requiredRoles={['doctor', 'admin', 'clinic_admin', 'staff']}><DashboardPatientRecord /></ProtectedRoute>} />
             <Route path="/dashboard/services" element={<ProtectedRoute requiredRoles={['doctor', 'admin', 'clinic_admin']}><DashboardServices /></ProtectedRoute>} />
             <Route path="/dashboard/treatment" element={<ProtectedRoute requiredRoles={['doctor', 'admin']}><DashboardTreatment /></ProtectedRoute>} />
             <Route path="/dashboard/reports" element={<ProtectedRoute requiredRoles={['doctor', 'admin', 'clinic_admin']}><DashboardReports /></ProtectedRoute>} />
