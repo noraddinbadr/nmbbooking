@@ -1,15 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { Camera, Upload, Save } from 'lucide-react';
+import { Camera, Upload, Save, Plus, X, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
+interface DoctorData {
+  id: string;
+  name_ar: string;
+  name_en: string | null;
+  specialty: string | null;
+  specialty_ar: string | null;
+  about_ar: string | null;
+  about_en: string | null;
+  languages: string[];
+  education: string[];
+  years_experience: number | null;
+}
 
 const DashboardProfile = () => {
   const { profile, hasRole, user } = useAuth();
@@ -86,7 +99,7 @@ const DashboardProfile = () => {
           </CardContent>
         </Card>
 
-        {/* Basic Info — shared for all roles */}
+        {/* Basic Info */}
         <Card className="shadow-card">
           <CardHeader><CardTitle className="font-cairo">المعلومات الأساسية</CardTitle></CardHeader>
           <CardContent className="space-y-4">
@@ -131,25 +144,202 @@ const DashboardProfile = () => {
   );
 };
 
-/** Doctor-specific profile sections — only rendered for doctors */
+/** Doctor-specific profile sections */
 const DoctorProfileSections = () => {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [doctor, setDoctor] = useState<DoctorData | null>(null);
+  const [newLang, setNewLang] = useState('');
+  const [newEdu, setNewEdu] = useState('');
+
+  const loadDoctor = useCallback(async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('doctors')
+      .select('id, name_ar, name_en, specialty, specialty_ar, about_ar, about_en, languages, education, years_experience')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (data) {
+      setDoctor({
+        ...data,
+        languages: data.languages || [],
+        education: data.education || [],
+      });
+    }
+    setLoading(false);
+  }, [user]);
+
+  useEffect(() => { loadDoctor(); }, [loadDoctor]);
+
+  const handleSaveDoctor = async () => {
+    if (!doctor) return;
+    setSaving(true);
+    const { error } = await supabase.from('doctors').update({
+      name_ar: doctor.name_ar,
+      name_en: doctor.name_en,
+      specialty: doctor.specialty,
+      specialty_ar: doctor.specialty_ar,
+      about_ar: doctor.about_ar,
+      about_en: doctor.about_en,
+      languages: doctor.languages,
+      education: doctor.education,
+      years_experience: doctor.years_experience,
+    }).eq('id', doctor.id);
+    setSaving(false);
+    if (error) {
+      toast({ title: 'خطأ', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: '✅ تم الحفظ', description: 'تم تحديث البيانات المهنية' });
+    }
+  };
+
+  const addLanguage = () => {
+    if (!newLang.trim() || !doctor) return;
+    setDoctor({ ...doctor, languages: [...doctor.languages, newLang.trim()] });
+    setNewLang('');
+  };
+
+  const removeLanguage = (idx: number) => {
+    if (!doctor) return;
+    setDoctor({ ...doctor, languages: doctor.languages.filter((_, i) => i !== idx) });
+  };
+
+  const addEducation = () => {
+    if (!newEdu.trim() || !doctor) return;
+    setDoctor({ ...doctor, education: [...doctor.education, newEdu.trim()] });
+    setNewEdu('');
+  };
+
+  const removeEducation = (idx: number) => {
+    if (!doctor) return;
+    setDoctor({ ...doctor, education: doctor.education.filter((_, i) => i !== idx) });
+  };
+
+  if (loading) {
+    return <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
+  }
+
+  if (!doctor) {
+    return (
+      <Card className="shadow-card bg-muted/30">
+        <CardContent className="py-6 text-center">
+          <p className="font-cairo text-sm text-muted-foreground">لم يتم العثور على سجل الطبيب</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <>
-      {/* Languages */}
+      {/* Professional Info */}
       <Card className="shadow-card">
-        <CardHeader><CardTitle className="font-cairo">اللغات</CardTitle></CardHeader>
-        <CardContent className="flex flex-wrap gap-2">
-          {['العربية', 'English'].map(l => (
-            <Badge key={l} variant="secondary" className="font-cairo">{l}</Badge>
-          ))}
-          <Button variant="ghost" size="sm" className="font-cairo text-xs">+ إضافة</Button>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="font-cairo">المعلومات المهنية</CardTitle>
+            <Button size="sm" className="font-cairo gap-2" onClick={handleSaveDoctor} disabled={saving}>
+              <Save className="h-3.5 w-3.5" /> {saving ? 'جارٍ الحفظ...' : 'حفظ المهني'}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label className="font-cairo">اسم الطبيب بالعربية</Label>
+              <Input value={doctor.name_ar} onChange={e => setDoctor({ ...doctor, name_ar: e.target.value })} className="font-cairo mt-1" />
+            </div>
+            <div>
+              <Label className="font-cairo">اسم الطبيب بالإنجليزية</Label>
+              <Input value={doctor.name_en || ''} onChange={e => setDoctor({ ...doctor, name_en: e.target.value })} className="mt-1" dir="ltr" />
+            </div>
+            <div>
+              <Label className="font-cairo">التخصص بالعربية</Label>
+              <Input value={doctor.specialty_ar || ''} onChange={e => setDoctor({ ...doctor, specialty_ar: e.target.value })} className="font-cairo mt-1" />
+            </div>
+            <div>
+              <Label className="font-cairo">التخصص بالإنجليزية</Label>
+              <Input value={doctor.specialty || ''} onChange={e => setDoctor({ ...doctor, specialty: e.target.value })} className="mt-1" dir="ltr" />
+            </div>
+            <div>
+              <Label className="font-cairo">سنوات الخبرة</Label>
+              <Input type="number" value={doctor.years_experience || ''} onChange={e => setDoctor({ ...doctor, years_experience: parseInt(e.target.value) || null })} className="font-cairo mt-1" dir="ltr" />
+            </div>
+          </div>
+
+          <div>
+            <Label className="font-cairo">نبذة بالعربية</Label>
+            <Textarea value={doctor.about_ar || ''} onChange={e => setDoctor({ ...doctor, about_ar: e.target.value })} className="font-cairo mt-1" rows={3} />
+          </div>
+          <div>
+            <Label className="font-cairo">نبذة بالإنجليزية</Label>
+            <Textarea value={doctor.about_en || ''} onChange={e => setDoctor({ ...doctor, about_en: e.target.value })} className="mt-1" dir="ltr" rows={3} />
+          </div>
         </CardContent>
       </Card>
 
+      {/* Languages */}
+      <Card className="shadow-card">
+        <CardHeader><CardTitle className="font-cairo">اللغات</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {doctor.languages.map((l, i) => (
+              <Badge key={i} variant="secondary" className="font-cairo gap-1.5 pr-1">
+                {l}
+                <button onClick={() => removeLanguage(i)} className="ml-1 hover:text-destructive">
+                  <X className="h-3 w-3" />
+                </button>
+              </Badge>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Input
+              placeholder="أضف لغة..."
+              value={newLang}
+              onChange={e => setNewLang(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addLanguage())}
+              className="font-cairo flex-1"
+            />
+            <Button variant="outline" size="sm" className="font-cairo gap-1" onClick={addLanguage}>
+              <Plus className="h-3.5 w-3.5" /> إضافة
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Education */}
+      <Card className="shadow-card">
+        <CardHeader><CardTitle className="font-cairo">المؤهلات والشهادات</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          <div className="space-y-2">
+            {doctor.education.map((e, i) => (
+              <div key={i} className="flex items-center gap-2 bg-muted/50 rounded-lg px-3 py-2">
+                <span className="font-cairo text-sm text-foreground flex-1">{e}</span>
+                <button onClick={() => removeEducation(i)} className="text-muted-foreground hover:text-destructive">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <Input
+              placeholder="أضف مؤهل أو شهادة..."
+              value={newEdu}
+              onChange={e => setNewEdu(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addEducation())}
+              className="font-cairo flex-1"
+            />
+            <Button variant="outline" size="sm" className="font-cairo gap-1" onClick={addEducation}>
+              <Plus className="h-3.5 w-3.5" /> إضافة
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Link to settings */}
       <Card className="shadow-card bg-muted/30">
         <CardContent className="py-6 text-center">
           <p className="font-cairo text-sm text-muted-foreground">
-            لإعداد فترات العمل وساعات الدوام والأسعار والحالات المجانية، انتقل إلى{' '}
+            لإعداد فترات العمل والأسعار والحالات المجانية والموظفين، انتقل إلى{' '}
             <a href="/dashboard/settings" className="text-primary font-bold hover:underline">صفحة الإعدادات</a>
           </p>
         </CardContent>
