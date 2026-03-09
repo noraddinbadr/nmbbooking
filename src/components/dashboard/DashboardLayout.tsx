@@ -213,6 +213,17 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                       </DropdownMenuItem>
                     ))
                   )}
+                  {notifications.length > 0 && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="justify-center text-primary font-cairo text-sm cursor-pointer"
+                        onClick={() => navigate('/dashboard/notifications')}
+                      >
+                        عرض كل الإشعارات
+                      </DropdownMenuItem>
+                    </>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
 
