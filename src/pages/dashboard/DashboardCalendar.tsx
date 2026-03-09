@@ -259,17 +259,17 @@ const DashboardCalendar = () => {
     if (!doctorId) return;
 
     setSavingBooking(true);
-    const { error } = await supabase.from('bookings').insert({
+    const { error } = await supabase.from('bookings').insert([{
       patient_id: addForm.patientId,
       doctor_id: doctorId,
       booking_date: format(addForm.date, 'yyyy-MM-dd'),
       start_time: addForm.time,
       shift_id: addForm.shiftId || null,
-      booking_type: addForm.bookingType,
+      booking_type: addForm.bookingType as any,
       final_price: addForm.price,
       notes: addForm.notes || null,
-      status: 'confirmed',
-    });
+      status: 'confirmed' as const,
+    }]);
 
     setSavingBooking(false);
     if (error) {
