@@ -1,60 +1,173 @@
 
 
-## التحليل والتوصية: نظام لوحة تحكم موحدة مع صلاحيات ديناميكية
+## التحليل والخطة الشاملة
 
-### المشكلة
-التطبيق يحتاج نظام يفصل تجربة المستخدم بحسب دوره (مريض، طبيب، موظف، مالك المنصة) مع الحفاظ على مرونة التوسع.
+### الوضع الحالي - المشاكل الجوهرية
 
-### التوصية: لوحة تحكم موحدة + Modular Sections
+بعد فحص الكود بالتفصيل، وجدت هذه المشاكل الأساسية:
 
-**لماذا موحدة وليست منفصلة؟**
-- كود أقل وصيانة أسهل — `DashboardLayout` واحد يتحكم بالقوائم والمحتوى ديناميكياً
-- التوسع سهل: إضافة دور جديد = إضافة permissions فقط بدون صفحات جديدة
-- الروابط ثابتة `/dashboard/*` لكن المحتوى والقوائم تتغير بحسب الدور
+1. **الحجز لا يدعم أفراد العائلة**: في `BookingSidebar.tsx` السطر 138، `patient_id` دائماً = `user.id`. اسم المريض يُخزّن كنص في حقل `notes` وليس بشكل هيكلي.
 
-### الخطة التقنية
+2. **لا يوجد جدول لأفراد العائلة**: لا يوجد `family_members` table في قاعدة البيانات.
 
-#### 1. توسيع AuthContext لجلب الأدوار
-- بعد تسجيل الدخول، نجلب أدوار المستخدم من `user_roles` ونحفظها في Context
-- نضيف `roles: AppRole[]` و `profile` و helper مثل `hasRole('admin')`
+3. **صفحة الحجوزات** (`DashboardBookings.tsx`): مجرد `DynamicCrud` خام — 42 سطر فقط، لا فلاتر، لا أزرار workflow.
 
-#### 2. صفحة التسجيل — اختيار نوع الحساب
-- التسجيل الحالي ينشئ `patient` تلقائياً (عبر trigger `handle_new_user`)
-- نضيف خيار في صفحة التسجيل: "مريض" أو "طبيب" — عند اختيار "طبيب" يتم إضافة دور `doctor` في `user_roles`
-- أدوار `admin` و `staff` تُدار فقط من لوحة المالك (لا تظهر في التسجيل)
+4. **صفحة المرضى** (`DashboardPatients.tsx`): 253 سطر من كود مكرر (نسخة يدوية من DynamicCrud)، لا يوجد ملف مريض قابل للنقر.
 
-#### 3. DashboardLayout الديناميكي
-- القائمة الجانبية تعرض فقط العناصر المسموحة لدور المستخدم:
+5. **لا يوجد مسار `/dashboard/patients/:id`** لعرض الملف الطبي الكامل.
 
-```text
-patient  → [حجوزاتي، الملف الشخصي، الإعدادات]
-doctor   → [لوحة التحكم، التقويم، الحجوزات، المرضى، الخدمات، التقارير، الإعدادات]
-staff    → بحسب permissions JSON (canManageBookings, canViewPatients, etc.)
-admin    → كل شيء + إدارة المستخدمين والأدوار
+6. **صفحة العيادات** (`DashboardClinics.tsx`): 3 تبويبات DynamicCrud بسيطة، لا إحصائيات، لا toggle سريع.
+
+---
+
+### الخطة التنفيذية
+
+#### 1. إنشاء جدول `family_members` (Migration)
+
+```sql
+CREATE TABLE public.family_members (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  full_name_ar TEXT NOT NULL,
+  full_name TEXT,
+  phone TEXT,
+  gender TEXT,
+  date_of_birth DATE,
+  relationship TEXT NOT NULL, -- 'self' | 'spouse' | 'child' | 'parent' | 'sibling' | 'other'
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+ALTER TABLE public.family_members ENABLE ROW LEVEL SECURITY;
+-- User sees/manages own family
+CREATE POLICY "User manages own family" ON public.family_members FOR ALL USING (user_id = auth.uid());
+-- Doctors/admin can read for bookings
+CREATE POLICY "Staff reads family" ON public.family_members FOR SELECT USING (
+  has_role(auth.uid(), 'doctor') OR has_role(auth.uid(), 'admin') OR has_role(auth.uid(), 'staff')
+);
 ```
 
-#### 4. حماية المسارات (ProtectedRoute)
-- مكون `ProtectedRoute` يتحقق من تسجيل الدخول + الدور المطلوب
-- إذا غير مسجل → `/sign-in`
-- إذا لا يملك الصلاحية → صفحة "غير مصرح"
+#### 2. تعديل BookingSidebar — دعم الحجز لأفراد العائلة
 
-#### 5. لوحة المريض
-- صفحة dashboard جديدة مبسطة للمريض: حجوزاتي، ملفي الطبي، إعداداتي
-- تستخدم نفس `DashboardLayout` لكن بقائمة مختصرة
+- إضافة Select لاختيار "لنفسي" أو أحد أفراد العائلة
+- جلب `family_members` للمستخدم الحالي
+- زر "إضافة فرد عائلة جديد" (inline form)
+- عند الحجز: `patient_id` يبقى `user.id` (صاحب الحساب)، لكن نضيف `patient_info` JSONB أو نستخدم `notes` بشكل هيكلي
 
-#### 6. إدارة الأدوار (Admin Panel)
-- صفحة `/dashboard/users` للـ admin فقط لعرض المستخدمين وتغيير أدوارهم
+**بما أن جدول bookings ليس فيه عمود `family_member_id`** سنضيف عمود:
+```sql
+ALTER TABLE public.bookings ADD COLUMN family_member_id UUID REFERENCES public.family_members(id);
+```
+
+#### 3. إعادة بناء `DashboardBookings.tsx` بالكامل
+
+```text
+الهيكل الجديد:
+┌─────────────────────────────────────────────────┐
+│ إحصائيات: معلّق | مؤكد | مكتمل | ملغي | إجمالي │
+├─────────────────────────────────────────────────┤
+│ فلاتر: [تاريخ] [الحالة] [الطبيب*] [بحث]       │
+├─────────────────────────────────────────────────┤
+│ تبويبات: اليوم | كل الحجوزات                    │
+├─────────────────────────────────────────────────┤
+│ كل بطاقة حجز:                                  │
+│  - اسم المريض (من profiles + family_members)    │
+│  - التاريخ + الوقت + نوع الحجز                  │
+│  - Badge حالة ملون                              │
+│  - أزرار: تأكيد | إلغاء | بدء جلسة | سجل طبي  │
+└─────────────────────────────────────────────────┘
+```
+
+- الطبيب: يرى حجوزاته فقط (auto-filter by doctorId)
+- الأدمن: يرى كل الحجوزات مع فلتر بالطبيب
+- زر "بدء جلسة" → navigate `/dashboard/consultation?booking=ID`
+- زر "سجل طبي" → navigate `/dashboard/patients/{patient_id}`
+
+#### 4. إنشاء `DashboardPatientRecord.tsx` — صفحة الملف الطبي الكامل
+
+**مسار جديد:** `/dashboard/patients/:patientId`
+
+```text
+┌──────────────────────────────────────────────┐
+│ رأس: صورة + اسم + عمر + جنس + هاتف         │
+│ إحصائيات: زيارات | جلسات | وصفات | طلبات    │
+├──────────────────────────────────────────────┤
+│ أفراد العائلة المسجلين (إن وجدوا)           │
+├──────────────────────────────────────────────┤
+│ تبويبات:                                     │
+│  [الزيارات] [الوصفات] [التحاليل] [الحجوزات] │
+│                                              │
+│  - الزيارات: treatment_sessions مع تشخيص    │
+│  - الوصفات: prescriptions + items            │
+│  - التحاليل: provider_orders                 │
+│  - الحجوزات: كل حجوزات المريض               │
+└──────────────────────────────────────────────┘
+```
+
+Data: يجلب من `profiles`, `treatment_sessions`, `prescriptions`, `prescription_items`, `provider_orders`, `bookings`, `family_members`.
+
+#### 5. تبسيط `DashboardPatients.tsx`
+
+- حذف الـ 180 سطر من DynamicCrudFilteredByIds المكرر
+- جدول بسيط ونظيف: اسم + هاتف + جنس + عمر + عدد الزيارات
+- كل صف قابل للنقر → navigate `/dashboard/patients/:id`
+- بحث بالاسم + فلتر بالجنس
+- إحصائيات: إجمالي المرضى، ذكور/إناث
+
+#### 6. تحسين `DashboardClinics.tsx`
+
+```text
+إضافات:
+- بطاقات إحصائية: عدد العيادات | الأطباء | الموظفين النشطين
+- تبويب الأطباء: عمود "متاح اليوم" مع Switch للتبديل الفوري
+- تبويب الأطباء: عمود "عدد حجوزات اليوم"
+- تبويب العيادات: عمود "عدد الأطباء" لكل عيادة
+```
+
+#### 7. تسجيل الموديولات `src/config/modules.ts`
+
+```text
+Module Registry:
+- تعريف كل موديول: id, label, icon, route, roles, group, defaultEnabled
+- مجموعات: core | clinical | admin | events
+- DashboardLayout يقرأ الموديولات المفعّلة ويفلتر navItems
+- الحالة تُحفظ في localStorage (SaaS-ready: مستقبلاً DB)
+```
+
+---
 
 ### الملفات المتأثرة
 
-| ملف | التغيير |
-|-----|---------|
-| `AuthContext.tsx` | إضافة roles, profile, hasRole |
-| `SignUp.tsx` | إضافة اختيار نوع الحساب |
-| `DashboardLayout.tsx` | قائمة ديناميكية بحسب الدور |
-| `App.tsx` | إضافة ProtectedRoute |
-| جديد: `ProtectedRoute.tsx` | مكون حماية المسارات |
-| جديد: `PatientDashboard.tsx` | لوحة المريض |
-| جديد: `DashboardUsers.tsx` | إدارة الأدوار (admin) |
-| Migration | لا حاجة — الجداول والـ functions موجودة بالفعل |
+```text
+جديد:
+  src/config/modules.ts                              — Module Registry
+  src/pages/dashboard/DashboardPatientRecord.tsx      — ملف المريض الكامل
+
+Migration:
+  family_members table + bookings.family_member_id    — دعم العائلة
+
+إعادة بناء:
+  src/pages/dashboard/DashboardBookings.tsx           — مركز قيادة الحجوزات
+  src/pages/dashboard/DashboardPatients.tsx           — تبسيط + ربط بالملف
+
+تعديل:
+  src/pages/dashboard/DashboardClinics.tsx            — إحصائيات + toggle
+  src/components/doctor/BookingSidebar.tsx             — اختيار فرد العائلة
+  src/components/dashboard/DashboardLayout.tsx         — module-based nav
+  src/App.tsx                                         — route /patients/:patientId
+```
+
+### ترتيب التنفيذ
+
+```text
+1. Migration: family_members + bookings.family_member_id
+2. src/config/modules.ts
+3. DashboardPatientRecord.tsx (جديد)
+4. DashboardBookings.tsx (rebuild)
+5. DashboardPatients.tsx (تبسيط)
+6. BookingSidebar.tsx (دعم العائلة)
+7. DashboardClinics.tsx (تحسين)
+8. DashboardLayout.tsx (modules nav)
+9. App.tsx (route جديد)
+```
 
