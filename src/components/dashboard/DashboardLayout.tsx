@@ -40,6 +40,7 @@ const allNavItems: NavItem[] = [
   { path: '/dashboard/reports', icon: BarChart3, label: 'التقارير', roles: ['doctor', 'admin', 'clinic_admin'] },
   { path: '/dashboard/users', icon: ShieldCheck, label: 'إدارة المستخدمين', roles: ['admin'] },
   { path: '/dashboard/catalog', icon: Stethoscope, label: 'إدارة الكتالوج', roles: ['admin'] },
+  { path: '/dashboard/notifications', icon: Bell, label: 'الإشعارات' },
   { path: '/dashboard/settings', icon: Settings, label: 'الإعدادات' },
   { path: '/my-bookings', icon: ClipboardList, label: 'حجوزاتي', roles: ['patient'] },
   { path: '/dashboard/profile', icon: UserCog, label: 'ملفي الشخصي', roles: ['patient'] },
@@ -211,6 +212,17 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
                         </p>
                       </DropdownMenuItem>
                     ))
+                  )}
+                  {notifications.length > 0 && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="justify-center text-primary font-cairo text-sm cursor-pointer"
+                        onClick={() => navigate('/dashboard/notifications')}
+                      >
+                        عرض كل الإشعارات
+                      </DropdownMenuItem>
+                    </>
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>

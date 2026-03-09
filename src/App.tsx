@@ -36,6 +36,7 @@ import DashboardCatalog from "./pages/dashboard/DashboardCatalog";
 import DashboardClinics from "./pages/dashboard/DashboardClinics";
 import DashboardMedicalCases from "./pages/dashboard/DashboardMedicalCases";
 import DashboardPatientRecord from "./pages/dashboard/DashboardPatientRecord";
+import DashboardNotifications from "./pages/dashboard/DashboardNotifications";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +78,7 @@ const App = () => (
             <Route path="/dashboard/kiosk" element={<ProtectedRoute requiredRoles={['doctor', 'admin', 'clinic_admin', 'staff']}><KioskCheckin /></ProtectedRoute>} />
 
             {/* Shared */}
+            <Route path="/dashboard/notifications" element={<ProtectedRoute><DashboardNotifications /></ProtectedRoute>} />
             <Route path="/dashboard/profile" element={<ProtectedRoute><DashboardProfile /></ProtectedRoute>} />
             <Route path="/dashboard/settings" element={<ProtectedRoute><DashboardSettings /></ProtectedRoute>} />
 
