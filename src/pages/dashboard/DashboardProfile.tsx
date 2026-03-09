@@ -186,8 +186,6 @@ const DoctorProfileSections = () => {
     if (!doctor) return;
     setSaving(true);
     const { error } = await supabase.from('doctors').update({
-      name_ar: doctor.name_ar,
-      name_en: doctor.name_en,
       specialty: doctor.specialty,
       specialty_ar: doctor.specialty_ar,
       about_ar: doctor.about_ar,
