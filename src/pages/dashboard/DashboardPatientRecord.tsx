@@ -358,6 +358,7 @@ const DashboardPatientRecord = () => {
             <MedicalFileUpload patientId={patientId!} />
           </TabsContent>
         </Tabs>
+      </div>
     </DashboardLayout>
   );
 };
