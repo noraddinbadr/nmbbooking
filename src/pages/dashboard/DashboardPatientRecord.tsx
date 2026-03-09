@@ -84,6 +84,21 @@ const DashboardPatientRecord = () => {
     },
   });
 
+  // Lab/imaging orders
+  const { data: orders = [], isLoading: loadingOrders } = useQuery({
+    queryKey: ['patient-orders', patientId],
+    enabled: !!patientId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('provider_orders')
+        .select('*, providers(name_ar)')
+        .order('created_at', { ascending: false });
+      // Filter by patient_id in order_details
+      return (data || []).filter((o: any) => o?.order_details?.patient_id === patientId);
+    },
+  });
+
+
   if (loadingProfile) {
     return (
       <DashboardLayout>
