@@ -55,6 +55,7 @@ const ActiveConsultation = () => {
   const [booking, setBooking] = useState<BookingRecord | null>(null);
   const [patient, setPatient] = useState<PatientProfile | null>(null);
   const [doctorId, setDoctorId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(Boolean(consultationBookingId));
   const [saving, setSaving] = useState(false);
 
