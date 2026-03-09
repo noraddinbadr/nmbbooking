@@ -55,6 +55,7 @@ const ActiveConsultation = () => {
   const [booking, setBooking] = useState<BookingRecord | null>(null);
   const [patient, setPatient] = useState<PatientProfile | null>(null);
   const [doctorId, setDoctorId] = useState<string | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(Boolean(consultationBookingId));
   const [saving, setSaving] = useState(false);
 
@@ -109,27 +110,58 @@ const ActiveConsultation = () => {
 
       // Get doctor record
       const { data: doc } = await supabase.from('doctors').select('id').eq('user_id', user.id).maybeSingle();
-      if (doc) setDoctorId(doc.id);
+      if (!doc) { setLoading(false); return; }
+      setDoctorId(doc.id);
 
       // Get booking
       const { data: bk } = await supabase.from('bookings').select('*').eq('id', consultationBookingId).maybeSingle();
-      if (!bk) {
-        setLoading(false);
-        return;
-      }
+      if (!bk) { setLoading(false); return; }
       setBooking(bk as BookingRecord);
 
-      // Get patient profile
-      const { data: prof } = await supabase.from('profiles').select('*').eq('id', bk.patient_id).maybeSingle();
-      setPatient(prof as PatientProfile);
+      // Auto-create or resume treatment_session
+      const { data: existingSession } = await supabase
+        .from('treatment_sessions')
+        .select('*')
+        .eq('booking_id', bk.id)
+        .eq('status', 'active')
+        .maybeSingle();
 
-      // Get providers
-      const { data: provs } = await supabase.from('providers').select('id, name_ar').eq('is_active', true);
-      setProviders(provs || []);
+      if (existingSession) {
+        // Resume existing active session — restore fields
+        setSessionId(existingSession.id);
+        setSymptoms(existingSession.symptoms || '');
+        setExamination(existingSession.examination || '');
+        setDiagnosis(existingSession.diagnosis || '');
+        setNotes(existingSession.notes || '');
+        setFollowUpDate(existingSession.follow_up_date || '');
+      } else {
+        // Create new active session
+        const { data: newSession } = await supabase.from('treatment_sessions').insert({
+          booking_id: bk.id,
+          patient_id: bk.patient_id,
+          doctor_id: doc.id,
+          session_date: bk.booking_date,
+          status: 'active',
+        }).select('id').single();
+        if (newSession) setSessionId(newSession.id);
+      }
+
+      // Update booking to confirmed if still pending
+      if (bk.status === 'pending') {
+        await supabase.from('bookings').update({ status: 'confirmed' }).eq('id', bk.id);
+      }
+
+      // Get patient profile & providers
+      const [profRes, provsRes] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', bk.patient_id).maybeSingle(),
+        supabase.from('providers').select('id, name_ar').eq('is_active', true),
+      ]);
+      setPatient(profRes.data as PatientProfile);
+      setProviders(provsRes.data || []);
 
       // Get patient history
       const [sessRes, rxRes, ordRes, visitsRes] = await Promise.all([
-        supabase.from('treatment_sessions').select('*').eq('patient_id', bk.patient_id).order('session_date', { ascending: false }).limit(10),
+        supabase.from('treatment_sessions').select('*').eq('patient_id', bk.patient_id).neq('status', 'active').order('session_date', { ascending: false }).limit(10),
         supabase.from('prescriptions').select('*, prescription_items(*)').eq('patient_id', bk.patient_id).order('created_at', { ascending: false }).limit(10),
         supabase.from('provider_orders').select('*, providers(name_ar)').order('created_at', { ascending: false }).limit(50),
         supabase.from('bookings').select('id', { count: 'exact' }).eq('patient_id', bk.patient_id),
@@ -153,30 +185,26 @@ const ActiveConsultation = () => {
     : null;
 
   const handleEndSession = async () => {
-    if (!booking || !doctorId) return;
+    if (!booking || !doctorId || !sessionId) return;
     setSaving(true);
     try {
-      // 1. Create treatment session
-      const { data: session, error: sessErr } = await supabase.from('treatment_sessions').insert({
-        booking_id: booking.id,
-        patient_id: booking.patient_id,
-        doctor_id: doctorId,
-        session_date: booking.booking_date,
+      // 1. Update treatment session to completed
+      const { error: sessErr } = await supabase.from('treatment_sessions').update({
         symptoms: symptoms || null,
         examination: examination || null,
         diagnosis: diagnosis || null,
         notes: notes || null,
         follow_up_date: followUpDate || null,
         status: 'completed',
-      }).select('id').single();
+      }).eq('id', sessionId);
 
       if (sessErr) throw sessErr;
 
       // 2. Create prescription if medicines exist
       const validMeds = medicines.filter(m => m.name.trim());
-      if (validMeds.length > 0 && session) {
+      if (validMeds.length > 0) {
         const { data: rx, error: rxErr } = await supabase.from('prescriptions').insert({
-          session_id: session.id,
+          session_id: sessionId,
           patient_id: booking.patient_id,
           doctor_id: doctorId,
         }).select('id').single();
