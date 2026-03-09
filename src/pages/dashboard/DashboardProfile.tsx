@@ -51,6 +51,7 @@ const DashboardProfile = () => {
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
+    // Update profile
     const { error } = await supabase.from('profiles').update({
       full_name: form.full_name,
       full_name_ar: form.full_name_ar,
@@ -58,6 +59,15 @@ const DashboardProfile = () => {
       gender: form.gender,
       date_of_birth: form.date_of_birth || null,
     }).eq('id', user.id);
+
+    // Sync name to doctors table if doctor
+    if (!error) {
+      await supabase.from('doctors').update({
+        name_ar: form.full_name_ar || form.full_name || '',
+        name_en: form.full_name || null,
+      }).eq('user_id', user.id);
+    }
+
     setSaving(false);
     if (error) {
       toast({ title: 'خطأ', description: error.message, variant: 'destructive' });
@@ -176,8 +186,6 @@ const DoctorProfileSections = () => {
     if (!doctor) return;
     setSaving(true);
     const { error } = await supabase.from('doctors').update({
-      name_ar: doctor.name_ar,
-      name_en: doctor.name_en,
       specialty: doctor.specialty,
       specialty_ar: doctor.specialty_ar,
       about_ar: doctor.about_ar,
@@ -244,14 +252,6 @@ const DoctorProfileSections = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label className="font-cairo">اسم الطبيب بالعربية</Label>
-              <Input value={doctor.name_ar} onChange={e => setDoctor({ ...doctor, name_ar: e.target.value })} className="font-cairo mt-1" />
-            </div>
-            <div>
-              <Label className="font-cairo">اسم الطبيب بالإنجليزية</Label>
-              <Input value={doctor.name_en || ''} onChange={e => setDoctor({ ...doctor, name_en: e.target.value })} className="mt-1" dir="ltr" />
-            </div>
             <div>
               <Label className="font-cairo">التخصص بالعربية</Label>
               <Input value={doctor.specialty_ar || ''} onChange={e => setDoctor({ ...doctor, specialty_ar: e.target.value })} className="font-cairo mt-1" />
