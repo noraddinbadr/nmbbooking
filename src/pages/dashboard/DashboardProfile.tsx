@@ -51,6 +51,7 @@ const DashboardProfile = () => {
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
+    // Update profile
     const { error } = await supabase.from('profiles').update({
       full_name: form.full_name,
       full_name_ar: form.full_name_ar,
@@ -58,6 +59,15 @@ const DashboardProfile = () => {
       gender: form.gender,
       date_of_birth: form.date_of_birth || null,
     }).eq('id', user.id);
+
+    // Sync name to doctors table if doctor
+    if (!error) {
+      await supabase.from('doctors').update({
+        name_ar: form.full_name_ar || form.full_name || '',
+        name_en: form.full_name || null,
+      }).eq('user_id', user.id);
+    }
+
     setSaving(false);
     if (error) {
       toast({ title: 'خطأ', description: error.message, variant: 'destructive' });
