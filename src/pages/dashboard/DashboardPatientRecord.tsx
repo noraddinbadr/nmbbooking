@@ -203,6 +203,9 @@ const DashboardPatientRecord = () => {
             <TabsTrigger value="bookings" className="font-cairo gap-1.5">
               <ClipboardList className="h-3.5 w-3.5" /> الحجوزات ({bookings.length})
             </TabsTrigger>
+            <TabsTrigger value="orders" className="font-cairo gap-1.5">
+              <TestTube className="h-3.5 w-3.5" /> الطلبات ({orders.length})
+            </TabsTrigger>
           </TabsList>
 
           {/* Sessions Tab */}
