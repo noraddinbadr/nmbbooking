@@ -306,6 +306,49 @@ const DashboardPatientRecord = () => {
               </div>
             )}
           </TabsContent>
+
+          {/* Orders Tab */}
+          <TabsContent value="orders" className="mt-4">
+            {loadingOrders ? (
+              <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+            ) : orders.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground font-cairo text-sm">لا توجد طلبات تحاليل أو أشعة</div>
+            ) : (
+              <div className="space-y-3">
+                {orders.map((order: any) => {
+                  const orderStatusLabels: Record<string, string> = {
+                    pending: 'معلّق', received: 'مستلم', sample_taken: 'تم أخذ العينة',
+                    results_uploaded: 'النتائج جاهزة', delivered: 'تم التسليم',
+                  };
+                  const orderStatusColors: Record<string, string> = {
+                    pending: 'bg-amber-100 text-amber-800', received: 'bg-blue-100 text-blue-800',
+                    sample_taken: 'bg-purple-100 text-purple-800', results_uploaded: 'bg-emerald-100 text-emerald-800',
+                    delivered: 'bg-muted text-muted-foreground',
+                  };
+                  return (
+                    <div key={order.id} className="rounded-xl border border-border bg-card p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="font-cairo text-sm font-semibold text-foreground">
+                            {order.order_type === 'lab' ? '🧪 تحاليل' : order.order_type === 'imaging' ? '📷 أشعة' : '💉 إجراء'}
+                          </p>
+                          <p className="font-cairo text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString('ar-YE')}</p>
+                          {order.providers?.name_ar && <p className="font-cairo text-xs text-muted-foreground">المزود: {order.providers.name_ar}</p>}
+                        </div>
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-cairo font-medium ${orderStatusColors[order.status] || 'bg-muted text-muted-foreground'}`}>
+                          {orderStatusLabels[order.status] || order.status}
+                        </span>
+                      </div>
+                      {order.notes && <p className="font-cairo text-xs text-muted-foreground">{order.notes}</p>}
+                      {order.results_url && (
+                        <a href={order.results_url} target="_blank" rel="noopener noreferrer" className="font-cairo text-xs text-primary hover:underline mt-1 inline-block">📄 عرض النتائج</a>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
       </div>
     </DashboardLayout>
