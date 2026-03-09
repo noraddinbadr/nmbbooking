@@ -162,6 +162,7 @@ const DashboardPatientRecord = () => {
                 { label: 'حجوزات', value: bookings.length, icon: ClipboardList, color: 'text-blue-600' },
                 { label: 'جلسات', value: sessions.length, icon: Stethoscope, color: 'text-green-600' },
                 { label: 'وصفات', value: prescriptions.length, icon: FileText, color: 'text-purple-600' },
+                { label: 'طلبات', value: orders.length, icon: TestTube, color: 'text-amber-600' },
               ].map(s => (
                 <div key={s.label} className="text-center min-w-[60px]">
                   <s.icon className={`h-5 w-5 mx-auto mb-1 ${s.color}`} />
