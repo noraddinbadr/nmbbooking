@@ -28,6 +28,8 @@ const DashboardProfile = () => {
   const { profile, hasRole, user } = useAuth();
   const isDoctor = hasRole('doctor');
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [form, setForm] = useState({
     full_name: '',
     full_name_ar: '',
@@ -45,13 +47,58 @@ const DashboardProfile = () => {
         gender: profile.gender || '',
         date_of_birth: profile.date_of_birth || '',
       });
+      setAvatarUrl(profile.avatar_url || null);
     }
   }, [profile]);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'خطأ', description: 'حجم الصورة يجب أن يكون أقل من 5 ميجابايت', variant: 'destructive' });
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast({ title: 'خطأ', description: 'يجب أن تكون الصورة بصيغة JPG أو PNG أو WEBP', variant: 'destructive' });
+      return;
+    }
+
+    setUploading(true);
+    const ext = file.name.split('.').pop();
+    const filePath = `${user.id}/avatar.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, file, { upsert: true });
+
+    if (uploadError) {
+      toast({ title: 'خطأ في الرفع', description: uploadError.message, variant: 'destructive' });
+      setUploading(false);
+      return;
+    }
+
+    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+    const urlWithCache = `${publicUrl}?t=${Date.now()}`;
+
+    // Update both profiles and doctors tables
+    const { error: updateError } = await supabase.from('profiles').update({ avatar_url: urlWithCache }).eq('id', user.id);
+    if (!updateError) {
+      await supabase.from('doctors').update({ profile_image: urlWithCache }).eq('user_id', user.id);
+    }
+
+    setUploading(false);
+    if (updateError) {
+      toast({ title: 'خطأ', description: updateError.message, variant: 'destructive' });
+    } else {
+      setAvatarUrl(urlWithCache);
+      toast({ title: '✅ تم الرفع', description: 'تم تحديث الصورة الشخصية بنجاح' });
+    }
+  };
 
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
-    // Update profile
     const { error } = await supabase.from('profiles').update({
       full_name: form.full_name,
       full_name_ar: form.full_name_ar,
@@ -60,7 +107,6 @@ const DashboardProfile = () => {
       date_of_birth: form.date_of_birth || null,
     }).eq('id', user.id);
 
-    // Sync name to doctors table if doctor
     if (!error) {
       await supabase.from('doctors').update({
         name_ar: form.full_name_ar || form.full_name || '',
@@ -92,18 +138,31 @@ const DashboardProfile = () => {
           <CardContent>
             <div className="flex items-center gap-6">
               <div className="relative">
-                <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="font-cairo text-3xl font-bold text-primary">
-                    {(form.full_name || form.full_name_ar || 'م').charAt(0)}
-                  </span>
-                </div>
-                <button className="absolute bottom-0 left-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="صورة شخصية" className="w-24 h-24 rounded-full object-cover border-2 border-primary/20" />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span className="font-cairo text-3xl font-bold text-primary">
+                      {(form.full_name_ar || form.full_name || 'م').charAt(0)}
+                    </span>
+                  </div>
+                )}
+                <label className="absolute bottom-0 left-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer hover:bg-primary/90 transition-colors">
                   <Camera className="h-4 w-4" />
-                </button>
+                  <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleAvatarUpload} disabled={uploading} />
+                </label>
               </div>
               <div>
-                <Button variant="outline" className="font-cairo gap-2"><Upload className="h-4 w-4" /> رفع صورة</Button>
-                <p className="font-cairo text-xs text-muted-foreground mt-2">JPG أو PNG، حد أقصى 5 ميجابايت</p>
+                <label className="cursor-pointer">
+                  <Button variant="outline" className="font-cairo gap-2 pointer-events-none" disabled={uploading} asChild>
+                    <span>
+                      {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                      {uploading ? 'جارٍ الرفع...' : 'رفع صورة'}
+                    </span>
+                  </Button>
+                  <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleAvatarUpload} disabled={uploading} />
+                </label>
+                <p className="font-cairo text-xs text-muted-foreground mt-2">JPG أو PNG أو WEBP، حد أقصى 5 ميجابايت</p>
               </div>
             </div>
           </CardContent>
