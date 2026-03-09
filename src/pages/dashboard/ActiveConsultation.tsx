@@ -435,6 +435,16 @@ const ActiveConsultation = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Medical Files */}
+            {booking && doctorId && (
+              <MedicalFileUpload
+                patientId={booking.patient_id}
+                doctorId={doctorId}
+                sessionId={sessionId || undefined}
+                bookingId={booking.id}
+              />
+            )}
           </div>
 
           {/* CENTER + LEFT: Consultation workspace */}
