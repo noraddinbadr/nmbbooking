@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, User, Phone, Calendar, Heart, Stethoscope, FileText, FlaskConical, ClipboardList, Loader2 } from 'lucide-react';
+import { ArrowRight, User, Phone, Calendar, Heart, Stethoscope, FileText, FlaskConical, ClipboardList, Loader2, TestTube } from 'lucide-react';
 
 function calcAge(dob: string | null): string {
   if (!dob) return '—';
@@ -84,6 +84,21 @@ const DashboardPatientRecord = () => {
     },
   });
 
+  // Lab/imaging orders
+  const { data: orders = [], isLoading: loadingOrders } = useQuery({
+    queryKey: ['patient-orders', patientId],
+    enabled: !!patientId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('provider_orders')
+        .select('*, providers(name_ar)')
+        .order('created_at', { ascending: false });
+      // Filter by patient_id in order_details
+      return (data || []).filter((o: any) => o?.order_details?.patient_id === patientId);
+    },
+  });
+
+
   if (loadingProfile) {
     return (
       <DashboardLayout>
@@ -147,6 +162,7 @@ const DashboardPatientRecord = () => {
                 { label: 'حجوزات', value: bookings.length, icon: ClipboardList, color: 'text-blue-600' },
                 { label: 'جلسات', value: sessions.length, icon: Stethoscope, color: 'text-green-600' },
                 { label: 'وصفات', value: prescriptions.length, icon: FileText, color: 'text-purple-600' },
+                { label: 'طلبات', value: orders.length, icon: TestTube, color: 'text-amber-600' },
               ].map(s => (
                 <div key={s.label} className="text-center min-w-[60px]">
                   <s.icon className={`h-5 w-5 mx-auto mb-1 ${s.color}`} />
@@ -186,6 +202,9 @@ const DashboardPatientRecord = () => {
             </TabsTrigger>
             <TabsTrigger value="bookings" className="font-cairo gap-1.5">
               <ClipboardList className="h-3.5 w-3.5" /> الحجوزات ({bookings.length})
+            </TabsTrigger>
+            <TabsTrigger value="orders" className="font-cairo gap-1.5">
+              <TestTube className="h-3.5 w-3.5" /> الطلبات ({orders.length})
             </TabsTrigger>
           </TabsList>
 
@@ -284,6 +303,49 @@ const DashboardPatientRecord = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Orders Tab */}
+          <TabsContent value="orders" className="mt-4">
+            {loadingOrders ? (
+              <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
+            ) : orders.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground font-cairo text-sm">لا توجد طلبات تحاليل أو أشعة</div>
+            ) : (
+              <div className="space-y-3">
+                {orders.map((order: any) => {
+                  const orderStatusLabels: Record<string, string> = {
+                    pending: 'معلّق', received: 'مستلم', sample_taken: 'تم أخذ العينة',
+                    results_uploaded: 'النتائج جاهزة', delivered: 'تم التسليم',
+                  };
+                  const orderStatusColors: Record<string, string> = {
+                    pending: 'bg-amber-100 text-amber-800', received: 'bg-blue-100 text-blue-800',
+                    sample_taken: 'bg-purple-100 text-purple-800', results_uploaded: 'bg-emerald-100 text-emerald-800',
+                    delivered: 'bg-muted text-muted-foreground',
+                  };
+                  return (
+                    <div key={order.id} className="rounded-xl border border-border bg-card p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="font-cairo text-sm font-semibold text-foreground">
+                            {order.order_type === 'lab' ? '🧪 تحاليل' : order.order_type === 'imaging' ? '📷 أشعة' : '💉 إجراء'}
+                          </p>
+                          <p className="font-cairo text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString('ar-YE')}</p>
+                          {order.providers?.name_ar && <p className="font-cairo text-xs text-muted-foreground">المزود: {order.providers.name_ar}</p>}
+                        </div>
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-cairo font-medium ${orderStatusColors[order.status] || 'bg-muted text-muted-foreground'}`}>
+                          {orderStatusLabels[order.status] || order.status}
+                        </span>
+                      </div>
+                      {order.notes && <p className="font-cairo text-xs text-muted-foreground">{order.notes}</p>}
+                      {order.results_url && (
+                        <a href={order.results_url} target="_blank" rel="noopener noreferrer" className="font-cairo text-xs text-primary hover:underline mt-1 inline-block">📄 عرض النتائج</a>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </TabsContent>

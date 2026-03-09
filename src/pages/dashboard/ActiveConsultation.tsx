@@ -58,6 +58,7 @@ const ActiveConsultation = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(Boolean(consultationBookingId));
   const [saving, setSaving] = useState(false);
+  const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null);
 
   // Patient history
   const [pastSessions, setPastSessions] = useState<any[]>([]);
@@ -179,7 +180,24 @@ const ActiveConsultation = () => {
     load();
   }, [consultationBookingId, user]);
 
+  // Auto-save every 30 seconds
+  useEffect(() => {
+    if (!sessionId) return;
+    const interval = setInterval(async () => {
+      if (!symptoms && !examination && !diagnosis && !notes) return;
+      await supabase.from('treatment_sessions').update({
+        symptoms: symptoms || null,
+        examination: examination || null,
+        diagnosis: diagnosis || null,
+        notes: notes || null,
+        follow_up_date: followUpDate || null,
+      }).eq('id', sessionId);
+      setLastAutoSave(new Date());
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [sessionId, symptoms, examination, diagnosis, notes, followUpDate]);
   const patientName = patient?.full_name_ar || patient?.full_name || 'مريض';
+
   const patientAge = patient?.date_of_birth
     ? Math.floor((Date.now() - new Date(patient.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
     : null;
@@ -325,6 +343,11 @@ const ActiveConsultation = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {lastAutoSave && (
+              <span className="font-cairo text-[10px] text-muted-foreground">
+                💾 حُفظ {lastAutoSave.toLocaleTimeString('ar')}
+              </span>
+            )}
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-card border border-border">
               <Clock className="h-3.5 w-3.5 text-primary" />
               <span className="font-cairo text-sm font-medium text-foreground">{booking.start_time || '--:--'}</span>
