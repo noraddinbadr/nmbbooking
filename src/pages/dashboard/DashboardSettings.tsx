@@ -382,6 +382,18 @@ const DashboardSettings = () => {
     );
   }
 
+  // ─── Patient settings page (non-doctor users) ───
+  if (!isDoctor) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6 max-w-3xl">
+          <h1 className="font-cairo text-2xl font-bold text-foreground">الإعدادات</h1>
+          <PatientSettings />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6 max-w-5xl">
