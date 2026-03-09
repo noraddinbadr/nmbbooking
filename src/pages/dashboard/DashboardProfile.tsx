@@ -245,14 +245,6 @@ const DoctorProfileSections = () => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label className="font-cairo">اسم الطبيب بالعربية</Label>
-              <Input value={doctor.name_ar} onChange={e => setDoctor({ ...doctor, name_ar: e.target.value })} className="font-cairo mt-1" />
-            </div>
-            <div>
-              <Label className="font-cairo">اسم الطبيب بالإنجليزية</Label>
-              <Input value={doctor.name_en || ''} onChange={e => setDoctor({ ...doctor, name_en: e.target.value })} className="mt-1" dir="ltr" />
-            </div>
-            <div>
               <Label className="font-cairo">التخصص بالعربية</Label>
               <Input value={doctor.specialty_ar || ''} onChange={e => setDoctor({ ...doctor, specialty_ar: e.target.value })} className="font-cairo mt-1" />
             </div>
