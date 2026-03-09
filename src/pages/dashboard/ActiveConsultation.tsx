@@ -196,7 +196,7 @@ const ActiveConsultation = () => {
     }, 30000);
     return () => clearInterval(interval);
   }, [sessionId, symptoms, examination, diagnosis, notes, followUpDate]);
-
+  const patientName = patient?.full_name_ar || patient?.full_name || 'مريض';
 
   const patientAge = patient?.date_of_birth
     ? Math.floor((Date.now() - new Date(patient.date_of_birth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
