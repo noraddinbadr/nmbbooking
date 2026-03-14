@@ -14,6 +14,333 @@ export type Database = {
   }
   public: {
     Tables: {
+      auction_bids: {
+        Row: {
+          accepted_at: string | null
+          amount: number
+          bid_type: Database["public"]["Enums"]["auction_bid_type"]
+          bidder_id: string
+          coverage_details: Json | null
+          created_at: string
+          id: string
+          is_anonymous: boolean | null
+          notes: string | null
+          provider_id: string | null
+          request_id: string
+          status: Database["public"]["Enums"]["auction_bid_status"]
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          amount?: number
+          bid_type?: Database["public"]["Enums"]["auction_bid_type"]
+          bidder_id: string
+          coverage_details?: Json | null
+          created_at?: string
+          id?: string
+          is_anonymous?: boolean | null
+          notes?: string | null
+          provider_id?: string | null
+          request_id: string
+          status?: Database["public"]["Enums"]["auction_bid_status"]
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          amount?: number
+          bid_type?: Database["public"]["Enums"]["auction_bid_type"]
+          bidder_id?: string
+          coverage_details?: Json | null
+          created_at?: string
+          id?: string
+          is_anonymous?: boolean | null
+          notes?: string | null
+          provider_id?: string | null
+          request_id?: string
+          status?: Database["public"]["Enums"]["auction_bid_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_bids_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_bids_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "auction_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auction_consents: {
+        Row: {
+          consent_given: boolean
+          consent_method: string | null
+          consented_at: string | null
+          created_at: string
+          id: string
+          patient_id: string
+          request_id: string
+        }
+        Insert: {
+          consent_given?: boolean
+          consent_method?: string | null
+          consented_at?: string | null
+          created_at?: string
+          id?: string
+          patient_id: string
+          request_id: string
+        }
+        Update: {
+          consent_given?: boolean
+          consent_method?: string | null
+          consented_at?: string | null
+          created_at?: string
+          id?: string
+          patient_id?: string
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_consents_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "auction_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auction_requests: {
+        Row: {
+          anonymization_level: number
+          camp_id: string | null
+          city: string | null
+          created_at: string
+          description_ar: string | null
+          description_en: string | null
+          diagnosis_code: string | null
+          diagnosis_summary: string | null
+          doctor_id: string | null
+          estimated_cost: number
+          expires_at: string | null
+          funded_amount: number
+          id: string
+          initiator_id: string
+          initiator_type: Database["public"]["Enums"]["auction_initiator_type"]
+          medical_priority: number
+          patient_id: string
+          poverty_score: number | null
+          published_at: string | null
+          specialty: string | null
+          status: Database["public"]["Enums"]["auction_request_status"]
+          title_ar: string
+          title_en: string | null
+          treatment_plan: string | null
+          updated_at: string
+        }
+        Insert: {
+          anonymization_level?: number
+          camp_id?: string | null
+          city?: string | null
+          created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
+          diagnosis_code?: string | null
+          diagnosis_summary?: string | null
+          doctor_id?: string | null
+          estimated_cost?: number
+          expires_at?: string | null
+          funded_amount?: number
+          id?: string
+          initiator_id: string
+          initiator_type?: Database["public"]["Enums"]["auction_initiator_type"]
+          medical_priority?: number
+          patient_id: string
+          poverty_score?: number | null
+          published_at?: string | null
+          specialty?: string | null
+          status?: Database["public"]["Enums"]["auction_request_status"]
+          title_ar: string
+          title_en?: string | null
+          treatment_plan?: string | null
+          updated_at?: string
+        }
+        Update: {
+          anonymization_level?: number
+          camp_id?: string | null
+          city?: string | null
+          created_at?: string
+          description_ar?: string | null
+          description_en?: string | null
+          diagnosis_code?: string | null
+          diagnosis_summary?: string | null
+          doctor_id?: string | null
+          estimated_cost?: number
+          expires_at?: string | null
+          funded_amount?: number
+          id?: string
+          initiator_id?: string
+          initiator_type?: Database["public"]["Enums"]["auction_initiator_type"]
+          medical_priority?: number
+          patient_id?: string
+          poverty_score?: number | null
+          published_at?: string | null
+          specialty?: string | null
+          status?: Database["public"]["Enums"]["auction_request_status"]
+          title_ar?: string
+          title_en?: string | null
+          treatment_plan?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_requests_camp_id_fkey"
+            columns: ["camp_id"]
+            isOneToOne: false
+            referencedRelation: "medical_camps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auction_requests_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auction_settings: {
+        Row: {
+          auto_publish_after_verify: boolean
+          bid_duration_hours: number
+          can_patient_post_directly: boolean
+          default_patient_action: string
+          id: string
+          max_bids_per_request: number
+          require_doctor_signature: boolean
+          require_patient_otp_consent: boolean
+          require_social_report: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          auto_publish_after_verify?: boolean
+          bid_duration_hours?: number
+          can_patient_post_directly?: boolean
+          default_patient_action?: string
+          id?: string
+          max_bids_per_request?: number
+          require_doctor_signature?: boolean
+          require_patient_otp_consent?: boolean
+          require_social_report?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          auto_publish_after_verify?: boolean
+          bid_duration_hours?: number
+          can_patient_post_directly?: boolean
+          default_patient_action?: string
+          id?: string
+          max_bids_per_request?: number
+          require_doctor_signature?: boolean
+          require_patient_otp_consent?: boolean
+          require_social_report?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      auction_state_log: {
+        Row: {
+          changed_by: string
+          created_at: string
+          from_status:
+            | Database["public"]["Enums"]["auction_request_status"]
+            | null
+          id: string
+          reason: string | null
+          request_id: string
+          to_status: Database["public"]["Enums"]["auction_request_status"]
+        }
+        Insert: {
+          changed_by: string
+          created_at?: string
+          from_status?:
+            | Database["public"]["Enums"]["auction_request_status"]
+            | null
+          id?: string
+          reason?: string | null
+          request_id: string
+          to_status: Database["public"]["Enums"]["auction_request_status"]
+        }
+        Update: {
+          changed_by?: string
+          created_at?: string
+          from_status?:
+            | Database["public"]["Enums"]["auction_request_status"]
+            | null
+          id?: string
+          reason?: string | null
+          request_id?: string
+          to_status?: Database["public"]["Enums"]["auction_request_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_state_log_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "auction_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auction_verifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_verified: boolean
+          notes: string | null
+          request_id: string
+          verification_type: string
+          verified_at: string | null
+          verified_by: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_verified?: boolean
+          notes?: string | null
+          request_id: string
+          verification_type?: string
+          verified_at?: string | null
+          verified_by: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_verified?: boolean
+          notes?: string | null
+          request_id?: string
+          verification_type?: string
+          verified_at?: string | null
+          verified_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auction_verifications_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "auction_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -1309,6 +1636,18 @@ export type Database = {
         | "patient"
         | "donor"
         | "provider"
+      auction_bid_status: "pending" | "accepted" | "rejected" | "withdrawn"
+      auction_bid_type: "full_coverage" | "partial" | "split"
+      auction_initiator_type: "doctor" | "patient" | "admin"
+      auction_request_status:
+        | "draft"
+        | "pending_doctor"
+        | "pending_patient_consent"
+        | "pending_admin"
+        | "published"
+        | "awarded"
+        | "fulfilled"
+        | "cancelled"
       booking_status: "pending" | "confirmed" | "completed" | "cancelled"
       booking_type: "clinic" | "hospital" | "home" | "video" | "voice" | "lab"
       camp_status: "draft" | "published" | "active" | "completed" | "cancelled"
@@ -1468,6 +1807,19 @@ export const Constants = {
         "patient",
         "donor",
         "provider",
+      ],
+      auction_bid_status: ["pending", "accepted", "rejected", "withdrawn"],
+      auction_bid_type: ["full_coverage", "partial", "split"],
+      auction_initiator_type: ["doctor", "patient", "admin"],
+      auction_request_status: [
+        "draft",
+        "pending_doctor",
+        "pending_patient_consent",
+        "pending_admin",
+        "published",
+        "awarded",
+        "fulfilled",
+        "cancelled",
       ],
       booking_status: ["pending", "confirmed", "completed", "cancelled"],
       booking_type: ["clinic", "hospital", "home", "video", "voice", "lab"],

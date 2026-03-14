@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Calendar, ClipboardList, Users,
   Stethoscope, BarChart3, Bell, LogOut, Menu, X, ChevronLeft,
-  UserCog, Settings, Heart, Package, UserCheck, ShieldCheck, Check, FileText
+  UserCog, Settings, Heart, Package, UserCheck, ShieldCheck, Check, FileText, Gavel
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -36,10 +36,12 @@ const allNavItems: NavItem[] = [
   { path: '/dashboard/clinics', icon: Stethoscope, label: 'العيادات والأطباء', roles: ['admin', 'doctor', 'clinic_admin'] },
   { path: '/dashboard/cases', icon: ClipboardList, label: 'الحالات الطبية', roles: ['admin', 'doctor'] },
   { path: '/dashboard/providers', icon: Package, label: 'مزودو الخدمات', roles: ['admin'] },
+  { path: '/dashboard/auctions', icon: Gavel, label: 'المزادات العكسية', roles: ['admin', 'doctor', 'provider'] },
   { path: '/dashboard/kiosk', icon: UserCheck, label: 'تسجيل الحضور', roles: ['doctor', 'admin', 'clinic_admin', 'staff'] },
   { path: '/dashboard/reports', icon: BarChart3, label: 'التقارير', roles: ['doctor', 'admin', 'clinic_admin'] },
   { path: '/dashboard/users', icon: ShieldCheck, label: 'إدارة المستخدمين', roles: ['admin'] },
   { path: '/dashboard/catalog', icon: Stethoscope, label: 'إدارة الكتالوج', roles: ['admin'] },
+  { path: '/dashboard/auction-settings', icon: Gavel, label: 'إعدادات المزادات', roles: ['admin'] },
   { path: '/dashboard/notifications', icon: Bell, label: 'الإشعارات' },
   { path: '/dashboard/settings', icon: Settings, label: 'الإعدادات' },
   { path: '/my-bookings', icon: ClipboardList, label: 'حجوزاتي', roles: ['patient'] },
