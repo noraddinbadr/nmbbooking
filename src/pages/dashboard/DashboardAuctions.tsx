@@ -35,7 +35,7 @@ const DashboardAuctions = () => {
   const isDoctor = roles.includes('doctor');
 
   const filtered = requests.filter(r =>
-    !search || r.title_ar?.includes(search) || r.diagnosis_code?.includes(search)
+    !search || r.medical_case?.title_ar?.includes(search) || r.medical_case?.diagnosis_code?.includes(search) || r.medical_case?.case_code?.includes(search)
   );
 
   return (
@@ -136,21 +136,25 @@ const DashboardAuctions = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filtered.map(req => (
+                      {filtered.map(req => {
+                        const mc = req.medical_case;
+                        const cost = Number(mc?.estimated_cost ?? 0);
+                        const funded = Number(mc?.funded_amount ?? 0);
+                        return (
                         <TableRow key={req.id}>
-                          <TableCell className="font-cairo font-medium">{req.title_ar}</TableCell>
+                          <TableCell className="font-cairo font-medium">{mc?.title_ar || mc?.case_code || '—'}</TableCell>
                           <TableCell>
                             <Badge variant="outline" className="font-cairo text-xs">
-                              {PRIORITY_LABELS[req.medical_priority] || req.medical_priority}
+                              {PRIORITY_LABELS[mc?.medical_priority ?? 3] || mc?.medical_priority}
                             </Badge>
                           </TableCell>
-                          <TableCell className="font-cairo">{req.estimated_cost.toLocaleString()} ر.ي</TableCell>
+                          <TableCell className="font-cairo">{cost.toLocaleString()} ر.ي</TableCell>
                           <TableCell className="font-cairo">
                             <div className="flex items-center gap-1">
-                              <span>{req.funded_amount.toLocaleString()}</span>
-                              {req.estimated_cost > 0 && (
+                              <span>{funded.toLocaleString()}</span>
+                              {cost > 0 && (
                                 <span className="text-xs text-muted-foreground">
-                                  ({Math.round((req.funded_amount / req.estimated_cost) * 100)}%)
+                                  ({Math.round((funded / cost) * 100)}%)
                                 </span>
                               )}
                             </div>
@@ -178,7 +182,8 @@ const DashboardAuctions = () => {
                             </Button>
                           </TableCell>
                         </TableRow>
-                      ))}
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>

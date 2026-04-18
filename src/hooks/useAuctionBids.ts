@@ -52,22 +52,23 @@ export function useAuctionBids(caseId?: string) {
       coverage_details?: Record<string, unknown>;
       is_anonymous?: boolean;
     }) => {
+      const insertData = {
+        case_id: payload.case_id,
+        amount: payload.amount,
+        kind: 'bid' as const,
+        bid_type: payload.bid_type,
+        bid_status: 'pending' as const,
+        provider_id: payload.provider_id ?? null,
+        donor_id: payload.donor_id ?? null,
+        donor_name: payload.donor_name ?? null,
+        notes: payload.notes ?? null,
+        coverage_details: payload.coverage_details ?? {},
+        is_anonymous: payload.is_anonymous ?? false,
+        status: 'pledged' as const,
+      };
       const { data, error } = await supabase
         .from('donations')
-        .insert({
-          case_id: payload.case_id,
-          amount: payload.amount,
-          kind: 'bid',
-          bid_type: payload.bid_type,
-          bid_status: 'pending',
-          provider_id: payload.provider_id ?? null,
-          donor_id: payload.donor_id ?? null,
-          donor_name: payload.donor_name ?? null,
-          notes: payload.notes ?? null,
-          coverage_details: payload.coverage_details ?? {},
-          is_anonymous: payload.is_anonymous ?? false,
-          status: 'pledged',
-        })
+        .insert(insertData)
         .select()
         .single();
       if (error) throw error;
