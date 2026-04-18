@@ -5,8 +5,10 @@ import { useQuery } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, User, Phone, Calendar, Heart, Stethoscope, FileText, FlaskConical, ClipboardList, Loader2, TestTube, FileImage } from 'lucide-react';
+import { ArrowRight, User, Phone, Calendar, Heart, Stethoscope, FileText, ClipboardList, Loader2, TestTube, FileImage, Activity } from 'lucide-react';
 import { MedicalFileUpload } from '@/components/medical/MedicalFileUpload';
+import { PatientTimeline } from '@/components/medical/PatientTimeline';
+import { SessionDetailCard } from '@/components/medical/SessionDetailCard';
 
 function calcAge(dob: string | null): string {
   if (!dob) return '—';
@@ -193,8 +195,11 @@ const DashboardPatientRecord = () => {
         )}
 
         {/* Tabs */}
-        <Tabs defaultValue="sessions">
-          <TabsList className="font-cairo">
+        <Tabs defaultValue="timeline">
+          <TabsList className="font-cairo flex-wrap h-auto">
+            <TabsTrigger value="timeline" className="font-cairo gap-1.5">
+              <Activity className="h-3.5 w-3.5" /> الخط الزمني
+            </TabsTrigger>
             <TabsTrigger value="sessions" className="font-cairo gap-1.5">
               <Stethoscope className="h-3.5 w-3.5" /> الجلسات ({sessions.length})
             </TabsTrigger>
@@ -212,7 +217,12 @@ const DashboardPatientRecord = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Sessions Tab */}
+          {/* Timeline Tab — unified chronological view */}
+          <TabsContent value="timeline" className="mt-4">
+            <PatientTimeline patientId={patientId!} />
+          </TabsContent>
+
+          {/* Sessions Tab — with deep linking */}
           <TabsContent value="sessions" className="mt-4">
             {loadingSessions ? (
               <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>
@@ -220,23 +230,7 @@ const DashboardPatientRecord = () => {
               <div className="text-center py-8 text-muted-foreground font-cairo text-sm">لا توجد جلسات علاج</div>
             ) : (
               <div className="space-y-3">
-                {sessions.map((s: any) => (
-                  <div key={s.id} className="rounded-xl border border-border bg-card p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <p className="font-cairo text-sm font-semibold text-foreground">{s.session_date}</p>
-                        {s.doctors?.name_ar && <p className="font-cairo text-xs text-muted-foreground">د. {s.doctors.name_ar}</p>}
-                      </div>
-                      <Badge variant="outline" className={`font-cairo text-[10px] ${s.status === 'completed' ? 'border-green-300 text-green-700' : 'border-blue-300 text-blue-700'}`}>
-                        {s.status === 'completed' ? 'مكتملة' : 'نشطة'}
-                      </Badge>
-                    </div>
-                    {s.symptoms && <p className="font-cairo text-xs text-muted-foreground mb-1"><span className="font-medium text-foreground">الأعراض:</span> {s.symptoms}</p>}
-                    {s.diagnosis && <p className="font-cairo text-xs text-muted-foreground mb-1"><span className="font-medium text-foreground">التشخيص:</span> {s.diagnosis}</p>}
-                    {s.notes && <p className="font-cairo text-xs text-muted-foreground"><span className="font-medium text-foreground">ملاحظات:</span> {s.notes}</p>}
-                    {s.follow_up_date && <p className="font-cairo text-xs text-primary mt-1">متابعة: {s.follow_up_date}</p>}
-                  </div>
-                ))}
+                {sessions.map((s: any) => <SessionDetailCard key={s.id} session={s} patientId={patientId!} />)}
               </div>
             )}
           </TabsContent>
