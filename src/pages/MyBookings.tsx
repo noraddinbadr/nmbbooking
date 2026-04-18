@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { BookingQRButton } from '@/components/booking/BookingQRButton';
 
 const statusLabels: Record<string, { label: string; color: string }> = {
   pending: { label: 'قيد الانتظار', color: 'bg-amber-50 text-amber-500' },
@@ -100,9 +101,17 @@ const MyBookings = () => {
             )}
           </div>
           {(booking.status === 'confirmed' || booking.status === 'pending') && (
-            <Button variant="outline" size="sm" className="font-cairo text-destructive hover:bg-destructive/10" onClick={() => handleCancel(booking.id)}>
-              إلغاء الحجز
-            </Button>
+            <div className="flex items-center gap-2">
+              <BookingQRButton
+                bookingId={booking.id}
+                patientName={doctor?.name_ar}
+                bookingDate={booking.booking_date}
+                startTime={booking.start_time}
+              />
+              <Button variant="outline" size="sm" className="font-cairo text-destructive hover:bg-destructive/10" onClick={() => handleCancel(booking.id)}>
+                إلغاء الحجز
+              </Button>
+            </div>
           )}
         </div>
       </div>
