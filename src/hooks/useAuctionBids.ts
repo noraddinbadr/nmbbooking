@@ -68,7 +68,7 @@ export function useAuctionBids(caseId?: string) {
       };
       const { data, error } = await supabase
         .from('donations')
-        .insert(insertData)
+        .insert(insertData as never)
         .select()
         .single();
       if (error) throw error;
