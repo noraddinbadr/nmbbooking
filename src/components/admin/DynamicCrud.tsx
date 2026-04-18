@@ -35,6 +35,7 @@ interface DynamicCrudProps {
   fields: FieldConfig[];
   nameField: string;
   filter?: Record<string, any>;
+  extraActions?: (row: any) => React.ReactNode;
 }
 
 // Searchable relation combobox
@@ -142,7 +143,7 @@ const TimeField = ({ value, onChange }: { value: string; onChange: (v: string) =
   );
 };
 
-const DynamicCrud = ({ tableName, title, fields, nameField, filter }: DynamicCrudProps) => {
+const DynamicCrud = ({ tableName, title, fields, nameField, filter, extraActions }: DynamicCrudProps) => {
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -346,13 +347,14 @@ const DynamicCrud = ({ tableName, title, fields, nameField, filter }: DynamicCru
                     <TableCell key={f.key} className="font-cairo text-sm" dir={f.dir}>{renderCellValue(row, f)}</TableCell>
                   ))}
                   <TableCell>
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 items-center flex-wrap">
                       <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(row)}>
                         <Edit className="h-3.5 w-3.5" />
                       </Button>
                       <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => handleDelete(row.id)}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
+                      {extraActions?.(row)}
                     </div>
                   </TableCell>
                 </TableRow>

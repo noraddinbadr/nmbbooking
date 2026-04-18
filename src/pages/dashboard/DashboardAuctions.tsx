@@ -5,21 +5,20 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Search, Gavel, Eye, ArrowLeftRight, Loader2 } from 'lucide-react';
+import { Search, Gavel, Eye, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuctionRequests } from '@/hooks/useAuctionRequests';
 import { useAuth } from '@/contexts/AuthContext';
 import { REQUEST_STATUS_LABELS, REQUEST_STATUS_COLORS, PRIORITY_LABELS } from '@/data/auctionTypes';
 import type { AuctionRequestStatus } from '@/data/auctionTypes';
-import AuctionRequestForm from '@/components/auction/AuctionRequestForm';
 import AuctionRequestDetail from '@/components/auction/AuctionRequestDetail';
 
 const DashboardAuctions = () => {
   const { roles } = useAuth();
   const [tab, setTab] = useState('all');
   const [search, setSearch] = useState('');
-  const [showCreate, setShowCreate] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
 
   const statusMap: Record<string, AuctionRequestStatus[] | undefined> = {
@@ -51,20 +50,12 @@ const DashboardAuctions = () => {
           </div>
           <div className="flex gap-2">
             {(isAdmin || isDoctor) && (
-              <Dialog open={showCreate} onOpenChange={setShowCreate}>
-                <DialogTrigger asChild>
-                  <Button className="font-cairo gap-2">
-                    <Plus className="h-4 w-4" />
-                    طلب جديد
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
-                  <DialogHeader>
-                    <DialogTitle className="font-cairo">إنشاء طلب مزاد جديد</DialogTitle>
-                  </DialogHeader>
-                  <AuctionRequestForm onSuccess={() => setShowCreate(false)} />
-                </DialogContent>
-              </Dialog>
+              <Button asChild variant="outline" className="font-cairo gap-2">
+                <Link to="/dashboard/medical-cases">
+                  <Gavel className="h-4 w-4" />
+                  إنشاء من الحالات الطبية
+                </Link>
+              </Button>
             )}
           </div>
         </div>
