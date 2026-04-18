@@ -6,16 +6,14 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import {
-  CheckCircle, XCircle, ArrowLeft, Gavel, ShieldCheck, FileText, Clock, Loader2
-} from 'lucide-react';
+import { CheckCircle, XCircle, ArrowLeft, Gavel, ShieldCheck, FileText, Clock, Loader2 } from 'lucide-react';
 import { useAuctionRequests } from '@/hooks/useAuctionRequests';
 import { useAuctionBids } from '@/hooks/useAuctionBids';
 import { useAuctionSettings } from '@/hooks/useAuctionSettings';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   REQUEST_STATUS_LABELS, REQUEST_STATUS_COLORS,
-  PRIORITY_LABELS, BID_TYPE_LABELS
+  PRIORITY_LABELS, BID_TYPE_LABELS,
 } from '@/data/auctionTypes';
 import type { AuctionRequestStatus } from '@/data/auctionTypes';
 import AuctionBidForm from './AuctionBidForm';
@@ -30,23 +28,22 @@ interface Props {
 const AuctionRequestDetail = ({ requestId }: Props) => {
   const { user, roles } = useAuth();
   const { requests, transitionStatus } = useAuctionRequests();
-  const { bids, isLoading: bidsLoading, updateBidStatus } = useAuctionBids(requestId);
+  const request = requests.find(r => r.id === requestId);
+  const mc = request?.medical_case;
+  const { bids, isLoading: bidsLoading, updateBidStatus } = useAuctionBids(mc?.id);
   const { settings } = useAuctionSettings();
   const [showBidForm, setShowBidForm] = useState(false);
 
-  const request = requests.find(r => r.id === requestId);
   const isAdmin = roles.includes('admin');
   const isDoctor = roles.includes('doctor');
   const isProvider = roles.includes('provider');
-  const isOwner = request?.initiator_id === user?.id || request?.patient_id === user?.id;
+  const isOwner = request?.initiator_id === user?.id || mc?.created_by === user?.id || mc?.patient_id === user?.id;
 
-  // Fetch state log
   const { data: stateLog = [] } = useQuery({
     queryKey: ['auction-state-log', requestId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('auction_state_log')
-        .select('*')
+        .from('auction_state_log').select('*')
         .eq('request_id', requestId)
         .order('created_at', { ascending: true });
       if (error) throw error;
@@ -54,20 +51,21 @@ const AuctionRequestDetail = ({ requestId }: Props) => {
     },
   });
 
-  // Fetch verifications
   const { data: verifications = [] } = useQuery({
     queryKey: ['auction-verifications', requestId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('auction_verifications')
-        .select('*')
-        .eq('request_id', requestId);
+        .from('auction_verifications').select('*').eq('request_id', requestId);
       if (error) throw error;
       return data;
     },
   });
 
-  if (!request) return <div className="text-center py-8 text-muted-foreground font-cairo">الطلب غير موجود</div>;
+  if (!request || !mc) return <div className="text-center py-8 text-muted-foreground font-cairo">الطلب غير موجود</div>;
+
+  const estimatedCost = Number(mc.estimated_cost ?? 0);
+  const fundedAmount = Number(mc.funded_amount ?? 0);
+  const fundingPercent = estimatedCost > 0 ? Math.round((fundedAmount / estimatedCost) * 100) : 0;
 
   const getNextActions = (): { label: string; status: AuctionRequestStatus; variant: 'default' | 'destructive' }[] => {
     const actions: { label: string; status: AuctionRequestStatus; variant: 'default' | 'destructive' }[] = [];
@@ -106,7 +104,7 @@ const AuctionRequestDetail = ({ requestId }: Props) => {
       verification_type: 'medical',
       is_verified: true,
       verified_at: new Date().toISOString(),
-    } as any);
+    });
     if (error) { toast.error(error.message); return; }
     toast.success('تم التحقق الطبي');
   };
@@ -116,31 +114,26 @@ const AuctionRequestDetail = ({ requestId }: Props) => {
     await transitionStatus.mutateAsync({ id: requestId, newStatus: 'awarded' });
   };
 
-  const fundingPercent = request.estimated_cost > 0
-    ? Math.round((request.funded_amount / request.estimated_cost) * 100)
-    : 0;
-
   return (
     <div className="space-y-4 font-cairo">
-      {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-bold">{request.title_ar}</h2>
+          <h2 className="text-xl font-bold">{mc.title_ar || mc.case_code}</h2>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <Badge className={`${REQUEST_STATUS_COLORS[request.status]} text-xs`}>
               {REQUEST_STATUS_LABELS[request.status]}
             </Badge>
             <Badge variant="outline" className="text-xs">
-              أولوية: {PRIORITY_LABELS[request.medical_priority]}
+              أولوية: {PRIORITY_LABELS[mc.medical_priority]}
             </Badge>
-            {request.diagnosis_code && (
-              <Badge variant="outline" className="text-xs">ICD: {request.diagnosis_code}</Badge>
+            {mc.diagnosis_code && (
+              <Badge variant="outline" className="text-xs">ICD: {mc.diagnosis_code}</Badge>
             )}
+            <Badge variant="outline" className="text-xs">كود: {mc.case_code}</Badge>
           </div>
         </div>
       </div>
 
-      {/* Action buttons */}
       <div className="flex gap-2 flex-wrap">
         {getNextActions().map(action => (
           <Button
@@ -172,7 +165,7 @@ const AuctionRequestDetail = ({ requestId }: Props) => {
               <DialogHeader>
                 <DialogTitle className="font-cairo">تقديم عرض للمزاد</DialogTitle>
               </DialogHeader>
-              <AuctionBidForm requestId={requestId} onSuccess={() => setShowBidForm(false)} />
+              <AuctionBidForm caseId={mc.id} onSuccess={() => setShowBidForm(false)} />
             </DialogContent>
           </Dialog>
         )}
@@ -180,7 +173,6 @@ const AuctionRequestDetail = ({ requestId }: Props) => {
 
       <Separator />
 
-      {/* Tabs */}
       <Tabs defaultValue="details">
         <TabsList className="font-cairo">
           <TabsTrigger value="details">التفاصيل</TabsTrigger>
@@ -191,42 +183,30 @@ const AuctionRequestDetail = ({ requestId }: Props) => {
         <TabsContent value="details" className="space-y-4 mt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">المعلومات الطبية</CardTitle>
-              </CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-sm">المعلومات الطبية</CardTitle></CardHeader>
               <CardContent className="space-y-2 text-sm">
-                {request.diagnosis_summary && <div><span className="text-muted-foreground">التشخيص:</span> {request.diagnosis_summary}</div>}
-                {request.treatment_plan && <div><span className="text-muted-foreground">خطة العلاج:</span> {request.treatment_plan}</div>}
-                {request.specialty && <div><span className="text-muted-foreground">التخصص:</span> {request.specialty}</div>}
-                {request.city && <div><span className="text-muted-foreground">المدينة:</span> {request.city}</div>}
+                {mc.diagnosis_summary && <div><span className="text-muted-foreground">التشخيص:</span> {mc.diagnosis_summary}</div>}
+                {mc.treatment_plan && <div><span className="text-muted-foreground">خطة العلاج:</span> {mc.treatment_plan}</div>}
+                {mc.specialty && <div><span className="text-muted-foreground">التخصص:</span> {mc.specialty}</div>}
+                {mc.city && <div><span className="text-muted-foreground">المدينة:</span> {mc.city}</div>}
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm">المعلومات المالية</CardTitle>
-              </CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-sm">المعلومات المالية</CardTitle></CardHeader>
               <CardContent className="space-y-3 text-sm">
-                <div><span className="text-muted-foreground">التكلفة المقدرة:</span> {request.estimated_cost.toLocaleString()} ر.ي</div>
-                <div><span className="text-muted-foreground">التمويل:</span> {request.funded_amount.toLocaleString()} ر.ي ({fundingPercent}%)</div>
+                <div><span className="text-muted-foreground">التكلفة المقدرة:</span> {estimatedCost.toLocaleString()} ر.ي</div>
+                <div><span className="text-muted-foreground">التمويل:</span> {fundedAmount.toLocaleString()} ر.ي ({fundingPercent}%)</div>
                 <div className="w-full bg-muted rounded-full h-2">
                   <div className="bg-primary h-2 rounded-full transition-all" style={{ width: `${Math.min(fundingPercent, 100)}%` }} />
                 </div>
-                {request.poverty_score !== null && (
-                  <div><span className="text-muted-foreground">درجة الفقر:</span> {request.poverty_score}/100</div>
+                {mc.poverty_score !== null && mc.poverty_score !== undefined && (
+                  <div><span className="text-muted-foreground">درجة الفقر:</span> {mc.poverty_score}/100</div>
                 )}
               </CardContent>
             </Card>
           </div>
 
-          {request.description_ar && (
-            <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm">الوصف</CardTitle></CardHeader>
-              <CardContent className="text-sm whitespace-pre-wrap">{request.description_ar}</CardContent>
-            </Card>
-          )}
-
-          {/* Verifications */}
           {verifications.length > 0 && (
             <Card>
               <CardHeader className="pb-2"><CardTitle className="text-sm">التحققات</CardTitle></CardHeader>
@@ -266,19 +246,19 @@ const AuctionRequestDetail = ({ requestId }: Props) => {
                     {bids.map(bid => (
                       <TableRow key={bid.id}>
                         <TableCell>
-                          <Badge variant="outline" className="text-xs">{BID_TYPE_LABELS[bid.bid_type]}</Badge>
+                          <Badge variant="outline" className="text-xs">{bid.bid_type ? BID_TYPE_LABELS[bid.bid_type] : '—'}</Badge>
                         </TableCell>
                         <TableCell className="font-medium">{bid.amount.toLocaleString()} ر.ي</TableCell>
                         <TableCell>
-                          <Badge variant={bid.status === 'accepted' ? 'default' : 'outline'} className="text-xs">
-                            {bid.status === 'pending' ? 'معلق' : bid.status === 'accepted' ? 'مقبول' : bid.status === 'rejected' ? 'مرفوض' : 'مسحوب'}
+                          <Badge variant={bid.bid_status === 'accepted' ? 'default' : 'outline'} className="text-xs">
+                            {bid.bid_status === 'pending' ? 'معلق' : bid.bid_status === 'accepted' ? 'مقبول' : bid.bid_status === 'rejected' ? 'مرفوض' : 'مسحوب'}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-[200px] truncate">{bid.notes}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{new Date(bid.created_at).toLocaleDateString('ar-YE')}</TableCell>
                         {(isAdmin || isOwner) && (
                           <TableCell>
-                            {bid.status === 'pending' && request.status === 'published' && (
+                            {bid.bid_status === 'pending' && request.status === 'published' && (
                               <div className="flex gap-1">
                                 <Button size="sm" variant="ghost" className="h-7 text-green-600" onClick={() => handleAcceptBid(bid.id)}>
                                   <CheckCircle className="h-3.5 w-3.5" />
@@ -306,17 +286,19 @@ const AuctionRequestDetail = ({ requestId }: Props) => {
                 <p className="text-center text-muted-foreground py-4">لا توجد تغييرات مسجلة</p>
               ) : (
                 <div className="space-y-3">
-                  {stateLog.map((log: any) => (
+                  {stateLog.map(log => (
                     <div key={log.id} className="flex items-center gap-3 text-sm border-b border-border pb-2 last:border-0">
                       <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
                       <div className="flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
                           {log.from_status && (
-                            <Badge variant="outline" className="text-xs">{REQUEST_STATUS_LABELS[log.from_status as keyof typeof REQUEST_STATUS_LABELS] || log.from_status}</Badge>
+                            <Badge variant="outline" className="text-xs">
+                              {REQUEST_STATUS_LABELS[log.from_status as AuctionRequestStatus] || log.from_status}
+                            </Badge>
                           )}
                           <ArrowLeft className="h-3 w-3 text-muted-foreground" />
-                          <Badge className={`text-xs ${REQUEST_STATUS_COLORS[log.to_status as keyof typeof REQUEST_STATUS_COLORS] || ''}`}>
-                            {REQUEST_STATUS_LABELS[log.to_status as keyof typeof REQUEST_STATUS_LABELS] || log.to_status}
+                          <Badge className={`text-xs ${REQUEST_STATUS_COLORS[log.to_status as AuctionRequestStatus] || ''}`}>
+                            {REQUEST_STATUS_LABELS[log.to_status as AuctionRequestStatus] || log.to_status}
                           </Badge>
                         </div>
                         {log.reason && <p className="text-xs text-muted-foreground mt-1">{log.reason}</p>}

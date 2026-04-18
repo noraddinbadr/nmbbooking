@@ -1,11 +1,12 @@
 // ============================================================
-// MS-RAG Module — TypeScript Types
+// MS-RAG Module — TypeScript Types (Refactored: integrated with medical_cases & donations)
 // ============================================================
 
 export type AuctionInitiatorType = 'doctor' | 'patient' | 'admin';
 export type AuctionRequestStatus = 'draft' | 'pending_doctor' | 'pending_patient_consent' | 'pending_admin' | 'published' | 'awarded' | 'fulfilled' | 'cancelled';
 export type AuctionBidType = 'full_coverage' | 'partial' | 'split';
 export type AuctionBidStatus = 'pending' | 'accepted' | 'rejected' | 'withdrawn';
+export type DonationKind = 'donation' | 'bid';
 
 export interface AuctionSettings {
   id: string;
@@ -21,36 +22,67 @@ export interface AuctionSettings {
   updated_by: string | null;
 }
 
+/**
+ * AuctionRequest is now a thin workflow/governance layer over a medical_case.
+ * All clinical data (title, diagnosis, cost, funding, anonymization, doctor, camp, patient)
+ * lives on the linked medical_case.
+ */
 export interface AuctionRequest {
   id: string;
-  patient_id: string;
+  case_id: string;
   initiator_id: string;
   initiator_type: AuctionInitiatorType;
   status: AuctionRequestStatus;
-  title_ar: string;
-  title_en: string | null;
-  description_ar: string | null;
-  description_en: string | null;
-  diagnosis_code: string | null;
-  diagnosis_summary: string | null;
-  treatment_plan: string | null;
-  medical_priority: number;
-  estimated_cost: number;
-  funded_amount: number;
-  anonymization_level: number;
-  poverty_score: number | null;
-  specialty: string | null;
-  city: string | null;
-  camp_id: string | null;
-  doctor_id: string | null;
   published_at: string | null;
   expires_at: string | null;
   created_at: string;
   updated_at: string;
-  // Joined data
-  patient?: { full_name_ar: string | null; full_name: string | null };
-  doctor?: { name_ar: string; specialty_ar: string | null };
+  // Joined from medical_cases
+  medical_case?: MedicalCaseLite;
   bids_count?: number;
+}
+
+/** Subset of medical_cases columns we project alongside an auction request. */
+export interface MedicalCaseLite {
+  id: string;
+  case_code: string;
+  title_ar: string | null;
+  diagnosis_summary: string | null;
+  treatment_plan: string | null;
+  diagnosis_code: string | null;
+  estimated_cost: number | null;
+  funded_amount: number | null;
+  specialty: string | null;
+  city: string | null;
+  patient_id: string | null;
+  doctor_id: string | null;
+  camp_id: string | null;
+  medical_priority: number;
+  poverty_score: number | null;
+  anonymization_level: number;
+  is_anonymous: boolean | null;
+  patient_age: number | null;
+  patient_gender: string | null;
+  status: string | null;
+  created_by: string;
+}
+
+/** A bid is now a row in `donations` with kind='bid'. */
+export interface AuctionBid {
+  id: string;
+  case_id: string | null;
+  amount: number;
+  kind: DonationKind;
+  bid_type: AuctionBidType | null;
+  bid_status: AuctionBidStatus | null;
+  provider_id: string | null;
+  donor_id: string | null;
+  donor_name: string | null;
+  coverage_details: Record<string, unknown>;
+  notes: string | null;
+  is_anonymous: boolean;
+  accepted_at: string | null;
+  created_at: string;
 }
 
 export interface AuctionVerification {
@@ -74,25 +106,6 @@ export interface AuctionConsent {
   created_at: string;
 }
 
-export interface AuctionBid {
-  id: string;
-  request_id: string;
-  provider_id: string | null;
-  bidder_id: string;
-  bid_type: AuctionBidType;
-  status: AuctionBidStatus;
-  amount: number;
-  coverage_details: Record<string, unknown>;
-  notes: string | null;
-  is_anonymous: boolean;
-  accepted_at: string | null;
-  created_at: string;
-  updated_at: string;
-  // Joined
-  provider?: { name_ar: string; provider_type: string | null };
-  bidder_profile?: { full_name_ar: string | null };
-}
-
 export interface AuctionStateLog {
   id: string;
   request_id: string;
@@ -103,7 +116,7 @@ export interface AuctionStateLog {
   created_at: string;
 }
 
-// Status labels
+// ----------------- Labels -----------------
 export const REQUEST_STATUS_LABELS: Record<AuctionRequestStatus, string> = {
   draft: 'مسودة',
   pending_doctor: 'بانتظار الطبيب',

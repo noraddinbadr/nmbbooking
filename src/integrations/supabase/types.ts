@@ -14,69 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      auction_bids: {
-        Row: {
-          accepted_at: string | null
-          amount: number
-          bid_type: Database["public"]["Enums"]["auction_bid_type"]
-          bidder_id: string
-          coverage_details: Json | null
-          created_at: string
-          id: string
-          is_anonymous: boolean | null
-          notes: string | null
-          provider_id: string | null
-          request_id: string
-          status: Database["public"]["Enums"]["auction_bid_status"]
-          updated_at: string
-        }
-        Insert: {
-          accepted_at?: string | null
-          amount?: number
-          bid_type?: Database["public"]["Enums"]["auction_bid_type"]
-          bidder_id: string
-          coverage_details?: Json | null
-          created_at?: string
-          id?: string
-          is_anonymous?: boolean | null
-          notes?: string | null
-          provider_id?: string | null
-          request_id: string
-          status?: Database["public"]["Enums"]["auction_bid_status"]
-          updated_at?: string
-        }
-        Update: {
-          accepted_at?: string | null
-          amount?: number
-          bid_type?: Database["public"]["Enums"]["auction_bid_type"]
-          bidder_id?: string
-          coverage_details?: Json | null
-          created_at?: string
-          id?: string
-          is_anonymous?: boolean | null
-          notes?: string | null
-          provider_id?: string | null
-          request_id?: string
-          status?: Database["public"]["Enums"]["auction_bid_status"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "auction_bids_provider_id_fkey"
-            columns: ["provider_id"]
-            isOneToOne: false
-            referencedRelation: "providers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "auction_bids_request_id_fkey"
-            columns: ["request_id"]
-            isOneToOne: false
-            referencedRelation: "auction_requests"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       auction_consents: {
         Row: {
           consent_given: boolean
@@ -117,99 +54,47 @@ export type Database = {
       }
       auction_requests: {
         Row: {
-          anonymization_level: number
-          camp_id: string | null
-          city: string | null
+          case_id: string
           created_at: string
-          description_ar: string | null
-          description_en: string | null
-          diagnosis_code: string | null
-          diagnosis_summary: string | null
-          doctor_id: string | null
-          estimated_cost: number
           expires_at: string | null
-          funded_amount: number
           id: string
           initiator_id: string
           initiator_type: Database["public"]["Enums"]["auction_initiator_type"]
           medical_priority: number
-          patient_id: string
-          poverty_score: number | null
           published_at: string | null
-          specialty: string | null
           status: Database["public"]["Enums"]["auction_request_status"]
-          title_ar: string
-          title_en: string | null
-          treatment_plan: string | null
           updated_at: string
         }
         Insert: {
-          anonymization_level?: number
-          camp_id?: string | null
-          city?: string | null
+          case_id: string
           created_at?: string
-          description_ar?: string | null
-          description_en?: string | null
-          diagnosis_code?: string | null
-          diagnosis_summary?: string | null
-          doctor_id?: string | null
-          estimated_cost?: number
           expires_at?: string | null
-          funded_amount?: number
           id?: string
           initiator_id: string
           initiator_type?: Database["public"]["Enums"]["auction_initiator_type"]
           medical_priority?: number
-          patient_id: string
-          poverty_score?: number | null
           published_at?: string | null
-          specialty?: string | null
           status?: Database["public"]["Enums"]["auction_request_status"]
-          title_ar: string
-          title_en?: string | null
-          treatment_plan?: string | null
           updated_at?: string
         }
         Update: {
-          anonymization_level?: number
-          camp_id?: string | null
-          city?: string | null
+          case_id?: string
           created_at?: string
-          description_ar?: string | null
-          description_en?: string | null
-          diagnosis_code?: string | null
-          diagnosis_summary?: string | null
-          doctor_id?: string | null
-          estimated_cost?: number
           expires_at?: string | null
-          funded_amount?: number
           id?: string
           initiator_id?: string
           initiator_type?: Database["public"]["Enums"]["auction_initiator_type"]
           medical_priority?: number
-          patient_id?: string
-          poverty_score?: number | null
           published_at?: string | null
-          specialty?: string | null
           status?: Database["public"]["Enums"]["auction_request_status"]
-          title_ar?: string
-          title_en?: string | null
-          treatment_plan?: string | null
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "auction_requests_camp_id_fkey"
-            columns: ["camp_id"]
+            foreignKeyName: "auction_requests_case_id_fkey"
+            columns: ["case_id"]
             isOneToOne: false
-            referencedRelation: "medical_camps"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "auction_requests_doctor_id_fkey"
-            columns: ["doctor_id"]
-            isOneToOne: false
-            referencedRelation: "doctors"
+            referencedRelation: "medical_cases"
             referencedColumns: ["id"]
           },
         ]
@@ -651,39 +536,63 @@ export type Database = {
       }
       donations: {
         Row: {
+          accepted_at: string | null
           amount: number
+          bid_status: Database["public"]["Enums"]["auction_bid_status"] | null
+          bid_type: Database["public"]["Enums"]["auction_bid_type"] | null
           camp_id: string | null
           case_id: string | null
+          coverage_details: Json
           created_at: string
           donor_id: string | null
           donor_name: string | null
           id: string
+          is_anonymous: boolean
+          kind: Database["public"]["Enums"]["donation_kind"]
+          notes: string | null
           payment_method: string | null
           payment_reference: string | null
+          provider_id: string | null
           status: Database["public"]["Enums"]["donation_status"] | null
         }
         Insert: {
+          accepted_at?: string | null
           amount: number
+          bid_status?: Database["public"]["Enums"]["auction_bid_status"] | null
+          bid_type?: Database["public"]["Enums"]["auction_bid_type"] | null
           camp_id?: string | null
           case_id?: string | null
+          coverage_details?: Json
           created_at?: string
           donor_id?: string | null
           donor_name?: string | null
           id?: string
+          is_anonymous?: boolean
+          kind?: Database["public"]["Enums"]["donation_kind"]
+          notes?: string | null
           payment_method?: string | null
           payment_reference?: string | null
+          provider_id?: string | null
           status?: Database["public"]["Enums"]["donation_status"] | null
         }
         Update: {
+          accepted_at?: string | null
           amount?: number
+          bid_status?: Database["public"]["Enums"]["auction_bid_status"] | null
+          bid_type?: Database["public"]["Enums"]["auction_bid_type"] | null
           camp_id?: string | null
           case_id?: string | null
+          coverage_details?: Json
           created_at?: string
           donor_id?: string | null
           donor_name?: string | null
           id?: string
+          is_anonymous?: boolean
+          kind?: Database["public"]["Enums"]["donation_kind"]
+          notes?: string | null
           payment_method?: string | null
           payment_reference?: string | null
+          provider_id?: string | null
           status?: Database["public"]["Enums"]["donation_status"] | null
         }
         Relationships: [
@@ -871,51 +780,95 @@ export type Database = {
       }
       medical_cases: {
         Row: {
+          anonymization_level: number
+          camp_id: string | null
           case_code: string
+          city: string | null
           created_at: string
           created_by: string
+          diagnosis_code: string | null
           diagnosis_summary: string | null
+          doctor_id: string | null
           estimated_cost: number | null
           funded_amount: number | null
           id: string
           is_anonymous: boolean | null
+          medical_priority: number
           patient_age: number | null
           patient_gender: string | null
+          patient_id: string | null
+          poverty_score: number | null
           registration_id: string | null
+          specialty: string | null
           status: Database["public"]["Enums"]["case_status"] | null
+          title_ar: string | null
           treatment_plan: string | null
         }
         Insert: {
+          anonymization_level?: number
+          camp_id?: string | null
           case_code: string
+          city?: string | null
           created_at?: string
           created_by: string
+          diagnosis_code?: string | null
           diagnosis_summary?: string | null
+          doctor_id?: string | null
           estimated_cost?: number | null
           funded_amount?: number | null
           id?: string
           is_anonymous?: boolean | null
+          medical_priority?: number
           patient_age?: number | null
           patient_gender?: string | null
+          patient_id?: string | null
+          poverty_score?: number | null
           registration_id?: string | null
+          specialty?: string | null
           status?: Database["public"]["Enums"]["case_status"] | null
+          title_ar?: string | null
           treatment_plan?: string | null
         }
         Update: {
+          anonymization_level?: number
+          camp_id?: string | null
           case_code?: string
+          city?: string | null
           created_at?: string
           created_by?: string
+          diagnosis_code?: string | null
           diagnosis_summary?: string | null
+          doctor_id?: string | null
           estimated_cost?: number | null
           funded_amount?: number | null
           id?: string
           is_anonymous?: boolean | null
+          medical_priority?: number
           patient_age?: number | null
           patient_gender?: string | null
+          patient_id?: string | null
+          poverty_score?: number | null
           registration_id?: string | null
+          specialty?: string | null
           status?: Database["public"]["Enums"]["case_status"] | null
+          title_ar?: string | null
           treatment_plan?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "medical_cases_camp_id_fkey"
+            columns: ["camp_id"]
+            isOneToOne: false
+            referencedRelation: "medical_camps"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_cases_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "medical_cases_registration_id_fkey"
             columns: ["registration_id"]
@@ -1658,6 +1611,7 @@ export type Database = {
         | "in_treatment"
         | "closed"
       discount_type: "none" | "percentage" | "fixed"
+      donation_kind: "donation" | "bid"
       donation_status: "pledged" | "received" | "verified" | "refunded"
       order_status:
         | "pending"
@@ -1832,6 +1786,7 @@ export const Constants = {
         "closed",
       ],
       discount_type: ["none", "percentage", "fixed"],
+      donation_kind: ["donation", "bid"],
       donation_status: ["pledged", "received", "verified", "refunded"],
       order_status: [
         "pending",

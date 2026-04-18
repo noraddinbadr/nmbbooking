@@ -12,25 +12,22 @@ import { useAuth } from '@/contexts/AuthContext';
 import type { AuctionBidType } from '@/data/auctionTypes';
 
 interface Props {
-  requestId: string;
+  caseId: string;
   onSuccess: () => void;
 }
 
-const AuctionBidForm = ({ requestId, onSuccess }: Props) => {
+const AuctionBidForm = ({ caseId, onSuccess }: Props) => {
   const { user } = useAuth();
-  const { createBid } = useAuctionBids(requestId);
+  const { createBid } = useAuctionBids(caseId);
 
   const [form, setForm] = useState({
     bid_type: 'full_coverage' as AuctionBidType,
     amount: 0,
     notes: '',
     is_anonymous: false,
-    coverage_details: {} as Record<string, unknown>,
   });
 
-  const [splitParts, setSplitParts] = useState([
-    { service: '', amount: 0 },
-  ]);
+  const [splitParts, setSplitParts] = useState([{ service: '', amount: 0 }]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,8 +38,8 @@ const AuctionBidForm = ({ requestId, onSuccess }: Props) => {
       : {};
 
     await createBid.mutateAsync({
-      request_id: requestId,
-      bidder_id: user.id,
+      case_id: caseId,
+      donor_id: user.id,
       bid_type: form.bid_type,
       amount: form.bid_type === 'split'
         ? splitParts.reduce((sum, p) => sum + p.amount, 0)
@@ -50,7 +47,7 @@ const AuctionBidForm = ({ requestId, onSuccess }: Props) => {
       notes: form.notes,
       is_anonymous: form.is_anonymous,
       coverage_details: coverageDetails,
-    } as any);
+    });
     onSuccess();
   };
 
@@ -58,10 +55,7 @@ const AuctionBidForm = ({ requestId, onSuccess }: Props) => {
     <form onSubmit={handleSubmit} className="space-y-4 font-cairo">
       <div className="space-y-2">
         <Label>نوع العرض</Label>
-        <Select
-          value={form.bid_type}
-          onValueChange={v => setForm(f => ({ ...f, bid_type: v as AuctionBidType }))}
-        >
+        <Select value={form.bid_type} onValueChange={v => setForm(f => ({ ...f, bid_type: v as AuctionBidType }))}>
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="full_coverage">تغطية كاملة (تبرع كامل)</SelectItem>
@@ -108,12 +102,7 @@ const AuctionBidForm = ({ requestId, onSuccess }: Props) => {
               />
             </div>
           ))}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setSplitParts(p => [...p, { service: '', amount: 0 }])}
-          >
+          <Button type="button" variant="outline" size="sm" onClick={() => setSplitParts(p => [...p, { service: '', amount: 0 }])}>
             + إضافة جزء
           </Button>
           <p className="text-xs text-muted-foreground">
@@ -137,10 +126,7 @@ const AuctionBidForm = ({ requestId, onSuccess }: Props) => {
           <Label>عرض مجهول الهوية</Label>
           <p className="text-xs text-muted-foreground">إخفاء هويتك عن المريض</p>
         </div>
-        <Switch
-          checked={form.is_anonymous}
-          onCheckedChange={v => setForm(f => ({ ...f, is_anonymous: v }))}
-        />
+        <Switch checked={form.is_anonymous} onCheckedChange={v => setForm(f => ({ ...f, is_anonymous: v }))} />
       </div>
 
       <Separator />
