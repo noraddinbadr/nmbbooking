@@ -6,9 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Users, ChevronLeft, Loader2, UserPlus, Heart } from 'lucide-react';
+import { Search, Users, ChevronLeft, Loader2, Heart } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DynamicCrud, { type FieldConfig } from '@/components/admin/DynamicCrud';
 
