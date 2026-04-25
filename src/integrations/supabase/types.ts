@@ -256,6 +256,54 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_audit_log: {
+        Row: {
+          action: string
+          booking_id: string
+          changed_by: string | null
+          created_at: string
+          details: Json | null
+          from_date: string | null
+          from_status: Database["public"]["Enums"]["booking_status"] | null
+          from_time: string | null
+          id: string
+          reason: string | null
+          to_date: string | null
+          to_status: Database["public"]["Enums"]["booking_status"] | null
+          to_time: string | null
+        }
+        Insert: {
+          action: string
+          booking_id: string
+          changed_by?: string | null
+          created_at?: string
+          details?: Json | null
+          from_date?: string | null
+          from_status?: Database["public"]["Enums"]["booking_status"] | null
+          from_time?: string | null
+          id?: string
+          reason?: string | null
+          to_date?: string | null
+          to_status?: Database["public"]["Enums"]["booking_status"] | null
+          to_time?: string | null
+        }
+        Update: {
+          action?: string
+          booking_id?: string
+          changed_by?: string | null
+          created_at?: string
+          details?: Json | null
+          from_date?: string | null
+          from_status?: Database["public"]["Enums"]["booking_status"] | null
+          from_time?: string | null
+          id?: string
+          reason?: string | null
+          to_date?: string | null
+          to_status?: Database["public"]["Enums"]["booking_status"] | null
+          to_time?: string | null
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           booking_date: string
@@ -271,6 +319,7 @@ export type Database = {
           notes: string | null
           patient_id: string
           queue_position: number | null
+          rescheduled_from: Json | null
           shift_id: string | null
           start_time: string | null
           status: Database["public"]["Enums"]["booking_status"] | null
@@ -290,6 +339,7 @@ export type Database = {
           notes?: string | null
           patient_id: string
           queue_position?: number | null
+          rescheduled_from?: Json | null
           shift_id?: string | null
           start_time?: string | null
           status?: Database["public"]["Enums"]["booking_status"] | null
@@ -309,6 +359,7 @@ export type Database = {
           notes?: string | null
           patient_id?: string
           queue_position?: number | null
+          rescheduled_from?: Json | null
           shift_id?: string | null
           start_time?: string | null
           status?: Database["public"]["Enums"]["booking_status"] | null
@@ -1574,11 +1625,33 @@ export type Database = {
         }
         Returns: Json
       }
+      is_booking_past: {
+        Args: { _date: string; _time: string }
+        Returns: boolean
+      }
       is_clinic_member: {
         Args: { _clinic_id: string; _user_id: string }
         Returns: boolean
       }
       reclaim_expired_holds: { Args: never; Returns: number }
+      reschedule_booking: {
+        Args: {
+          _booking_id: string
+          _new_date: string
+          _new_end_time?: string
+          _new_start_time: string
+          _reason?: string
+        }
+        Returns: Json
+      }
+      set_booking_status: {
+        Args: {
+          _booking_id: string
+          _new_status: Database["public"]["Enums"]["booking_status"]
+          _reason?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role:
@@ -1601,7 +1674,14 @@ export type Database = {
         | "awarded"
         | "fulfilled"
         | "cancelled"
-      booking_status: "pending" | "confirmed" | "completed" | "cancelled"
+      booking_status:
+        | "pending"
+        | "confirmed"
+        | "completed"
+        | "cancelled"
+        | "in_progress"
+        | "rescheduled"
+        | "no_show"
       booking_type: "clinic" | "hospital" | "home" | "video" | "voice" | "lab"
       camp_status: "draft" | "published" | "active" | "completed" | "cancelled"
       case_status:
@@ -1775,7 +1855,15 @@ export const Constants = {
         "fulfilled",
         "cancelled",
       ],
-      booking_status: ["pending", "confirmed", "completed", "cancelled"],
+      booking_status: [
+        "pending",
+        "confirmed",
+        "completed",
+        "cancelled",
+        "in_progress",
+        "rescheduled",
+        "no_show",
+      ],
       booking_type: ["clinic", "hospital", "home", "video", "voice", "lab"],
       camp_status: ["draft", "published", "active", "completed", "cancelled"],
       case_status: [

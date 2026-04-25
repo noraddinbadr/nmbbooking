@@ -7,9 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { isBookingPast, STATUS_LABELS, type BookingStatus } from '@/lib/bookingState';
 
-type BookingStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
 type BookingType = 'clinic' | 'hospital' | 'home' | 'video' | 'voice' | 'lab';
 
 interface BookingFormModalProps {
@@ -24,6 +25,8 @@ interface OptItem { id: string; label: string; }
 
 const BookingFormModal = ({ open, onClose, onSaved, booking }: BookingFormModalProps) => {
   const isEdit = !!booking?.id;
+  const { roles } = useAuth();
+  const isAdmin = roles.includes('admin') || roles.includes('clinic_admin');
   const [saving, setSaving] = useState(false);
   const [doctors, setDoctors] = useState<OptItem[]>([]);
   const [patients, setPatients] = useState<OptItem[]>([]);
@@ -75,6 +78,11 @@ const BookingFormModal = ({ open, onClose, onSaved, booking }: BookingFormModalP
   const save = async () => {
     if (!form.doctor_id || !form.patient_id || !form.booking_date) {
       toast({ title: 'بيانات ناقصة', description: 'الطبيب والمريض والتاريخ مطلوبة', variant: 'destructive' });
+      return;
+    }
+    // Block creating past bookings for non-admins
+    if (!isEdit && !isAdmin && isBookingPast(form.booking_date, form.start_time)) {
+      toast({ title: 'تاريخ غير صالح', description: 'لا يمكن إنشاء حجز في الماضي.', variant: 'destructive' });
       return;
     }
     setSaving(true);
@@ -163,15 +171,21 @@ const BookingFormModal = ({ open, onClose, onSaved, booking }: BookingFormModalP
               <Label className="font-cairo text-sm">الحالة</Label>
               <Select value={form.status} onValueChange={v => setForm({ ...form, status: v as BookingStatus })}>
                 <SelectTrigger className="font-cairo mt-1"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending" className="font-cairo">معلّق</SelectItem>
-                  <SelectItem value="confirmed" className="font-cairo">مؤكد</SelectItem>
-                  <SelectItem value="completed" className="font-cairo">مكتمل</SelectItem>
-                  <SelectItem value="cancelled" className="font-cairo">ملغي</SelectItem>
+              <SelectContent>
+                  {(['pending','confirmed','rescheduled','in_progress','completed','cancelled','no_show'] as BookingStatus[]).map(s => (
+                    <SelectItem key={s} value={s} className="font-cairo">{STATUS_LABELS[s]}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
+
+          {!isEdit && isBookingPast(form.booking_date, form.start_time) && !isAdmin && (
+            <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 p-2 text-xs font-cairo text-amber-800">
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>لا يمكن إنشاء حجز بتاريخ/وقت في الماضي.</span>
+            </div>
+          )}
 
           <div>
             <Label className="font-cairo text-sm">السعر النهائي (ر.ي)</Label>
