@@ -151,6 +151,13 @@ const DashboardPatients = () => {
           </div>
         </div>
 
+        <Tabs defaultValue="patients" className="w-full">
+          <TabsList className="font-cairo">
+            <TabsTrigger value="patients" className="font-cairo gap-1.5"><Users className="h-3.5 w-3.5" /> المرضى</TabsTrigger>
+            {isAdmin && <TabsTrigger value="family" className="font-cairo gap-1.5"><Heart className="h-3.5 w-3.5" /> أفراد العائلة</TabsTrigger>}
+          </TabsList>
+
+          <TabsContent value="patients" className="mt-4 space-y-5">
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
           <div className="rounded-xl border border-border bg-card p-4 text-center">
@@ -254,6 +261,14 @@ const DashboardPatients = () => {
           </div>
         )}
         <p className="font-cairo text-xs text-muted-foreground text-end">إجمالي: {filtered.length} مريض</p>
+          </TabsContent>
+
+          {isAdmin && (
+            <TabsContent value="family" className="mt-4">
+              <DynamicCrud tableName="family_members" title="فرد عائلة" fields={familyFields} nameField="full_name_ar" />
+            </TabsContent>
+          )}
+        </Tabs>
       </div>
     </DashboardLayout>
   );
