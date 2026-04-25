@@ -10,8 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from '@/hooks/use-toast';
 import {
   Calendar, Search, User, Clock, CheckCircle2,
-  XCircle, Stethoscope, FileText, Loader2, RefreshCw
+  XCircle, Stethoscope, FileText, Loader2, RefreshCw, Plus, Edit, Trash2, CheckCheck
 } from 'lucide-react';
+import BookingFormModal from '@/components/booking/BookingFormModal';
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 
 type BookingStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
 
@@ -58,6 +63,9 @@ const DashboardBookings = () => {
   const [dateFilter, setDateFilter] = useState('');
   const [activeTab, setActiveTab] = useState<'today' | 'all'>('today');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const today = new Date().toISOString().split('T')[0];
 
@@ -112,7 +120,22 @@ const DashboardBookings = () => {
     const { error } = await supabase.from('bookings').update({ status }).eq('id', id);
     setUpdatingId(null);
     if (error) { toast({ title: 'خطأ', description: error.message, variant: 'destructive' }); return; }
-    toast({ title: status === 'confirmed' ? '✅ تم التأكيد' : '❌ تم الإلغاء' });
+    const labels: Record<BookingStatus, string> = {
+      pending: '⏳ تم تعليق الحجز',
+      confirmed: '✅ تم التأكيد',
+      completed: '🎉 تم إكمال الجلسة',
+      cancelled: '❌ تم الإلغاء',
+    };
+    toast({ title: labels[status] });
+    fetchBookings();
+  };
+
+  const handleDelete = async () => {
+    if (!deletingId) return;
+    const { error } = await supabase.from('bookings').delete().eq('id', deletingId);
+    if (error) { toast({ title: 'خطأ', description: error.message, variant: 'destructive' }); return; }
+    toast({ title: '🗑️ تم حذف الحجز' });
+    setDeletingId(null);
     fetchBookings();
   };
 
@@ -143,9 +166,16 @@ const DashboardBookings = () => {
             <h1 className="font-cairo text-xl font-bold text-foreground">إدارة الحجوزات</h1>
             <p className="font-cairo text-sm text-muted-foreground">مركز قيادة الحجوزات</p>
           </div>
-          <Button variant="outline" size="sm" onClick={fetchBookings} className="font-cairo gap-1.5">
-            <RefreshCw className="h-3.5 w-3.5" /> تحديث
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={fetchBookings} className="font-cairo gap-1.5">
+              <RefreshCw className="h-3.5 w-3.5" /> تحديث
+            </Button>
+            {(isAdmin || isDoctor) && (
+              <Button size="sm" onClick={() => { setEditingBooking(null); setFormOpen(true); }} className="font-cairo gap-1.5">
+                <Plus className="h-3.5 w-3.5" /> حجز جديد
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Stats */}
@@ -282,6 +312,12 @@ const DashboardBookings = () => {
                           </Button>
                         </>
                       )}
+                      {booking.status === 'confirmed' && (
+                        <Button size="sm" variant="outline" className="font-cairo h-8 text-xs border-green-300 text-green-700 hover:bg-green-50 gap-1"
+                          disabled={isUpdating} onClick={() => updateStatus(booking.id, 'completed')}>
+                          {isUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCheck className="h-3 w-3" />} إكمال
+                        </Button>
+                      )}
                       {(booking.status === 'confirmed' || booking.status === 'pending') && (isDoctor || isAdmin) && (
                         <Button size="sm" className="font-cairo h-8 text-xs gap-1 bg-primary"
                           onClick={() => navigate(`/dashboard/consultation?booking=${booking.id}`)}>
@@ -292,6 +328,18 @@ const DashboardBookings = () => {
                         onClick={() => navigate(`/dashboard/patients/${booking.patient_id}`)}>
                         <FileText className="h-3 w-3" /> السجل الطبي
                       </Button>
+                      {(isAdmin || isDoctor) && (
+                        <>
+                          <Button size="sm" variant="ghost" className="font-cairo h-8 text-xs gap-1"
+                            onClick={() => { setEditingBooking(booking); setFormOpen(true); }}>
+                            <Edit className="h-3 w-3" /> تعديل
+                          </Button>
+                          <Button size="sm" variant="ghost" className="font-cairo h-8 text-xs gap-1 text-destructive hover:text-destructive"
+                            onClick={() => setDeletingId(booking.id)}>
+                            <Trash2 className="h-3 w-3" /> حذف
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -300,6 +348,28 @@ const DashboardBookings = () => {
           </div>
         )}
         <p className="font-cairo text-xs text-muted-foreground text-end">إجمالي: {filtered.length} حجز</p>
+
+        <BookingFormModal
+          open={formOpen}
+          booking={editingBooking}
+          onClose={() => { setFormOpen(false); setEditingBooking(null); }}
+          onSaved={fetchBookings}
+        />
+
+        <AlertDialog open={!!deletingId} onOpenChange={(o) => !o && setDeletingId(null)}>
+          <AlertDialogContent dir="rtl" className="font-cairo">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="font-cairo">تأكيد حذف الحجز</AlertDialogTitle>
+              <AlertDialogDescription className="font-cairo">
+                هذا الإجراء لا يمكن التراجع عنه. سيتم حذف الحجز نهائياً من السجلات.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="font-cairo">إلغاء</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="font-cairo bg-destructive text-destructive-foreground hover:bg-destructive/90">حذف</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );
