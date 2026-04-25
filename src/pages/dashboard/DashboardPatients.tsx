@@ -6,9 +6,31 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Users, ChevronLeft, Loader2, UserPlus } from 'lucide-react';
+import { Search, Users, ChevronLeft, Loader2, Heart } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import DynamicCrud, { type FieldConfig } from '@/components/admin/DynamicCrud';
+
+const familyFields: FieldConfig[] = [
+  { key: 'full_name_ar', label: 'الاسم بالعربي', type: 'text', required: true, showInTable: true },
+  { key: 'full_name', label: 'الاسم بالإنجليزي', type: 'text', showInTable: false },
+  { key: 'relationship', label: 'صلة القرابة', type: 'select', required: true, showInTable: true, options: [
+    { value: 'self', label: 'أنا' },
+    { value: 'spouse', label: 'الزوج/ة' },
+    { value: 'child', label: 'ابن/ة' },
+    { value: 'parent', label: 'والد/ة' },
+    { value: 'sibling', label: 'أخ/أخت' },
+    { value: 'other', label: 'أخرى' },
+  ]},
+  { key: 'gender', label: 'الجنس', type: 'select', showInTable: true, options: [
+    { value: 'male', label: 'ذكر' },
+    { value: 'female', label: 'أنثى' },
+  ]},
+  { key: 'date_of_birth', label: 'تاريخ الميلاد', type: 'date', showInTable: true },
+  { key: 'phone', label: 'الهاتف', type: 'text', showInTable: true, dir: 'ltr' },
+  { key: 'is_active', label: 'نشط', type: 'boolean', showInTable: true },
+  { key: 'user_id', label: 'المستخدم', type: 'relation', required: true, showInTable: true, relationTable: 'profiles', relationLabelField: 'full_name_ar', relationValueField: 'id' },
+];
 
 interface PatientRow {
   id: string;
@@ -128,6 +150,13 @@ const DashboardPatients = () => {
           </div>
         </div>
 
+        <Tabs defaultValue="patients" className="w-full">
+          <TabsList className="font-cairo">
+            <TabsTrigger value="patients" className="font-cairo gap-1.5"><Users className="h-3.5 w-3.5" /> المرضى</TabsTrigger>
+            {isAdmin && <TabsTrigger value="family" className="font-cairo gap-1.5"><Heart className="h-3.5 w-3.5" /> أفراد العائلة</TabsTrigger>}
+          </TabsList>
+
+          <TabsContent value="patients" className="mt-4 space-y-5">
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3">
           <div className="rounded-xl border border-border bg-card p-4 text-center">
@@ -231,6 +260,14 @@ const DashboardPatients = () => {
           </div>
         )}
         <p className="font-cairo text-xs text-muted-foreground text-end">إجمالي: {filtered.length} مريض</p>
+          </TabsContent>
+
+          {isAdmin && (
+            <TabsContent value="family" className="mt-4">
+              <DynamicCrud tableName="family_members" title="فرد عائلة" fields={familyFields} nameField="full_name_ar" />
+            </TabsContent>
+          )}
+        </Tabs>
       </div>
     </DashboardLayout>
   );
