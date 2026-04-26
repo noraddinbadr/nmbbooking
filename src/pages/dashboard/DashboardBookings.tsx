@@ -322,13 +322,15 @@ const DashboardBookings = () => {
               const timeStatus = getTimeStatus(booking.booking_date, booking.start_time);
               const past = isBookingPast(booking.booking_date, booking.start_time);
               const gate = canActOnBooking(booking.booking_date, booking.start_time, booking.status, isAdmin);
+              const wf = canRunWorkflowAction(booking.booking_date, booking.start_time, booking.status);
               const isUpdating = updatingId === booking.id;
               const displayName = booking.family_name || booking.patient_name;
               const hasReschedule = Array.isArray(booking.rescheduled_from) && booking.rescheduled_from.length > 0;
 
-              // Determine the primary action based on status
+              // Primary workflow CTA — NEVER shown for past bookings (even admins).
+              // Past bookings can only be Rescheduled / Cancelled / No-show / Deleted via the overflow menu.
               const primary: { label: string; icon: any; onClick: () => void; tone: 'primary' | 'success' | 'neutral' } | null =
-                !gate.allowed ? null
+                !wf.allowed ? null
                 : booking.status === 'pending' ? { label: 'تأكيد الحجز', icon: CheckCircle2, onClick: () => changeStatus(booking, 'confirmed'), tone: 'success' }
                 : (booking.status === 'confirmed' || booking.status === 'rescheduled') && canManage
                     ? { label: 'بدء الجلسة', icon: PlayCircle, onClick: () => navigate(`/dashboard/consultation?booking=${booking.id}`), tone: 'primary' }
