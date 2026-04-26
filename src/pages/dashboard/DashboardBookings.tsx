@@ -475,19 +475,15 @@ const DashboardBookings = () => {
                       <p className="font-cairo text-xs text-muted-foreground mt-2 line-clamp-2 bg-muted/30 rounded-md px-2 py-1.5">{booking.notes}</p>
                     )}
 
-                    {/* Footer action row — compact, NOT full width */}
-                    {(primary || past || (!wf.allowed && !past)) && (
+                    {/* Footer action row — compact, NOT full width. Hidden entirely for past bookings (banner already explains). */}
+                    {!past && (primary || !wf.allowed) && (
                       <div className="mt-3 pt-3 border-t border-border/60 flex items-center justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          {past ? (
-                            <span className="font-cairo text-[11px] text-muted-foreground inline-flex items-center gap-1">
-                              <Lock className="h-3 w-3" /> هذا الحجز في الماضي
-                            </span>
-                          ) : !wf.allowed ? (
+                          {!wf.allowed && (
                             <span className="font-cairo text-[11px] text-muted-foreground truncate inline-flex items-center gap-1">
                               <Lock className="h-3 w-3" /> {wf.reason}
                             </span>
-                          ) : null}
+                          )}
                         </div>
                         {primary && (
                           <Button
