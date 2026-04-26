@@ -316,127 +316,167 @@ const DashboardBookings = () => {
               const displayName = booking.family_name || booking.patient_name;
               const hasReschedule = Array.isArray(booking.rescheduled_from) && booking.rescheduled_from.length > 0;
 
+              // Determine the primary action based on status
+              const primary: { label: string; icon: any; onClick: () => void; tone: 'primary' | 'success' | 'neutral' } | null =
+                !gate.allowed ? null
+                : booking.status === 'pending' ? { label: 'تأكيد الحجز', icon: CheckCircle2, onClick: () => changeStatus(booking, 'confirmed'), tone: 'success' }
+                : (booking.status === 'confirmed' || booking.status === 'rescheduled') && canManage
+                    ? { label: 'بدء الجلسة', icon: PlayCircle, onClick: () => navigate(`/dashboard/consultation?booking=${booking.id}`), tone: 'primary' }
+                : booking.status === 'in_progress'
+                    ? { label: 'إكمال الجلسة', icon: CheckCheck, onClick: () => changeStatus(booking, 'completed'), tone: 'success' }
+                : null;
+
+              const primaryClass =
+                primary?.tone === 'success' ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                : primary?.tone === 'primary' ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                : 'bg-secondary text-secondary-foreground';
+
               return (
-                <div key={booking.id} className={`rounded-xl border p-4 transition-shadow ${past ? 'border-dashed border-slate-300 bg-slate-50/50' : 'border-border bg-card hover:shadow-sm'}`}>
-                  <div className="flex flex-col sm:flex-row sm:items-start gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                      <User className="h-5 w-5 text-primary" />
+                <div key={booking.id} className={`rounded-xl border overflow-hidden transition-shadow ${past ? 'border-dashed border-muted bg-muted/20' : 'border-border bg-card hover:shadow-sm'}`}>
+                  {/* Locked banner for past bookings */}
+                  {past && !isAdmin && (
+                    <div className="flex items-center gap-2 bg-amber-50 border-b border-amber-200 px-3 py-2 text-amber-900">
+                      <Lock className="h-3.5 w-3.5 shrink-0" />
+                      <p className="font-cairo text-xs">هذا الحجز في الماضي ولا يمكن تعديله — يلزم صلاحية المسؤول.</p>
+                    </div>
+                  )}
+
+                  <div className="p-3 sm:p-4">
+                    {/* Top row: avatar + name + status + overflow */}
+                    <div className="flex items-start gap-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${past ? 'bg-muted' : 'bg-primary/10'}`}>
+                        <User className={`h-5 w-5 ${past ? 'text-muted-foreground' : 'text-primary'}`} />
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-cairo font-bold text-sm text-foreground truncate">{displayName}</span>
+                          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-cairo font-semibold ${statusColor}`}>
+                            {statusLabel}
+                          </span>
+                          <span className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-cairo ${TIME_COLORS[timeStatus]}`}>
+                            {TIME_LABELS[timeStatus]}
+                          </span>
+                        </div>
+                        {booking.family_name && (
+                          <p className="font-cairo text-[11px] text-muted-foreground mt-0.5 truncate">نيابة عن: {booking.patient_name}</p>
+                        )}
+                      </div>
+
+                      {/* Overflow menu */}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="font-cairo w-52" dir="rtl">
+                          <DropdownMenuItem onClick={() => navigate(`/dashboard/patients/${booking.patient_id}`)}>
+                            <FileText className="h-4 w-4 ml-2" /> فتح ملف المريض
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setAuditOpenId(auditOpenId === booking.id ? null : booking.id)}>
+                            <History className="h-4 w-4 ml-2" /> {auditOpenId === booking.id ? 'إخفاء السجل الزمني' : 'عرض السجل الزمني'}
+                          </DropdownMenuItem>
+                          {gate.allowed && canManage && booking.status !== 'completed' && booking.status !== 'cancelled' && (
+                            <DropdownMenuItem onClick={() => setRescheduleBooking(booking)}>
+                              <CalendarClock className="h-4 w-4 ml-2" /> إعادة جدولة
+                            </DropdownMenuItem>
+                          )}
+                          {gate.allowed && (booking.status === 'confirmed' || booking.status === 'rescheduled') && (
+                            <DropdownMenuItem onClick={() => changeStatus(booking, 'no_show')}>
+                              <UserX className="h-4 w-4 ml-2" /> لم يحضر
+                            </DropdownMenuItem>
+                          )}
+                          {gate.allowed && booking.status !== 'completed' && booking.status !== 'cancelled' && (
+                            <DropdownMenuItem onClick={() => changeStatus(booking, 'cancelled')} className="text-destructive focus:text-destructive">
+                              <XCircle className="h-4 w-4 ml-2" /> إلغاء الحجز
+                            </DropdownMenuItem>
+                          )}
+                          {canManage && gate.allowed && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => { setEditingBooking(booking); setFormOpen(true); }}>
+                                <Edit className="h-4 w-4 ml-2" /> تعديل البيانات
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          {isAdmin && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => setDeletingBooking(booking)} className="text-destructive focus:text-destructive">
+                                <Trash2 className="h-4 w-4 ml-2" /> حذف الحجز
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <span className="font-cairo font-semibold text-foreground">{displayName}</span>
-                        {booking.family_name && (
-                          <Badge variant="outline" className="font-cairo text-[10px]">نيابة عن: {booking.patient_name}</Badge>
-                        )}
-                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-cairo font-medium ${statusColor}`}>
-                          {statusLabel}
-                        </span>
-                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-cairo ${TIME_COLORS[timeStatus]}`}>
-                          {TIME_LABELS[timeStatus]}
-                        </span>
+                    {/* Meta info grid */}
+                    <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs font-cairo">
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Calendar className="h-3.5 w-3.5 shrink-0" />
+                        <span dir="ltr">{booking.booking_date}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Clock className="h-3.5 w-3.5 shrink-0" />
+                        <span dir="ltr">{booking.start_time || '—'}</span>
+                      </div>
+                      {(isAdmin || isStaff) && (
+                        <div className="flex items-center gap-1.5 text-muted-foreground col-span-2 truncate">
+                          <Stethoscope className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">د. {booking.doctor_name}</span>
+                        </div>
+                      )}
+                      {booking.booking_type && (
+                        <span className="text-muted-foreground">{bookingTypeLabels[booking.booking_type] || booking.booking_type}</span>
+                      )}
+                      {booking.final_price ? (
+                        <span className="text-primary font-bold text-end">{booking.final_price.toLocaleString()} ر.ي</span>
+                      ) : null}
+                    </div>
+
+                    {/* Tags row */}
+                    {(hasReschedule || booking.is_free_case) && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
                         {hasReschedule && (
-                          <Badge variant="outline" className="font-cairo text-[10px] border-purple-300 text-purple-700">
-                            <CalendarClock className="h-3 w-3 ml-0.5" /> أُعيد جدولته
+                          <Badge variant="outline" className="font-cairo text-[10px] border-purple-300 text-purple-700 bg-purple-50">
+                            <CalendarClock className="h-2.5 w-2.5 ml-0.5" /> أُعيد جدولته
                           </Badge>
                         )}
                         {booking.is_free_case && (
-                          <Badge variant="outline" className="font-cairo text-[10px] border-green-300 text-green-700">مجاني</Badge>
+                          <Badge variant="outline" className="font-cairo text-[10px] border-emerald-300 text-emerald-700 bg-emerald-50">
+                            حالة مجانية
+                          </Badge>
                         )}
                       </div>
+                    )}
 
-                      <div className="flex flex-wrap gap-3 text-xs text-muted-foreground font-cairo">
-                        <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {booking.booking_date}</span>
-                        {booking.start_time && (<span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {booking.start_time}</span>)}
-                        {booking.booking_type && (<span>{bookingTypeLabels[booking.booking_type] || booking.booking_type}</span>)}
-                        {(isAdmin || isStaff) && (<span className="flex items-center gap-1"><Stethoscope className="h-3 w-3" /> د. {booking.doctor_name}</span>)}
-                        {booking.final_price ? (<span className="text-primary font-semibold">{booking.final_price.toLocaleString()} ر.ي</span>) : null}
+                    {booking.notes && (
+                      <p className="font-cairo text-xs text-muted-foreground mt-2 line-clamp-2 bg-muted/30 rounded-md px-2 py-1.5">{booking.notes}</p>
+                    )}
+
+                    {/* Primary action button — full width on mobile */}
+                    {primary && (
+                      <Button
+                        onClick={primary.onClick}
+                        disabled={isUpdating}
+                        className={`mt-3 w-full font-cairo h-10 gap-2 ${primaryClass}`}
+                      >
+                        {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <primary.icon className="h-4 w-4" />}
+                        {primary.label}
+                      </Button>
+                    )}
+
+                    {!gate.allowed && !past && (
+                      <div className="mt-3 flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-xs font-cairo text-muted-foreground">
+                        <Lock className="h-3.5 w-3.5" /> {gate.reason}
                       </div>
-                      {booking.notes && (<p className="font-cairo text-xs text-muted-foreground mt-1 truncate">{booking.notes}</p>)}
-
-                      {!gate.allowed && (
-                        <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-slate-100 border border-slate-200 px-2 py-1 text-[11px] font-cairo text-slate-700">
-                          <Lock className="h-3 w-3" /> {gate.reason}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex flex-wrap gap-2 shrink-0">
-                      {gate.allowed && booking.status === 'pending' && (
-                        <>
-                          <Button size="sm" variant="outline" className="font-cairo h-8 text-xs border-green-300 text-green-700 hover:bg-green-50 gap-1"
-                            disabled={isUpdating} onClick={() => changeStatus(booking, 'confirmed')}>
-                            {isUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />} تأكيد
-                          </Button>
-                          <Button size="sm" variant="outline" className="font-cairo h-8 text-xs border-red-300 text-red-700 hover:bg-red-50 gap-1"
-                            disabled={isUpdating} onClick={() => changeStatus(booking, 'cancelled')}>
-                            <XCircle className="h-3 w-3" /> إلغاء
-                          </Button>
-                        </>
-                      )}
-
-                      {gate.allowed && (booking.status === 'confirmed' || booking.status === 'rescheduled') && (
-                        <>
-                          {canManage && (
-                            <Button size="sm" className="font-cairo h-8 text-xs gap-1 bg-primary"
-                              onClick={() => navigate(`/dashboard/consultation?booking=${booking.id}`)}>
-                              <PlayCircle className="h-3 w-3" /> بدء جلسة
-                            </Button>
-                          )}
-                          <Button size="sm" variant="outline" className="font-cairo h-8 text-xs gap-1"
-                            disabled={isUpdating} onClick={() => changeStatus(booking, 'no_show')}>
-                            <UserX className="h-3 w-3" /> لم يحضر
-                          </Button>
-                          <Button size="sm" variant="outline" className="font-cairo h-8 text-xs border-red-300 text-red-700 hover:bg-red-50 gap-1"
-                            disabled={isUpdating} onClick={() => changeStatus(booking, 'cancelled')}>
-                            <XCircle className="h-3 w-3" /> إلغاء
-                          </Button>
-                        </>
-                      )}
-
-                      {gate.allowed && booking.status === 'in_progress' && (
-                        <Button size="sm" variant="outline" className="font-cairo h-8 text-xs border-green-300 text-green-700 hover:bg-green-50 gap-1"
-                          disabled={isUpdating} onClick={() => changeStatus(booking, 'completed')}>
-                          <CheckCheck className="h-3 w-3" /> إكمال
-                        </Button>
-                      )}
-
-                      {gate.allowed && canManage && booking.status !== 'completed' && booking.status !== 'cancelled' && (
-                        <Button size="sm" variant="outline" className="font-cairo h-8 text-xs border-purple-300 text-purple-700 hover:bg-purple-50 gap-1"
-                          onClick={() => setRescheduleBooking(booking)}>
-                          <CalendarClock className="h-3 w-3" /> إعادة جدولة
-                        </Button>
-                      )}
-
-                      <Button size="sm" variant="ghost" className="font-cairo h-8 text-xs gap-1"
-                        onClick={() => navigate(`/dashboard/patients/${booking.patient_id}`)}>
-                        <FileText className="h-3 w-3" /> السجل
-                      </Button>
-
-                      <Button size="sm" variant="ghost" className="font-cairo h-8 text-xs gap-1"
-                        onClick={() => setAuditOpenId(auditOpenId === booking.id ? null : booking.id)}>
-                        <History className="h-3 w-3" /> السجل الزمني
-                        <ChevronDown className={`h-3 w-3 transition-transform ${auditOpenId === booking.id ? 'rotate-180' : ''}`} />
-                      </Button>
-
-                      {canManage && gate.allowed && (
-                        <Button size="sm" variant="ghost" className="font-cairo h-8 text-xs gap-1"
-                          onClick={() => { setEditingBooking(booking); setFormOpen(true); }}>
-                          <Edit className="h-3 w-3" /> تعديل
-                        </Button>
-                      )}
-                      {isAdmin && (
-                        <Button size="sm" variant="ghost" className="font-cairo h-8 text-xs gap-1 text-destructive hover:text-destructive"
-                          onClick={() => setDeletingBooking(booking)}>
-                          <Trash2 className="h-3 w-3" /> حذف
-                        </Button>
-                      )}
-                    </div>
+                    )}
                   </div>
 
                   {auditOpenId === booking.id && (
-                    <div className="mt-3 pt-3 border-t border-border">
+                    <div className="px-3 sm:px-4 py-3 border-t border-border bg-muted/20">
                       <BookingAuditLog bookingId={booking.id} />
                     </div>
                   )}
