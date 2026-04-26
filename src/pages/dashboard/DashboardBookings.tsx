@@ -17,6 +17,11 @@ import BookingFormModal from '@/components/booking/BookingFormModal';
 import RescheduleBookingModal from '@/components/booking/RescheduleBookingModal';
 import BookingAuditLog from '@/components/booking/BookingAuditLog';
 import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuSeparator, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { MoreHorizontal } from 'lucide-react';
+import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
 } from '@/components/ui/alert-dialog';
