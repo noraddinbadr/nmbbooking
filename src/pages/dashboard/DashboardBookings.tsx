@@ -26,7 +26,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
 } from '@/components/ui/alert-dialog';
 import {
-  STATUS_LABELS, STATUS_COLORS, getTimeStatus, isBookingPast, canActOnBooking,
+  STATUS_LABELS, STATUS_COLORS, getTimeStatus, isBookingPast, canActOnBooking, canRunWorkflowAction,
   type BookingStatus
 } from '@/lib/bookingState';
 
@@ -136,10 +136,20 @@ const DashboardBookings = () => {
   useEffect(() => { fetchBookings(); }, [fetchBookings]);
 
   const changeStatus = async (booking: Booking, status: BookingStatus, reason?: string) => {
-    const gate = canActOnBooking(booking.booking_date, booking.start_time, booking.status, isAdmin);
-    if (!gate.allowed) {
-      toast({ title: 'إجراء محظور', description: gate.reason, variant: 'destructive' });
-      return;
+    // Workflow-progressing actions (confirmed, in_progress, completed) cannot run on past bookings — ever.
+    const isWorkflowProgress = status === 'confirmed' || status === 'in_progress' || status === 'completed';
+    if (isWorkflowProgress) {
+      const wf = canRunWorkflowAction(booking.booking_date, booking.start_time, booking.status);
+      if (!wf.allowed) {
+        toast({ title: 'إجراء محظور', description: wf.reason, variant: 'destructive' });
+        return;
+      }
+    } else {
+      const gate = canActOnBooking(booking.booking_date, booking.start_time, booking.status, isAdmin);
+      if (!gate.allowed) {
+        toast({ title: 'إجراء محظور', description: gate.reason, variant: 'destructive' });
+        return;
+      }
     }
     setUpdatingId(booking.id);
     const { data, error } = await (supabase as any).rpc('set_booking_status', {
