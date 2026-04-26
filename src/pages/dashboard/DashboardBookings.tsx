@@ -11,7 +11,7 @@ import { toast } from '@/hooks/use-toast';
 import {
   Calendar, Search, User, Clock, CheckCircle2,
   XCircle, Stethoscope, FileText, Loader2, RefreshCw, Plus, Edit, Trash2, CheckCheck,
-  CalendarClock, Lock, History, UserX, PlayCircle, ChevronDown
+  CalendarClock, Lock, History, UserX, PlayCircle
 } from 'lucide-react';
 import BookingFormModal from '@/components/booking/BookingFormModal';
 import RescheduleBookingModal from '@/components/booking/RescheduleBookingModal';
@@ -370,7 +370,7 @@ const DashboardBookings = () => {
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="font-cairo w-52" dir="rtl">
+                        <DropdownMenuContent align="end" className="font-cairo w-52">
                           <DropdownMenuItem onClick={() => navigate(`/dashboard/patients/${booking.patient_id}`)}>
                             <FileText className="h-4 w-4 ml-2" /> فتح ملف المريض
                           </DropdownMenuItem>
