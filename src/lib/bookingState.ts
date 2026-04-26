@@ -73,3 +73,21 @@ export function canActOnBooking(
   }
   return { allowed: true };
 }
+
+/**
+ * Workflow actions (Confirm / Start Session / Complete) are NEVER allowed on past bookings,
+ * even for admins. Past bookings can only be: Rescheduled, Cancelled, marked No-Show, or Deleted (admin).
+ * This prevents nonsensical operations like "starting" a session that already happened.
+ */
+export function canRunWorkflowAction(
+  date: string,
+  startTime: string | null,
+  status: BookingStatus
+): { allowed: boolean; reason?: string } {
+  if (status === 'completed') return { allowed: false, reason: 'الحجز مكتمل بالفعل.' };
+  if (status === 'cancelled') return { allowed: false, reason: 'الحجز ملغي.' };
+  if (isBookingPast(date, startTime)) {
+    return { allowed: false, reason: 'الحجز في الماضي — لا يمكن تأكيده أو بدء جلسته. استخدم إعادة الجدولة أو وضع "لم يحضر".' };
+  }
+  return { allowed: true };
+}
