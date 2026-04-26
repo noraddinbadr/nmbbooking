@@ -468,21 +468,31 @@ const DashboardBookings = () => {
                       <p className="font-cairo text-xs text-muted-foreground mt-2 line-clamp-2 bg-muted/30 rounded-md px-2 py-1.5">{booking.notes}</p>
                     )}
 
-                    {/* Primary action button — full width on mobile */}
-                    {primary && (
-                      <Button
-                        onClick={primary.onClick}
-                        disabled={isUpdating}
-                        className={`mt-3 w-full font-cairo h-10 gap-2 ${primaryClass}`}
-                      >
-                        {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <primary.icon className="h-4 w-4" />}
-                        {primary.label}
-                      </Button>
-                    )}
-
-                    {!gate.allowed && !past && (
-                      <div className="mt-3 flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-xs font-cairo text-muted-foreground">
-                        <Lock className="h-3.5 w-3.5" /> {gate.reason}
+                    {/* Footer action row — compact, NOT full width */}
+                    {(primary || past || (!wf.allowed && !past)) && (
+                      <div className="mt-3 pt-3 border-t border-border/60 flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          {past ? (
+                            <span className="font-cairo text-[11px] text-muted-foreground inline-flex items-center gap-1">
+                              <Lock className="h-3 w-3" /> هذا الحجز في الماضي
+                            </span>
+                          ) : !wf.allowed ? (
+                            <span className="font-cairo text-[11px] text-muted-foreground truncate inline-flex items-center gap-1">
+                              <Lock className="h-3 w-3" /> {wf.reason}
+                            </span>
+                          ) : null}
+                        </div>
+                        {primary && (
+                          <Button
+                            onClick={primary.onClick}
+                            disabled={isUpdating}
+                            size="sm"
+                            className={`font-cairo h-9 px-4 gap-1.5 rounded-full shrink-0 ${primaryClass}`}
+                          >
+                            {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <primary.icon className="h-3.5 w-3.5" />}
+                            {primary.label}
+                          </Button>
+                        )}
                       </div>
                     )}
                   </div>
