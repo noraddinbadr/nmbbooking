@@ -26,7 +26,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
 } from '@/components/ui/alert-dialog';
 import {
-  STATUS_LABELS, STATUS_COLORS, getTimeStatus, isBookingPast, canActOnBooking,
+  STATUS_LABELS, STATUS_COLORS, getTimeStatus, isBookingPast, canActOnBooking, canRunWorkflowAction,
   type BookingStatus
 } from '@/lib/bookingState';
 
@@ -136,10 +136,20 @@ const DashboardBookings = () => {
   useEffect(() => { fetchBookings(); }, [fetchBookings]);
 
   const changeStatus = async (booking: Booking, status: BookingStatus, reason?: string) => {
-    const gate = canActOnBooking(booking.booking_date, booking.start_time, booking.status, isAdmin);
-    if (!gate.allowed) {
-      toast({ title: 'إجراء محظور', description: gate.reason, variant: 'destructive' });
-      return;
+    // Workflow-progressing actions (confirmed, in_progress, completed) cannot run on past bookings — ever.
+    const isWorkflowProgress = status === 'confirmed' || status === 'in_progress' || status === 'completed';
+    if (isWorkflowProgress) {
+      const wf = canRunWorkflowAction(booking.booking_date, booking.start_time, booking.status);
+      if (!wf.allowed) {
+        toast({ title: 'إجراء محظور', description: wf.reason, variant: 'destructive' });
+        return;
+      }
+    } else {
+      const gate = canActOnBooking(booking.booking_date, booking.start_time, booking.status, isAdmin);
+      if (!gate.allowed) {
+        toast({ title: 'إجراء محظور', description: gate.reason, variant: 'destructive' });
+        return;
+      }
     }
     setUpdatingId(booking.id);
     const { data, error } = await (supabase as any).rpc('set_booking_status', {
@@ -312,13 +322,15 @@ const DashboardBookings = () => {
               const timeStatus = getTimeStatus(booking.booking_date, booking.start_time);
               const past = isBookingPast(booking.booking_date, booking.start_time);
               const gate = canActOnBooking(booking.booking_date, booking.start_time, booking.status, isAdmin);
+              const wf = canRunWorkflowAction(booking.booking_date, booking.start_time, booking.status);
               const isUpdating = updatingId === booking.id;
               const displayName = booking.family_name || booking.patient_name;
               const hasReschedule = Array.isArray(booking.rescheduled_from) && booking.rescheduled_from.length > 0;
 
-              // Determine the primary action based on status
+              // Primary workflow CTA — NEVER shown for past bookings (even admins).
+              // Past bookings can only be Rescheduled / Cancelled / No-show / Deleted via the overflow menu.
               const primary: { label: string; icon: any; onClick: () => void; tone: 'primary' | 'success' | 'neutral' } | null =
-                !gate.allowed ? null
+                !wf.allowed ? null
                 : booking.status === 'pending' ? { label: 'تأكيد الحجز', icon: CheckCircle2, onClick: () => changeStatus(booking, 'confirmed'), tone: 'success' }
                 : (booking.status === 'confirmed' || booking.status === 'rescheduled') && canManage
                     ? { label: 'بدء الجلسة', icon: PlayCircle, onClick: () => navigate(`/dashboard/consultation?booking=${booking.id}`), tone: 'primary' }
@@ -456,21 +468,31 @@ const DashboardBookings = () => {
                       <p className="font-cairo text-xs text-muted-foreground mt-2 line-clamp-2 bg-muted/30 rounded-md px-2 py-1.5">{booking.notes}</p>
                     )}
 
-                    {/* Primary action button — full width on mobile */}
-                    {primary && (
-                      <Button
-                        onClick={primary.onClick}
-                        disabled={isUpdating}
-                        className={`mt-3 w-full font-cairo h-10 gap-2 ${primaryClass}`}
-                      >
-                        {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <primary.icon className="h-4 w-4" />}
-                        {primary.label}
-                      </Button>
-                    )}
-
-                    {!gate.allowed && !past && (
-                      <div className="mt-3 flex items-center gap-2 rounded-md bg-muted px-3 py-2 text-xs font-cairo text-muted-foreground">
-                        <Lock className="h-3.5 w-3.5" /> {gate.reason}
+                    {/* Footer action row — compact, NOT full width */}
+                    {(primary || past || (!wf.allowed && !past)) && (
+                      <div className="mt-3 pt-3 border-t border-border/60 flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          {past ? (
+                            <span className="font-cairo text-[11px] text-muted-foreground inline-flex items-center gap-1">
+                              <Lock className="h-3 w-3" /> هذا الحجز في الماضي
+                            </span>
+                          ) : !wf.allowed ? (
+                            <span className="font-cairo text-[11px] text-muted-foreground truncate inline-flex items-center gap-1">
+                              <Lock className="h-3 w-3" /> {wf.reason}
+                            </span>
+                          ) : null}
+                        </div>
+                        {primary && (
+                          <Button
+                            onClick={primary.onClick}
+                            disabled={isUpdating}
+                            size="sm"
+                            className={`font-cairo h-9 px-4 gap-1.5 rounded-full shrink-0 ${primaryClass}`}
+                          >
+                            {isUpdating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <primary.icon className="h-3.5 w-3.5" />}
+                            {primary.label}
+                          </Button>
+                        )}
                       </div>
                     )}
                   </div>
