@@ -344,19 +344,12 @@ const DashboardBookings = () => {
                 : 'bg-secondary text-secondary-foreground';
 
               return (
-                <div key={booking.id} className={`rounded-xl border overflow-hidden transition-shadow ${past ? 'border-dashed border-amber-300 bg-amber-50/40' : 'border-border bg-card hover:shadow-sm'}`}>
-                  {/* Past-booking banner — shown to ALL users (admins included) to clarify which actions are allowed */}
-                  {past && (
-                    <div className="flex items-start gap-2 bg-amber-50 border-b border-amber-200 px-3 py-2 text-amber-900">
-                      <Lock className="h-4 w-4 shrink-0 mt-0.5" />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-cairo text-xs font-semibold">
-                          هذا الحجز في الماضي ({booking.booking_date}{booking.start_time ? ` — ${booking.start_time}` : ''}) ولا يمكن تأكيده أو بدء جلسته أو إكماله.
-                        </p>
-                        <p className="font-cairo text-[11px] text-amber-800/90 mt-0.5">
-                          الإجراءات المتاحة: إعادة الجدولة • إلغاء • تسجيل عدم حضور{isAdmin ? ' • حذف (مسؤول)' : ''}
-                        </p>
-                      </div>
+                <div key={booking.id} className={`rounded-xl border overflow-hidden transition-shadow ${past ? 'border-dashed border-muted bg-muted/20' : 'border-border bg-card hover:shadow-sm'}`}>
+                  {/* Locked banner for past bookings */}
+                  {past && !isAdmin && (
+                    <div className="flex items-center gap-2 bg-amber-50 border-b border-amber-200 px-3 py-2 text-amber-900">
+                      <Lock className="h-3.5 w-3.5 shrink-0" />
+                      <p className="font-cairo text-xs">هذا الحجز في الماضي ولا يمكن تعديله — يلزم صلاحية المسؤول.</p>
                     </div>
                   )}
 
@@ -475,15 +468,19 @@ const DashboardBookings = () => {
                       <p className="font-cairo text-xs text-muted-foreground mt-2 line-clamp-2 bg-muted/30 rounded-md px-2 py-1.5">{booking.notes}</p>
                     )}
 
-                    {/* Footer action row — compact, NOT full width. Hidden entirely for past bookings (banner already explains). */}
-                    {!past && (primary || !wf.allowed) && (
+                    {/* Footer action row — compact, NOT full width */}
+                    {(primary || past || (!wf.allowed && !past)) && (
                       <div className="mt-3 pt-3 border-t border-border/60 flex items-center justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          {!wf.allowed && (
+                          {past ? (
+                            <span className="font-cairo text-[11px] text-muted-foreground inline-flex items-center gap-1">
+                              <Lock className="h-3 w-3" /> هذا الحجز في الماضي
+                            </span>
+                          ) : !wf.allowed ? (
                             <span className="font-cairo text-[11px] text-muted-foreground truncate inline-flex items-center gap-1">
                               <Lock className="h-3 w-3" /> {wf.reason}
                             </span>
-                          )}
+                          ) : null}
                         </div>
                         {primary && (
                           <Button
