@@ -48,14 +48,14 @@ export function useMyCatalogItems() {
   });
 
   const upsertItem = useMutation({
-    mutationFn: async (payload: Partial<ProviderCatalogItem> & { id?: string }) => {
+    mutationFn: async (payload: Partial<Omit<ProviderCatalogItem, 'specs'>> & { id?: string; specs?: Record<string, unknown> }) => {
       if (!user) throw new Error('غير مسجل الدخول');
-      const row = { ...payload, created_by: user.id, provider_id: payload.provider_id || user.id };
+      const row = { ...payload, created_by: user.id, provider_id: payload.provider_id || user.id } as never;
       if (payload.id) {
         const { error } = await supabase.from('provider_catalog_items').update(row).eq('id', payload.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('provider_catalog_items').insert(row as never);
+        const { error } = await supabase.from('provider_catalog_items').insert(row);
         if (error) throw error;
       }
     },
