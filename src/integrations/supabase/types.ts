@@ -389,6 +389,50 @@ export type Database = {
           },
         ]
       }
+      catalog_categories: {
+        Row: {
+          created_at: string
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          kind: string
+          name_ar: string
+          name_en: string | null
+          parent_id: string | null
+          sort_order: number | null
+        }
+        Insert: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          kind?: string
+          name_ar: string
+          name_en?: string | null
+          parent_id?: string | null
+          sort_order?: number | null
+        }
+        Update: {
+          created_at?: string
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          kind?: string
+          name_ar?: string
+          name_en?: string | null
+          parent_id?: string | null
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catalog_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinics: {
         Row: {
           address: string | null
@@ -1121,6 +1165,356 @@ export type Database = {
           },
         ]
       }
+      procurement_bid_lines: {
+        Row: {
+          bid_id: string
+          brand_offered: string | null
+          catalog_item_id: string | null
+          id: string
+          notes: string | null
+          qty_offered: number
+          request_item_id: string
+          unit_price: number
+        }
+        Insert: {
+          bid_id: string
+          brand_offered?: string | null
+          catalog_item_id?: string | null
+          id?: string
+          notes?: string | null
+          qty_offered?: number
+          request_item_id: string
+          unit_price?: number
+        }
+        Update: {
+          bid_id?: string
+          brand_offered?: string | null
+          catalog_item_id?: string | null
+          id?: string
+          notes?: string | null
+          qty_offered?: number
+          request_item_id?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procurement_bid_lines_bid_id_fkey"
+            columns: ["bid_id"]
+            isOneToOne: false
+            referencedRelation: "procurement_bids"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "procurement_bid_lines_catalog_item_id_fkey"
+            columns: ["catalog_item_id"]
+            isOneToOne: false
+            referencedRelation: "provider_catalog_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "procurement_bid_lines_request_item_id_fkey"
+            columns: ["request_item_id"]
+            isOneToOne: false
+            referencedRelation: "procurement_request_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      procurement_bids: {
+        Row: {
+          attachments: Json | null
+          bidder_id: string
+          bidder_org_id: string | null
+          bidder_org_type: string | null
+          coverage_pct: number | null
+          created_at: string
+          currency: string | null
+          delivery_days: number | null
+          id: string
+          is_anonymous: boolean | null
+          notes: string | null
+          payment_terms: string | null
+          rejected_reason: string | null
+          request_id: string
+          score: number | null
+          status: Database["public"]["Enums"]["procurement_bid_status"]
+          total_amount: number
+          updated_at: string
+          warranty_months: number | null
+        }
+        Insert: {
+          attachments?: Json | null
+          bidder_id?: string
+          bidder_org_id?: string | null
+          bidder_org_type?: string | null
+          coverage_pct?: number | null
+          created_at?: string
+          currency?: string | null
+          delivery_days?: number | null
+          id?: string
+          is_anonymous?: boolean | null
+          notes?: string | null
+          payment_terms?: string | null
+          rejected_reason?: string | null
+          request_id: string
+          score?: number | null
+          status?: Database["public"]["Enums"]["procurement_bid_status"]
+          total_amount?: number
+          updated_at?: string
+          warranty_months?: number | null
+        }
+        Update: {
+          attachments?: Json | null
+          bidder_id?: string
+          bidder_org_id?: string | null
+          bidder_org_type?: string | null
+          coverage_pct?: number | null
+          created_at?: string
+          currency?: string | null
+          delivery_days?: number | null
+          id?: string
+          is_anonymous?: boolean | null
+          notes?: string | null
+          payment_terms?: string | null
+          rejected_reason?: string | null
+          request_id?: string
+          score?: number | null
+          status?: Database["public"]["Enums"]["procurement_bid_status"]
+          total_amount?: number
+          updated_at?: string
+          warranty_months?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procurement_bids_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "procurement_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      procurement_notifications: {
+        Row: {
+          channel: string | null
+          created_at: string
+          id: string
+          match_details: Json | null
+          matched_items_count: number | null
+          recipient_user_id: string
+          request_id: string
+        }
+        Insert: {
+          channel?: string | null
+          created_at?: string
+          id?: string
+          match_details?: Json | null
+          matched_items_count?: number | null
+          recipient_user_id: string
+          request_id: string
+        }
+        Update: {
+          channel?: string | null
+          created_at?: string
+          id?: string
+          match_details?: Json | null
+          matched_items_count?: number | null
+          recipient_user_id?: string
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procurement_notifications_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "procurement_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      procurement_request_items: {
+        Row: {
+          brand_preferred: string | null
+          category_id: string | null
+          id: string
+          name_ar: string
+          notes: string | null
+          position: number | null
+          qty: number
+          request_id: string
+          specs: Json | null
+          unit: string | null
+        }
+        Insert: {
+          brand_preferred?: string | null
+          category_id?: string | null
+          id?: string
+          name_ar: string
+          notes?: string | null
+          position?: number | null
+          qty?: number
+          request_id: string
+          specs?: Json | null
+          unit?: string | null
+        }
+        Update: {
+          brand_preferred?: string | null
+          category_id?: string | null
+          id?: string
+          name_ar?: string
+          notes?: string | null
+          position?: number | null
+          qty?: number
+          request_id?: string
+          specs?: Json | null
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procurement_request_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "procurement_request_items_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "procurement_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      procurement_requests: {
+        Row: {
+          allow_partial_bids: boolean
+          attachments: Json | null
+          award_mode: Database["public"]["Enums"]["procurement_award_mode"]
+          award_weights: Json
+          awarded_at: string | null
+          awarded_bid_id: string | null
+          budget_max: number | null
+          buyer_id: string
+          buyer_org_id: string | null
+          buyer_org_type: string | null
+          category_kind: string | null
+          closes_at: string
+          created_at: string
+          currency: string | null
+          delivery_address: string | null
+          delivery_city: string | null
+          description_ar: string | null
+          id: string
+          notes: string | null
+          published_at: string | null
+          rfq_code: string
+          status: Database["public"]["Enums"]["procurement_status"]
+          title_ar: string
+          updated_at: string
+        }
+        Insert: {
+          allow_partial_bids?: boolean
+          attachments?: Json | null
+          award_mode?: Database["public"]["Enums"]["procurement_award_mode"]
+          award_weights?: Json
+          awarded_at?: string | null
+          awarded_bid_id?: string | null
+          budget_max?: number | null
+          buyer_id?: string
+          buyer_org_id?: string | null
+          buyer_org_type?: string | null
+          category_kind?: string | null
+          closes_at: string
+          created_at?: string
+          currency?: string | null
+          delivery_address?: string | null
+          delivery_city?: string | null
+          description_ar?: string | null
+          id?: string
+          notes?: string | null
+          published_at?: string | null
+          rfq_code?: string
+          status?: Database["public"]["Enums"]["procurement_status"]
+          title_ar: string
+          updated_at?: string
+        }
+        Update: {
+          allow_partial_bids?: boolean
+          attachments?: Json | null
+          award_mode?: Database["public"]["Enums"]["procurement_award_mode"]
+          award_weights?: Json
+          awarded_at?: string | null
+          awarded_bid_id?: string | null
+          budget_max?: number | null
+          buyer_id?: string
+          buyer_org_id?: string | null
+          buyer_org_type?: string | null
+          category_kind?: string | null
+          closes_at?: string
+          created_at?: string
+          currency?: string | null
+          delivery_address?: string | null
+          delivery_city?: string | null
+          description_ar?: string | null
+          id?: string
+          notes?: string | null
+          published_at?: string | null
+          rfq_code?: string
+          status?: Database["public"]["Enums"]["procurement_status"]
+          title_ar?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      procurement_reviews: {
+        Row: {
+          bid_id: string
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+          request_id: string
+          reviewee_id: string
+          reviewer_id: string
+        }
+        Insert: {
+          bid_id: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          request_id: string
+          reviewee_id: string
+          reviewer_id?: string
+        }
+        Update: {
+          bid_id?: string
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          request_id?: string
+          reviewee_id?: string
+          reviewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "procurement_reviews_bid_id_fkey"
+            columns: ["bid_id"]
+            isOneToOne: false
+            referencedRelation: "procurement_bids"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "procurement_reviews_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "procurement_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1156,6 +1550,77 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      provider_catalog_items: {
+        Row: {
+          brand: string | null
+          category_id: string | null
+          created_at: string
+          created_by: string
+          currency: string | null
+          default_price: number | null
+          id: string
+          is_active: boolean | null
+          lead_time_days: number | null
+          name_ar: string
+          name_en: string | null
+          owner_type: string
+          provider_id: string
+          specs: Json | null
+          stock_qty: number | null
+          tags: string[] | null
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          brand?: string | null
+          category_id?: string | null
+          created_at?: string
+          created_by?: string
+          currency?: string | null
+          default_price?: number | null
+          id?: string
+          is_active?: boolean | null
+          lead_time_days?: number | null
+          name_ar: string
+          name_en?: string | null
+          owner_type?: string
+          provider_id: string
+          specs?: Json | null
+          stock_qty?: number | null
+          tags?: string[] | null
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          brand?: string | null
+          category_id?: string | null
+          created_at?: string
+          created_by?: string
+          currency?: string | null
+          default_price?: number | null
+          id?: string
+          is_active?: boolean | null
+          lead_time_days?: number | null
+          name_ar?: string
+          name_en?: string | null
+          owner_type?: string
+          provider_id?: string
+          specs?: Json | null
+          stock_qty?: number | null
+          tags?: string[] | null
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "provider_catalog_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "catalog_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       provider_orders: {
         Row: {
@@ -1601,6 +2066,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_procurement_bid: {
+        Args: { _bid_id: string; _reason?: string; _request_id: string }
+        Returns: Json
+      }
       confirm_hold: {
         Args: { _hold_token: string; _registration_id: string }
         Returns: Json
@@ -1643,6 +2112,15 @@ export type Database = {
           _reason?: string
         }
         Returns: Json
+      }
+      score_procurement_bids: {
+        Args: { _request_id: string }
+        Returns: {
+          bid_id: string
+          bidder_id: string
+          score: number
+          total_amount: number
+        }[]
       }
       set_booking_status: {
         Args: {
@@ -1699,6 +2177,20 @@ export type Database = {
         | "sample_taken"
         | "results_uploaded"
         | "delivered"
+      procurement_award_mode: "manual" | "auto_suggest" | "auto_award"
+      procurement_bid_status:
+        | "submitted"
+        | "shortlisted"
+        | "accepted"
+        | "rejected"
+        | "withdrawn"
+      procurement_status:
+        | "draft"
+        | "published"
+        | "closed"
+        | "awarded"
+        | "fulfilled"
+        | "cancelled"
       registration_status:
         | "held"
         | "confirmed"
@@ -1882,6 +2374,22 @@ export const Constants = {
         "sample_taken",
         "results_uploaded",
         "delivered",
+      ],
+      procurement_award_mode: ["manual", "auto_suggest", "auto_award"],
+      procurement_bid_status: [
+        "submitted",
+        "shortlisted",
+        "accepted",
+        "rejected",
+        "withdrawn",
+      ],
+      procurement_status: [
+        "draft",
+        "published",
+        "closed",
+        "awarded",
+        "fulfilled",
+        "cancelled",
       ],
       registration_status: [
         "held",
