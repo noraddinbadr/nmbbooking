@@ -61,7 +61,7 @@ export const bookingsRepo = {
   async create(input: CreateBookingInput): Promise<Result<Booking, AppError>> {
     const { data, error } = await supabase
       .from('bookings')
-      .insert(toBookingRow(input))
+      .insert(toBookingRow(input) as never)
       .select(BOOKING_COLUMNS)
       .single();
     if (error) return err(toAppError(error));
@@ -74,7 +74,7 @@ export const bookingsRepo = {
   ): Promise<Result<Booking, AppError>> {
     const { data, error } = await supabase
       .from('bookings')
-      .update(toBookingRow(patch))
+      .update(toBookingRow(patch) as never)
       .eq('id', id)
       .select(BOOKING_COLUMNS)
       .single();
