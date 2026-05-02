@@ -7,7 +7,7 @@
 export const qk = {
   bookings: {
     all: ['bookings'] as const,
-    list: (params?: Record<string, unknown>) =>
+    list: (params?: unknown) =>
       [...qk.bookings.all, 'list', params ?? {}] as const,
     detail: (id: string) => [...qk.bookings.all, 'detail', id] as const,
     byPatient: (patientId: string) =>
