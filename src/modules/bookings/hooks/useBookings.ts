@@ -43,9 +43,7 @@ export function useCreateBooking(opts: { isAdmin: boolean }) {
   const invalidate = useInvalidate();
   return useMutation({
     mutationFn: async (input: CreateBookingInput) => {
-      const r = await bookingsService.create(input, opts);
-      if (!r.ok) throw r.error;
-      return r.value;
+      return unwrap(await bookingsService.create(input, opts));
     },
     onSuccess: invalidate,
   });
@@ -55,9 +53,7 @@ export function useUpdateBooking() {
   const invalidate = useInvalidate();
   return useMutation({
     mutationFn: async (vars: { id: string; patch: Partial<CreateBookingInput> }) => {
-      const r = await bookingsService.update(vars.id, vars.patch);
-      if (!r.ok) throw r.error;
-      return r.value;
+      return unwrap(await bookingsService.update(vars.id, vars.patch));
     },
     onSuccess: invalidate,
   });
@@ -71,11 +67,10 @@ export function useSetBookingStatus(ctx: { isAdmin: boolean }) {
       next: BookingStatus;
       reason?: string;
     }) => {
-      const r = await bookingsService.setStatus(vars.booking, vars.next, {
+      unwrap(await bookingsService.setStatus(vars.booking, vars.next, {
         isAdmin: ctx.isAdmin,
         reason: vars.reason,
-      });
-      if (!r.ok) throw r.error;
+      }));
     },
     onSuccess: invalidate,
   });
@@ -91,8 +86,7 @@ export function useRescheduleBooking() {
       newEndTime?: string | null;
       reason?: string | null;
     }) => {
-      const r = await bookingsService.reschedule(vars);
-      if (!r.ok) throw r.error;
+      unwrap(await bookingsService.reschedule(vars));
     },
     onSuccess: invalidate,
   });
@@ -102,8 +96,7 @@ export function useDeleteBooking() {
   const invalidate = useInvalidate();
   return useMutation({
     mutationFn: async (id: string) => {
-      const r = await bookingsService.remove(id);
-      if (!r.ok) throw r.error;
+      unwrap(await bookingsService.remove(id));
     },
     onSuccess: invalidate,
   });
