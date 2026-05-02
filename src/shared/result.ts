@@ -16,5 +16,5 @@ export const err = <E>(error: E): Err<E> => ({ ok: false, error });
 
 export function unwrap<T, E>(r: Result<T, E>): T {
   if (r.ok) return r.value;
-  throw r.error;
+  throw (r as Err<E>).error;
 }
