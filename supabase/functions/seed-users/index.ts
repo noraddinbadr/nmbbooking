@@ -36,7 +36,12 @@ Deno.serve(async (req) => {
 
     if (existing) {
       userId = existing.id;
-      results.push({ email: u.email, status: "exists", id: userId });
+      // Reset password + ensure confirmed so dev login always works
+      await supabaseAdmin.auth.admin.updateUserById(userId, {
+        password,
+        email_confirm: true,
+      });
+      results.push({ email: u.email, status: "password_reset", id: userId });
     } else {
       const { data, error } = await supabaseAdmin.auth.admin.createUser({
         email: u.email,
