@@ -13,9 +13,7 @@ import {
   XCircle, Stethoscope, FileText, Loader2, RefreshCw, Plus, Edit, Trash2, CheckCheck,
   CalendarClock, Lock, History, UserX, PlayCircle
 } from 'lucide-react';
-import BookingFormModal from '@/components/booking/BookingFormModal';
-import RescheduleBookingModal from '@/components/booking/RescheduleBookingModal';
-import BookingAuditLog from '@/components/booking/BookingAuditLog';
+import { BookingFormModal, RescheduleBookingModal, BookingAuditLog } from '@/modules/bookings';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
@@ -27,8 +25,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import {
   STATUS_LABELS, STATUS_COLORS, getTimeStatus, isBookingPast, canActOnBooking, canRunWorkflowAction,
-  type BookingStatus
-} from '@/lib/bookingState';
+  type BookingStatus,
+} from '@/modules/bookings';
 
 interface Booking {
   id: string;

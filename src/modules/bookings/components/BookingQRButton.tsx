@@ -13,7 +13,6 @@ interface Props {
 
 export const BookingQRButton = ({ bookingId, patientName, bookingDate, startTime }: Props) => {
   const [open, setOpen] = useState(false);
-  // QR encodes a deeplink the kiosk scanner can parse
   const payload = `sehtak://checkin/booking/${bookingId}`;
 
   return (
