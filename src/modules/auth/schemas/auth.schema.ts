@@ -24,24 +24,28 @@ export const updatePasswordInput = z.object({
 });
 export type UpdatePasswordInput = z.infer<typeof updatePasswordInput>;
 
+/**
+ * Profile DTO — kept in snake_case to match consumers across the app.
+ * (Strangler migration: a full camelCase rename will follow once all callers move.)
+ */
 export interface Profile {
   id: string;
-  fullName: string | null;
-  fullNameAr: string | null;
+  full_name: string | null;
+  full_name_ar: string | null;
   phone: string | null;
   gender: string | null;
-  avatarUrl: string | null;
-  dateOfBirth: string | null;
+  avatar_url: string | null;
+  date_of_birth: string | null;
 }
 
 export function mapProfile(row: any): Profile {
   return {
     id: row.id,
-    fullName: row.full_name ?? null,
-    fullNameAr: row.full_name_ar ?? null,
+    full_name: row.full_name ?? null,
+    full_name_ar: row.full_name_ar ?? null,
     phone: row.phone ?? null,
     gender: row.gender ?? null,
-    avatarUrl: row.avatar_url ?? null,
-    dateOfBirth: row.date_of_birth ?? null,
+    avatar_url: row.avatar_url ?? null,
+    date_of_birth: row.date_of_birth ?? null,
   };
 }

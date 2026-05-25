@@ -1,4 +1,4 @@
-import type { BookingType } from '@/data/types';
+import type { BookingType, DiscountType } from '@/data/types';
 
 export interface DoctorShift {
   id: string;
@@ -40,7 +40,7 @@ export interface Doctor {
   availableToday: boolean;
   isSponsored: boolean;
   freeCasesPerShift: number;
-  discountType: string;
+  discountType: DiscountType;
   discountValue: number;
   shifts: DoctorShift[];
 }
@@ -92,7 +92,7 @@ export function mapDoctor(row: any): Doctor {
     availableToday: row.available_today ?? true,
     isSponsored: row.is_sponsored || false,
     freeCasesPerShift: row.free_cases_per_shift || 0,
-    discountType: row.discount_type || 'none',
+    discountType: (row.discount_type || 'none') as DiscountType,
     discountValue: Number(row.discount_value) || 0,
     shifts,
   };

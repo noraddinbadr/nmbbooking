@@ -28,19 +28,11 @@ export const profileRepo = {
 
   async updateProfile(
     userId: string,
-    patch: Partial<Pick<Profile, 'fullName' | 'fullNameAr' | 'phone' | 'gender' | 'avatarUrl' | 'dateOfBirth'>>,
+    patch: Partial<Omit<Profile, 'id'>>,
   ): Promise<Result<Profile, AppError>> {
-    const row: Record<string, unknown> = {};
-    if (patch.fullName !== undefined) row.full_name = patch.fullName;
-    if (patch.fullNameAr !== undefined) row.full_name_ar = patch.fullNameAr;
-    if (patch.phone !== undefined) row.phone = patch.phone;
-    if (patch.gender !== undefined) row.gender = patch.gender;
-    if (patch.avatarUrl !== undefined) row.avatar_url = patch.avatarUrl;
-    if (patch.dateOfBirth !== undefined) row.date_of_birth = patch.dateOfBirth;
-
     const { data, error } = await supabase
       .from('profiles')
-      .update(row as never)
+      .update(patch as never)
       .eq('id', userId)
       .select('id, full_name, full_name_ar, phone, gender, avatar_url, date_of_birth')
       .single();
