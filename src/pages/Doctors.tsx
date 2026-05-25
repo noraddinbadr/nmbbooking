@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import DoctorCard from '@/components/DoctorCard';
 import { cities } from '@/data/constants';
-import { useDoctors } from '@/hooks/useDoctors';
+import { useDoctors } from '@/modules/doctors';
 import { Button } from '@/components/ui/button';
 
 const Doctors = () => {

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useDoctors } from '@/hooks/useDoctors';
+import { useDoctors } from '@/modules/doctors';
 import { Loader2 } from 'lucide-react';
 
 const specialtyIcons: Record<string, string> = {

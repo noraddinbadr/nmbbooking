@@ -1,5 +1,5 @@
 import DoctorCard from '@/components/DoctorCard';
-import { useDoctors } from '@/hooks/useDoctors';
+import { useDoctors } from '@/modules/doctors';
 import { Loader2 } from 'lucide-react';
 
 const FeaturedDoctors = () => {

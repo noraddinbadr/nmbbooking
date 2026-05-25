@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useHomeStats } from '@/hooks/useHomeStats';
 import { cities, serviceLabels } from '@/data/constants';
-import { useDoctors } from '@/hooks/useDoctors';
+import { useDoctors } from '@/modules/doctors';
 
 const HeroSearch = () => {
   const [specialty, setSpecialty] = useState('');
