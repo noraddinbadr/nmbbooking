@@ -1,4 +1,6 @@
-import type { BookingType, DiscountType } from '@/data/types';
+import type { BookingType } from '@/data/types';
+
+export type DiscountType = 'none' | 'percentage' | 'fixed';
 
 export interface DoctorShift {
   id: string;
