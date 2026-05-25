@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { BookingQRButton } from '@/components/booking/BookingQRButton';
+import { BookingQRButton } from '@/modules/bookings';
 
 const statusLabels: Record<string, { label: string; color: string }> = {
   pending: { label: 'قيد الانتظار', color: 'bg-amber-50 text-amber-500' },

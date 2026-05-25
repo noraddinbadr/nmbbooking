@@ -1,8 +1,53 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Doctor, DoctorShift, BookingType } from '@/data/types';
+import type { BookingType } from '@/data/types';
 
-function mapDoctor(row: any): Doctor {
+export type DiscountType = 'none' | 'percentage' | 'fixed';
+
+export interface DoctorShift {
+  id: string;
+  label: string;
+  startTime: string;
+  endTime: string;
+  daysOfWeek: number[];
+  enableSlotGeneration: boolean;
+  consultationDurationMin: number | null;
+  maxCapacity: number | null;
+}
+
+export interface Doctor {
+  id: string;
+  nameAr: string;
+  nameEn: string;
+  specialty: string;
+  specialtyAr: string;
+  city: string;
+  cityAr: string;
+  rating: number;
+  totalReviews: number;
+  basePrice: number;
+  discountPercent: number;
+  isVerified: boolean;
+  profileImage: string;
+  gender: 'male' | 'female';
+  yearsExperience: number;
+  aboutAr: string;
+  aboutEn: string;
+  languages: string[];
+  education: string[];
+  clinicId: string;
+  clinicName: string;
+  clinicNameAr: string;
+  clinicAddress: string;
+  bookingTypes: BookingType[];
+  waitTime: string;
+  availableToday: boolean;
+  isSponsored: boolean;
+  freeCasesPerShift: number;
+  discountType: DiscountType;
+  discountValue: number;
+  shifts: DoctorShift[];
+}
+
+export function mapDoctor(row: any): Doctor {
   const discountPercent =
     row.discount_type === 'percentage' ? Number(row.discount_value) :
     row.discount_type === 'fixed' && Number(row.base_price) > 0
@@ -40,6 +85,7 @@ function mapDoctor(row: any): Doctor {
     aboutEn: row.about_en || '',
     languages: row.languages || [],
     education: row.education || [],
+    clinicId: row.clinic_id || row.clinics?.id || '',
     clinicName: row.clinics?.name_en || '',
     clinicNameAr: row.clinics?.name_ar || '',
     clinicAddress: row.clinics?.address || '',
@@ -48,37 +94,8 @@ function mapDoctor(row: any): Doctor {
     availableToday: row.available_today ?? true,
     isSponsored: row.is_sponsored || false,
     freeCasesPerShift: row.free_cases_per_shift || 0,
-    discountType: row.discount_type || 'none',
+    discountType: (row.discount_type || 'none') as DiscountType,
     discountValue: Number(row.discount_value) || 0,
     shifts,
   };
-}
-
-export function useDoctors() {
-  return useQuery({
-    queryKey: ['doctors'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('doctors')
-        .select('*, clinics(*), doctor_shifts(*)');
-      if (error) throw error;
-      return (data || []).map(mapDoctor);
-    },
-  });
-}
-
-export function useDoctor(id: string) {
-  return useQuery({
-    queryKey: ['doctor', id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('doctors')
-        .select('*, clinics(*), doctor_shifts(*)')
-        .eq('id', id)
-        .single();
-      if (error) throw error;
-      return mapDoctor(data);
-    },
-    enabled: !!id,
-  });
 }

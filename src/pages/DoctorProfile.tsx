@@ -6,7 +6,7 @@ import DoctorProfileHeader from '@/components/doctor/DoctorProfileHeader';
 import DoctorAbout from '@/components/doctor/DoctorAbout';
 import DoctorReviews from '@/components/doctor/DoctorReviews';
 import BookingSidebar from '@/components/doctor/BookingSidebar';
-import { useDoctor } from '@/hooks/useDoctors';
+import { useDoctor } from '@/modules/doctors';
 import { Button } from '@/components/ui/button';
 
 const DoctorProfile = () => {
