@@ -55,6 +55,7 @@ export const authRepo = {
   },
 
   getSession: () => supabase.auth.getSession(),
-  onAuthStateChange: (cb: Parameters<typeof supabase.auth.onAuthStateChange>[0]) =>
-    supabase.auth.onAuthStateChange(cb),
+  onAuthStateChange: (
+    cb: (event: import('@supabase/supabase-js').AuthChangeEvent, session: import('@supabase/supabase-js').Session | null) => void,
+  ) => supabase.auth.onAuthStateChange(cb),
 };
