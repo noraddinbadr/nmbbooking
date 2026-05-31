@@ -25,4 +25,16 @@ export const qk = {
     all: ['notifications'] as const,
     forUser: (userId: string) => [...qk.notifications.all, userId] as const,
   },
+  consultations: {
+    all: ['consultations'] as const,
+    session: (id: string) => [...qk.consultations.all, 'session', id] as const,
+    sessionByBooking: (bookingId: string) =>
+      [...qk.consultations.all, 'session-by-booking', bookingId] as const,
+    history: (patientId: string) =>
+      [...qk.consultations.all, 'history', patientId] as const,
+    prescriptions: (patientId: string) =>
+      [...qk.consultations.all, 'prescriptions', patientId] as const,
+    orders: (patientId: string) =>
+      [...qk.consultations.all, 'orders', patientId] as const,
+  },
 } as const;
