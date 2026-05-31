@@ -10,14 +10,13 @@ export interface ProviderOrderInput {
 export const providerOrdersRepo = {
   async insertMany(orders: ProviderOrderInput[]) {
     if (orders.length === 0) return;
-    const { error } = await supabase.from('provider_orders').insert(
-      orders.map((o) => ({
-        provider_id: o.providerId,
-        order_type: o.orderType,
-        notes: o.notes,
-        order_details: o.orderDetails,
-      })),
-    );
+    const rows = orders.map((o) => ({
+      provider_id: o.providerId,
+      order_type: o.orderType,
+      notes: o.notes,
+      order_details: o.orderDetails as any,
+    }));
+    const { error } = await supabase.from('provider_orders').insert(rows as any);
     if (error) throw error;
   },
   async listForPatient(patientId: string, limit = 50) {
