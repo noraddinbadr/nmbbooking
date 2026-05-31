@@ -12,10 +12,13 @@
 - **Doctors module**: `src/modules/doctors/*` (repo, service, schemas, hooks). All 5 callers migrated; `src/hooks/useDoctors.ts` removed.
 - **Clinics module**: `src/modules/clinics/*` (repo, service, schemas, hooks).
 
-## 🔴 Next — Phase 3 (Consultation pipeline)
-- [ ] `src/modules/consultations/*` wrapping `treatment_sessions` + `prescriptions` + `prescription_items` + `medical_files`.
-- [ ] "Start consultation" from a confirmed booking → opens a session; saving the session transitions booking → `completed`.
-- [ ] Patient comprehensive file: visits + prescriptions + medical files + lab/imaging in one page.
+## ✅ Phase 3 — Consultation pipeline (done)
+- `src/modules/consultations/*` — schemas, repos (sessions / prescriptions / providerOrders), service, components.
+- `consultationsService.openForBooking` resumes or creates an active session; `endSession` persists notes + prescription + provider orders + transitions booking → `completed`.
+- `ActiveConsultation` page rewritten on top of the module (675L → 382L) using `PatientHistoryPanel`, `ConsultationNotesCard`, `PrescriptionBuilder`, `CatalogPicker`.
+
+## 🟡 Phase 3.1 — Remaining consultation polish
+- [ ] Patient comprehensive file page (visits + prescriptions + files + lab/imaging) on top of `consultationsService.loadHistory`.
 - [ ] QR code on booking + Kiosk scan → set status `in_progress`.
 
 ## 🟡 Phase 4 — Migrate remaining domains to modular layout
@@ -24,8 +27,8 @@
 - [ ] Migrate remaining `@/contexts/AuthContext` imports (24 files) to `@/modules/auth`, then delete the shim.
 
 ## 🧱 Phase 5 — Decompose monolithic pages (>500L)
-- [ ] `DashboardBookings` (545L) → split into list / filters / actions / dialogs inside `modules/bookings/components/`.
-- [ ] `ActiveConsultation` → split into Symptoms / Diagnosis / Prescription / Orders inside `modules/consultations/components/`.
+- [x] `DashboardBookings` (543L → 265L) — extracted `BookingsStatsBar`, `BookingsFilters`, `BookingCard` into `modules/bookings/components/`.
+- [x] `ActiveConsultation` (675L → 382L) — extracted `PatientHistoryPanel`, `ConsultationNotesCard`, `PrescriptionBuilder`, `CatalogPicker` into `modules/consultations/components/`.
 - [ ] `DashboardProcurement`, `DashboardAuctions`, `DashboardEventsAdmin` — same approach.
 
 ## 🟢 Phase 3 — Reports & polish
