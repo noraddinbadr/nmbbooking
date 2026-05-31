@@ -13,7 +13,7 @@ import {
   STATUS_LABELS, STATUS_COLORS, getTimeStatus, isBookingPast,
   canActOnBooking, canRunWorkflowAction, type BookingStatus,
 } from '@/modules/bookings';
-import { BookingAuditLog } from '@/modules/bookings/components/BookingAuditLog';
+import BookingAuditLog from './BookingAuditLog';
 
 export interface BookingRow {
   id: string;

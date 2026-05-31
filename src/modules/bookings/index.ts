@@ -43,6 +43,9 @@ export { default as BookingFormModal } from './components/BookingFormModal';
 export { default as RescheduleBookingModal } from './components/RescheduleBookingModal';
 export { default as BookingAuditLog } from './components/BookingAuditLog';
 export { BookingQRButton } from './components/BookingQRButton';
+export { BookingsStatsBar } from './components/BookingsStatsBar';
+export { BookingsFilters } from './components/BookingsFilters';
+export { BookingCard, type BookingRow } from './components/BookingCard';
 
 // Audit DTO (for consumers that render the log themselves)
 export type { AuditEntry } from './api/auditLog.repo';
