@@ -1,18 +1,16 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import {
-  ArrowRight, User, FileText, Pill, TestTube, ScanLine, Syringe,
-  Plus, Printer, Send, Clock, Phone, Calendar, X, CheckCircle2, History, Search, Loader2
+  User, Pill, TestTube, ScanLine, Syringe,
+  Printer, Clock, Calendar, CheckCircle2, Loader2,
 } from 'lucide-react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { MedicalFileUpload } from '@/components/medical/MedicalFileUpload';
@@ -22,6 +20,14 @@ import {
   catalogMedicines, catalogLabTests, catalogImaging, catalogProcedures,
   imagingTypeLabels,
 } from '@/data/serviceCatalog';
+import {
+  consultationsService,
+  PatientHistoryPanel,
+  ConsultationNotesCard,
+  PrescriptionBuilder,
+  CatalogPicker,
+  type EndSessionInput,
+} from '@/modules/consultations';
 
 interface PatientProfile {
   id: string;
