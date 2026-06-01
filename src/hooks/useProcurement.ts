@@ -2,15 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { procurementRepo, procurementService } from '@/modules/procurement';
-import type {
-  ProcurementRequest,
-  ProcurementRequestItem,
-  ProcurementBid,
-  ProcurementBidLine,
-  ProcurementStatus,
-  ProviderCatalogItem,
-  CatalogCategory,
-} from '@/data/procurementTypes';
+import type { ProcurementStatus, ProviderCatalogItem } from '@/data/procurementTypes';
 
 // ----------------- Categories -----------------
 export function useCatalogCategories() {
