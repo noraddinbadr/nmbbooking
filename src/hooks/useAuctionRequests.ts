@@ -1,13 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuctionSettings } from './useAuctionSettings';
+import { auctionsRepo } from '@/modules/auctions';
 import type {
-  AuctionRequest,
   AuctionRequestStatus,
   AuctionInitiatorType,
-  MedicalCaseLite,
 } from '@/data/auctionTypes';
 
 /**
@@ -19,33 +17,12 @@ export function useAuctionRequests(statusFilter?: AuctionRequestStatus[]) {
 
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ['auction-requests', statusFilter],
-    queryFn: async () => {
-      let query = supabase
-        .from('auction_requests')
-        .select('*, medical_case:medical_cases!inner(*)')
-        .order('created_at', { ascending: false });
-      if (statusFilter && statusFilter.length > 0) {
-        query = query.in('status', statusFilter);
-      }
-      const { data, error } = await query;
-      if (error) throw error;
-      return (data || []).map(r => ({
-        ...r,
-        medical_case: r.medical_case as MedicalCaseLite,
-      })) as AuctionRequest[];
-    },
+    queryFn: () => auctionsRepo.listRequests(statusFilter),
   });
 
   const createRequest = useMutation({
-    mutationFn: async (payload: { case_id: string; initiator_id: string; initiator_type: AuctionInitiatorType; status?: AuctionRequestStatus; expires_at?: string | null }) => {
-      const { data, error } = await supabase
-        .from('auction_requests')
-        .insert(payload)
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
-    },
+    mutationFn: (payload: { case_id: string; initiator_id: string; initiator_type: AuctionInitiatorType; status?: AuctionRequestStatus; expires_at?: string | null }) =>
+      auctionsRepo.insertRequest(payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['auction-requests'] });
       qc.invalidateQueries({ queryKey: ['medical-cases'] });
@@ -55,15 +32,8 @@ export function useAuctionRequests(statusFilter?: AuctionRequestStatus[]) {
   });
 
   const transitionStatus = useMutation({
-    mutationFn: async ({ id, newStatus }: { id: string; newStatus: AuctionRequestStatus }) => {
-      const updates: { status: AuctionRequestStatus; published_at?: string } = { status: newStatus };
-      if (newStatus === 'published') updates.published_at = new Date().toISOString();
-      const { error } = await supabase
-        .from('auction_requests')
-        .update(updates)
-        .eq('id', id);
-      if (error) throw error;
-    },
+    mutationFn: ({ id, newStatus }: { id: string; newStatus: AuctionRequestStatus }) =>
+      auctionsRepo.updateStatus(id, newStatus),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['auction-requests'] });
       toast.success('تم تحديث حالة الطلب');
@@ -109,20 +79,14 @@ export function usePublishCaseAsAuction() {
         ? new Date(Date.now() + settings.bid_duration_hours * 3600000).toISOString()
         : null;
 
-      const { data, error } = await supabase
-        .from('auction_requests')
-        .insert({
-          case_id: caseId,
-          initiator_id: user.id,
-          initiator_type: initiatorType,
-          status: initialStatus,
-          expires_at,
-          published_at: initialStatus === 'published' ? new Date().toISOString() : null,
-        })
-        .select()
-        .single();
-      if (error) throw error;
-      return data;
+      return auctionsRepo.insertRequest({
+        case_id: caseId,
+        initiator_id: user.id,
+        initiator_type: initiatorType,
+        status: initialStatus,
+        expires_at,
+        published_at: initialStatus === 'published' ? new Date().toISOString() : null,
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['auction-requests'] });
