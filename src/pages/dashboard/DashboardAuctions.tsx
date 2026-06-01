@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { REQUEST_STATUS_LABELS, REQUEST_STATUS_COLORS, PRIORITY_LABELS } from '@/data/auctionTypes';
 import type { AuctionRequestStatus } from '@/data/auctionTypes';
 import AuctionRequestDetail from '@/components/auction/AuctionRequestDetail';
+import { AuctionsStatsBar } from '@/modules/auctions/components/AuctionsStatsBar';
 
 const DashboardAuctions = () => {
   const { roles } = useAuth();
@@ -60,22 +61,7 @@ const DashboardAuctions = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[
-            { label: 'إجمالي الطلبات', value: requests.length, color: 'text-foreground' },
-            { label: 'منشورة', value: requests.filter(r => r.status === 'published').length, color: 'text-green-600' },
-            { label: 'بانتظار المراجعة', value: requests.filter(r => ['pending_doctor', 'pending_admin', 'pending_patient_consent'].includes(r.status)).length, color: 'text-yellow-600' },
-            { label: 'تم الترسية', value: requests.filter(r => r.status === 'awarded' || r.status === 'fulfilled').length, color: 'text-purple-600' },
-          ].map(s => (
-            <Card key={s.label}>
-              <CardContent className="p-4 text-center">
-                <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-                <p className="text-xs text-muted-foreground font-cairo">{s.label}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <AuctionsStatsBar requests={requests} />
 
         {/* Search */}
         <div className="relative max-w-sm">

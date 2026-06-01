@@ -22,14 +22,17 @@
 - [ ] QR code on booking + Kiosk scan → set status `in_progress`.
 
 ## 🟡 Phase 4 — Migrate remaining domains to modular layout
-- [ ] `procurement`, `auctions`, `events`, `notifications`, `patients`, `catalog`.
+- [x] `procurement` module: `src/modules/procurement/{api,services,index}` — `useProcurement` hooks now delegate to repo + service (no direct supabase).
+- [x] `auctions` module: `src/modules/auctions/{api,components,index}` — `useAuctionRequests` delegates to repo.
+- [ ] `events`, `notifications`, `patients`, `catalog`.
 - [ ] Replace direct supabase calls in pages with module hooks.
 - [ ] Migrate remaining `@/contexts/AuthContext` imports (24 files) to `@/modules/auth`, then delete the shim.
 
 ## 🧱 Phase 5 — Decompose monolithic pages (>500L)
 - [x] `DashboardBookings` (543L → 265L) — extracted `BookingsStatsBar`, `BookingsFilters`, `BookingCard` into `modules/bookings/components/`.
 - [x] `ActiveConsultation` (675L → 382L) — extracted `PatientHistoryPanel`, `ConsultationNotesCard`, `PrescriptionBuilder`, `CatalogPicker` into `modules/consultations/components/`.
-- [ ] `DashboardProcurement`, `DashboardAuctions`, `DashboardEventsAdmin` — same approach.
+- [x] `DashboardAuctions` — `AuctionsStatsBar` extracted; remaining file under 200L.
+- [x] `DashboardProcurement` (85L) and `DashboardEventsAdmin` (96L) already within budget — no decomposition needed.
 
 ## 🟢 Phase 3 — Reports & polish
 - [ ] Historical charts (recharts): monthly revenue, top services.
