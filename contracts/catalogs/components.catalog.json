@@ -1,0 +1,97 @@
+{
+  "catalogVersion": "1.0.0",
+  "schemaReference": "../schemas/component.schema.json",
+  "components": [
+    {
+      "componentKey": "hero.split",
+      "version": "2.1.0",
+      "displayName": { "ar": "واجهة افتتاحية منقسمة", "en": "Split Hero" },
+      "renderer": { "bladeView": "themes.components.hero.split", "dataTransformer": "App\\Modules\\Components\\Renderers\\HeroSplitTransformer" },
+      "requiredPackages": [],
+      "propsSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["title", "subtitle", "cta"],
+        "properties": {
+          "title": { "type": "string", "minLength": 1, "maxLength": 180 },
+          "subtitle": { "type": "string", "maxLength": 600 },
+          "cta": { "type": "object", "additionalProperties": false, "required": ["label", "href"], "properties": { "label": { "type": "string", "minLength": 1, "maxLength": 60 }, "href": { "type": "string", "pattern": "^(?:/|https://)" } } },
+          "imageAssetPublicId": { "type": "string", "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$" }
+        }
+      },
+      "defaults": { "title": "", "subtitle": "", "cta": { "label": "", "href": "/contact" } },
+      "variants": [
+        { "key": "industrial-dark", "displayName": { "ar": "صناعي داكن", "en": "Industrial Dark" }, "allowedTokens": ["color.brand", "color.surface-dark", "font.heading"] },
+        { "key": "light-editorial", "displayName": { "ar": "تحريري فاتح", "en": "Light Editorial" }, "allowedTokens": ["color.brand", "color.surface", "font.heading"] }
+      ],
+      "allowedChildren": [],
+      "editor": { "icon": "layout-template", "tabs": ["content", "design", "visibility"], "previewMode": "live", "supportsClone": true, "supportsGlobalSection": false },
+      "responsive": { "supportedBreakpoints": ["desktop", "tablet", "mobile"], "allowedOverrides": ["title.fontSize", "content.alignment", "image.visible"] },
+      "localization": { "translatablePaths": ["/title", "/subtitle", "/cta/label"], "rtlAware": true },
+      "security": { "allowsRawHtml": false, "allowsCustomCss": false, "allowsCustomJavascript": false }
+    },
+    {
+      "componentKey": "services.grid",
+      "version": "1.0.0",
+      "displayName": { "ar": "شبكة الخدمات", "en": "Services Grid" },
+      "renderer": { "bladeView": "themes.components.services.grid", "dataTransformer": "App\\Modules\\Components\\Renderers\\ServicesGridTransformer" },
+      "requiredPackages": [],
+      "propsSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["heading", "items"],
+        "properties": {
+          "heading": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "items": { "type": "array", "minItems": 1, "maxItems": 12, "items": { "type": "object", "additionalProperties": false, "required": ["title", "summary"], "properties": { "title": { "type": "string", "maxLength": 100 }, "summary": { "type": "string", "maxLength": 500 }, "icon": { "type": "string", "pattern": "^[a-z0-9-]+$" }, "href": { "type": "string", "pattern": "^(?:/|https://)" } } } }
+        }
+      },
+      "defaults": { "heading": "", "items": [] },
+      "variants": [{ "key": "cards", "displayName": { "ar": "بطاقات", "en": "Cards" }, "allowedTokens": ["color.surface", "color.border", "radius.card"] }],
+      "allowedChildren": [],
+      "editor": { "icon": "grid-3x3", "tabs": ["content", "design", "visibility"], "previewMode": "live", "supportsClone": true, "supportsGlobalSection": false },
+      "responsive": { "supportedBreakpoints": ["desktop", "tablet", "mobile"], "allowedOverrides": ["items.columns", "heading.alignment"] },
+      "localization": { "translatablePaths": ["/heading"], "rtlAware": true },
+      "security": { "allowsRawHtml": false, "allowsCustomCss": false, "allowsCustomJavascript": false }
+    },
+    {
+      "componentKey": "contact.form",
+      "version": "1.0.0",
+      "displayName": { "ar": "نموذج اتصال", "en": "Contact Form" },
+      "renderer": { "bladeView": "themes.components.forms.contact", "dataTransformer": "App\\Modules\\Forms\\Renderers\\ContactFormTransformer" },
+      "requiredPackages": ["forms.leads"],
+      "propsSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["formKey", "heading", "submitLabel"],
+        "properties": {
+          "formKey": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,79}$" },
+          "heading": { "type": "string", "maxLength": 120 },
+          "submitLabel": { "type": "string", "maxLength": 60 },
+          "successMessage": { "type": "string", "maxLength": 500 }
+        }
+      },
+      "defaults": { "formKey": "contact", "heading": "", "submitLabel": "" },
+      "variants": [{ "key": "standard", "displayName": { "ar": "قياسي", "en": "Standard" }, "allowedTokens": ["color.surface", "color.brand", "radius.control"] }],
+      "allowedChildren": [],
+      "editor": { "icon": "mail", "tabs": ["content", "design", "visibility"], "previewMode": "static", "supportsClone": true, "supportsGlobalSection": false },
+      "responsive": { "supportedBreakpoints": ["desktop", "tablet", "mobile"], "allowedOverrides": ["form.width"] },
+      "localization": { "translatablePaths": ["/heading", "/submitLabel", "/successMessage"], "rtlAware": true },
+      "security": { "allowsRawHtml": false, "allowsCustomCss": false, "allowsCustomJavascript": false }
+    },
+    {
+      "componentKey": "projects.grid",
+      "version": "1.0.0",
+      "displayName": { "ar": "شبكة المشروعات", "en": "Projects Grid" },
+      "renderer": { "bladeView": "themes.components.projects.grid", "dataTransformer": "App\\Modules\\Construction\\Renderers\\ProjectsGridTransformer" },
+      "requiredPackages": ["construction.projects"],
+      "propsSchema": { "type": "object", "additionalProperties": false, "properties": { "heading": { "type": "string", "maxLength": 120 }, "limit": { "type": "integer", "minimum": 1, "maximum": 24 } } },
+      "defaults": { "heading": "", "limit": 6 },
+      "variants": [{ "key": "showcase", "displayName": { "ar": "عرض مشروعات", "en": "Project Showcase" }, "allowedTokens": ["color.surface", "color.brand"] }],
+      "allowedChildren": [],
+      "editor": { "icon": "building-2", "tabs": ["content", "design", "visibility"], "previewMode": "live", "supportsClone": true, "supportsGlobalSection": false },
+      "responsive": { "supportedBreakpoints": ["desktop", "tablet", "mobile"], "allowedOverrides": ["items.columns", "limit"] },
+      "localization": { "translatablePaths": ["/heading"], "rtlAware": true },
+      "security": { "allowsRawHtml": false, "allowsCustomCss": false, "allowsCustomJavascript": false }
+    }
+  ]
+}

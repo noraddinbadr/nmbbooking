@@ -1,0 +1,151 @@
+{
+  "$schema": "../schemas/package.schema.json",
+  "catalogVersion": "1.0.0",
+  "packages": [
+    {
+      "packageKey": "seo.core",
+      "version": "1.0.0",
+      "displayName": { "ar": "تحسين محركات البحث الأساسي", "en": "Core SEO" },
+      "category": "marketing",
+      "scope": "site",
+      "lifecycle": {
+        "activationRequires": ["entitlement", "dependency-check", "seed", "cache-invalidation"],
+        "disablePolicy": "hide-retain",
+        "dataOwnership": "site"
+      },
+      "compatibility": { "platform": "^1.0.0", "php": "^8.3", "laravel": "^12.0", "tenantSchema": "^1.0.0" },
+      "dependencies": [],
+      "conflicts": [],
+      "capabilities": {
+        "components": [],
+        "adminScreens": ["seo.editor", "redirects.manager"],
+        "apiScopes": ["seo:read", "seo:write"],
+        "routes": ["seo.sitemap", "seo.robots"],
+        "events": ["seo.metadata-updated", "seo.redirect-created"]
+      },
+      "configuration": {
+        "schemaVersion": "1.0.0",
+        "jsonSchema": { "type": "object", "additionalProperties": false, "properties": { "generateSitemap": { "type": "boolean" }, "allowNoindex": { "type": "boolean" } }, "required": ["generateSitemap", "allowNoindex"] },
+        "defaults": { "generateSitemap": true, "allowNoindex": false }
+      },
+      "migrations": { "tenantSchemaIntroduced": "1.0.0", "migrationIdentifiers": ["2026_08_15_create_seo_metadata"] },
+      "security": { "permissions": ["site:seo:read", "site:seo:write"], "sensitiveData": false, "externalHosts": [] }
+    },
+    {
+      "packageKey": "forms.leads",
+      "version": "1.0.0",
+      "displayName": { "ar": "النماذج والعملاء المحتملون", "en": "Forms and Leads" },
+      "category": "operations",
+      "scope": "site",
+      "lifecycle": {
+        "activationRequires": ["entitlement", "dependency-check", "seed", "cache-invalidation"],
+        "disablePolicy": "export-then-disable",
+        "dataOwnership": "site"
+      },
+      "compatibility": { "platform": "^1.0.0", "php": "^8.3", "laravel": "^12.0", "tenantSchema": "^1.0.0" },
+      "dependencies": [],
+      "conflicts": [],
+      "capabilities": {
+        "components": ["contact.form", "quote.request"],
+        "adminScreens": ["forms.builder", "leads.inbox"],
+        "apiScopes": ["forms:read", "forms:write", "leads:read", "leads:write"],
+        "routes": ["forms.submit"],
+        "events": ["lead.created", "lead.status-changed"]
+      },
+      "configuration": {
+        "schemaVersion": "1.0.0",
+        "jsonSchema": { "type": "object", "additionalProperties": false, "properties": { "antiSpam": { "type": "boolean" }, "recipientEmails": { "type": "array", "items": { "type": "string", "format": "email" } } }, "required": ["antiSpam", "recipientEmails"] },
+        "defaults": { "antiSpam": true, "recipientEmails": [] }
+      },
+      "migrations": { "tenantSchemaIntroduced": "1.0.0", "migrationIdentifiers": ["2026_08_15_create_forms_and_leads"] },
+      "security": { "permissions": ["site:forms:read", "site:forms:manage", "site:leads:read", "site:leads:manage"], "sensitiveData": true, "externalHosts": [] }
+    },
+    {
+      "packageKey": "media.library",
+      "version": "1.0.0",
+      "displayName": { "ar": "مكتبة الوسائط", "en": "Media Library" },
+      "category": "content",
+      "scope": "tenant",
+      "lifecycle": {
+        "activationRequires": ["entitlement", "dependency-check", "seed", "cache-invalidation"],
+        "disablePolicy": "requires-admin-approval",
+        "dataOwnership": "tenant"
+      },
+      "compatibility": { "platform": "^1.0.0", "php": "^8.3", "laravel": "^12.0", "tenantSchema": "^1.0.0" },
+      "dependencies": [],
+      "conflicts": [],
+      "capabilities": {
+        "components": [],
+        "adminScreens": ["media.library"],
+        "apiScopes": ["media:read", "media:write"],
+        "routes": ["media.private-download"],
+        "events": ["media.uploaded", "media.variant-created", "media.deleted"]
+      },
+      "configuration": {
+        "schemaVersion": "1.0.0",
+        "jsonSchema": { "type": "object", "additionalProperties": false, "properties": { "maxUploadBytes": { "type": "integer", "minimum": 1048576 }, "allowedMimePrefixes": { "type": "array", "items": { "type": "string" } } }, "required": ["maxUploadBytes", "allowedMimePrefixes"] },
+        "defaults": { "maxUploadBytes": 10485760, "allowedMimePrefixes": ["image/", "application/pdf"] }
+      },
+      "migrations": { "tenantSchemaIntroduced": "1.0.0", "migrationIdentifiers": ["2026_08_15_create_media_assets"] },
+      "security": { "permissions": ["tenant:media:read", "tenant:media:manage"], "sensitiveData": true, "externalHosts": [] }
+    },
+    {
+      "packageKey": "construction.projects",
+      "version": "1.0.0",
+      "displayName": { "ar": "مشروعات المقاولات", "en": "Construction Projects" },
+      "category": "sector",
+      "scope": "site",
+      "lifecycle": {
+        "activationRequires": ["entitlement", "dependency-check", "seed", "cache-invalidation"],
+        "disablePolicy": "hide-retain",
+        "dataOwnership": "site"
+      },
+      "compatibility": { "platform": "^1.0.0", "php": "^8.3", "laravel": "^12.0", "tenantSchema": "^1.0.0" },
+      "dependencies": [{ "packageKey": "media.library", "versionConstraint": "^1.0.0", "required": true }],
+      "conflicts": [],
+      "capabilities": {
+        "components": ["projects.grid", "project.featured"],
+        "adminScreens": ["construction.projects"],
+        "apiScopes": ["projects:read", "projects:write"],
+        "routes": ["projects.index", "projects.show"],
+        "events": ["project.published", "project.archived"]
+      },
+      "configuration": {
+        "schemaVersion": "1.0.0",
+        "jsonSchema": { "type": "object", "additionalProperties": false, "properties": { "featuredLimit": { "type": "integer", "minimum": 1, "maximum": 24 } }, "required": ["featuredLimit"] },
+        "defaults": { "featuredLimit": 6 }
+      },
+      "migrations": { "tenantSchemaIntroduced": "1.0.0", "migrationIdentifiers": ["2026_08_15_create_construction_projects"] },
+      "security": { "permissions": ["site:projects:read", "site:projects:write", "site:projects:publish"], "sensitiveData": false, "externalHosts": [] }
+    },
+    {
+      "packageKey": "logistics.fleet",
+      "version": "1.0.0",
+      "displayName": { "ar": "أسطول اللوجستيات", "en": "Logistics Fleet" },
+      "category": "sector",
+      "scope": "site",
+      "lifecycle": {
+        "activationRequires": ["entitlement", "dependency-check", "seed", "cache-invalidation"],
+        "disablePolicy": "hide-retain",
+        "dataOwnership": "site"
+      },
+      "compatibility": { "platform": "^1.0.0", "php": "^8.3", "laravel": "^12.0", "tenantSchema": "^1.0.0" },
+      "dependencies": [{ "packageKey": "media.library", "versionConstraint": "^1.0.0", "required": true }],
+      "conflicts": [],
+      "capabilities": {
+        "components": ["fleet.grid", "coverage.map"],
+        "adminScreens": ["logistics.fleet", "logistics.coverage"],
+        "apiScopes": ["fleet:read", "fleet:write"],
+        "routes": ["fleet.index"],
+        "events": ["fleet.vehicle-updated"]
+      },
+      "configuration": {
+        "schemaVersion": "1.0.0",
+        "jsonSchema": { "type": "object", "additionalProperties": false, "properties": { "showVehicleCount": { "type": "boolean" } }, "required": ["showVehicleCount"] },
+        "defaults": { "showVehicleCount": false }
+      },
+      "migrations": { "tenantSchemaIntroduced": "1.0.0", "migrationIdentifiers": ["2026_08_15_create_logistics_fleet"] },
+      "security": { "permissions": ["site:fleet:read", "site:fleet:write"], "sensitiveData": false, "externalHosts": [] }
+    }
+  ]
+}

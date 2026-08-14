@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.example/contracts/sector-blueprint.schema.json",
+  "title": "Sector Blueprint",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "sectorKey",
+    "version",
+    "displayName",
+    "defaultLocale",
+    "theme",
+    "packages",
+    "templates",
+    "provisioning"
+  ],
+  "properties": {
+    "sectorKey": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,79}$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+    },
+    "displayName": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ar", "en"],
+      "properties": {
+        "ar": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "en": { "type": "string", "minLength": 1, "maxLength": 160 }
+      }
+    },
+    "defaultLocale": { "type": "string", "pattern": "^[a-z]{2,3}(?:-[A-Z]{2})?$" },
+    "theme": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["themeKey", "tokenPreset"],
+      "properties": {
+        "themeKey": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,79}$" },
+        "tokenPreset": { "type": "string", "pattern": "^[a-z][a-z0-9-]{1,79}$" }
+      }
+    },
+    "packages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["packageKey", "activationMode", "config"],
+        "properties": {
+          "packageKey": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$" },
+          "activationMode": { "type": "string", "enum": ["required", "enabled-by-default", "optional"] },
+          "config": { "type": "object" }
+        }
+      },
+      "uniqueItems": true
+    },
+    "templates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["templateKey", "routePath", "purpose"],
+        "properties": {
+          "templateKey": { "type": "string", "pattern": "^[a-z][a-z0-9.-]+$" },
+          "routePath": { "type": "string", "pattern": "^/.*$", "maxLength": 512 },
+          "purpose": { "type": "string", "enum": ["home", "services", "projects", "about", "contact", "listing", "detail"] }
+        }
+      },
+      "uniqueItems": true
+    },
+    "provisioning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["seedVersion", "createsDefaultSite", "requiresReviewBeforePublish"],
+      "properties": {
+        "seedVersion": { "type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$" },
+        "createsDefaultSite": { "const": true },
+        "requiresReviewBeforePublish": { "const": true }
+      }
+    },
+    "migrationNotes": { "type": "string", "maxLength": 2000 }
+  }
+}

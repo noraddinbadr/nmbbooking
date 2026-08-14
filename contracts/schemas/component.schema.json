@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.example/contracts/component.schema.json",
+  "title": "Platform Component Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "componentKey",
+    "version",
+    "displayName",
+    "renderer",
+    "propsSchema",
+    "defaults",
+    "variants",
+    "editor",
+    "responsive",
+    "localization",
+    "security"
+  ],
+  "properties": {
+    "componentKey": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$",
+      "maxLength": 120
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "displayName": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ar", "en"],
+      "properties": {
+        "ar": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "en": { "type": "string", "minLength": 1, "maxLength": 160 }
+      }
+    },
+    "renderer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bladeView", "dataTransformer"],
+      "properties": {
+        "bladeView": { "type": "string", "pattern": "^[a-z0-9_./-]+$" },
+        "dataTransformer": { "type": "string", "pattern": "^[A-Za-z0-9_\\\\]+$" }
+      }
+    },
+    "requiredPackages": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$" },
+      "uniqueItems": true,
+      "default": []
+    },
+    "propsSchema": { "type": "object" },
+    "defaults": { "type": "object" },
+    "variants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "displayName"],
+        "properties": {
+          "key": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,79}$" },
+          "displayName": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["ar", "en"],
+            "properties": {
+              "ar": { "type": "string", "minLength": 1 },
+              "en": { "type": "string", "minLength": 1 }
+            }
+          },
+          "allowedTokens": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^[a-z][a-z0-9.-]+$" },
+            "uniqueItems": true
+          }
+        }
+      },
+      "uniqueItems": true
+    },
+    "allowedChildren": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9]*(?:[.-][a-z0-9]+)*$" },
+      "uniqueItems": true,
+      "default": []
+    },
+    "editor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["icon", "tabs", "previewMode"],
+      "properties": {
+        "icon": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "tabs": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["content", "design", "visibility", "advanced"] },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "previewMode": { "type": "string", "enum": ["live", "static"] },
+        "supportsClone": { "type": "boolean", "default": true },
+        "supportsGlobalSection": { "type": "boolean", "default": false }
+      }
+    },
+    "responsive": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["supportedBreakpoints", "allowedOverrides"],
+      "properties": {
+        "supportedBreakpoints": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["desktop", "tablet", "mobile"] },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "allowedOverrides": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^[a-zA-Z0-9_.-]+$" },
+          "uniqueItems": true
+        }
+      }
+    },
+    "localization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["translatablePaths", "rtlAware"],
+      "properties": {
+        "translatablePaths": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^/([a-zA-Z0-9_-]+/)*[a-zA-Z0-9_-]+$" },
+          "uniqueItems": true
+        },
+        "rtlAware": { "type": "boolean" }
+      }
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["allowsRawHtml", "allowsCustomCss", "allowsCustomJavascript"],
+      "properties": {
+        "allowsRawHtml": { "const": false },
+        "allowsCustomCss": { "const": false },
+        "allowsCustomJavascript": { "const": false }
+      }
+    },
+    "migrationAdapters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["fromVersion", "adapterClass"],
+        "properties": {
+          "fromVersion": { "type": "string" },
+          "adapterClass": { "type": "string", "pattern": "^[A-Za-z0-9_\\\\]+$" }
+        }
+      },
+      "default": []
+    }
+  }
+}

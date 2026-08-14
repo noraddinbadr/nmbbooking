@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://platform.example/contracts/translation-job.schema.json",
+  "title": "Translation Job",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "jobId",
+    "tenantPublicId",
+    "sitePublicId",
+    "sourceLocale",
+    "targetLocale",
+    "subject",
+    "fields",
+    "status",
+    "review"
+  ],
+  "properties": {
+    "jobId": { "type": "string", "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$" },
+    "tenantPublicId": { "type": "string", "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$" },
+    "sitePublicId": { "type": "string", "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$" },
+    "sourceLocale": { "type": "string", "pattern": "^[a-z]{2,3}(?:-[A-Z]{2})?$" },
+    "targetLocale": { "type": "string", "pattern": "^[a-z]{2,3}(?:-[A-Z]{2})?$" },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "publicId", "schemaKey", "schemaVersion"],
+      "properties": {
+        "type": { "type": "string", "enum": ["page", "block", "global-section", "seo-metadata"] },
+        "publicId": { "type": "string", "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$" },
+        "schemaKey": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "schemaVersion": { "type": "string", "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$" }
+      }
+    },
+    "fields": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "type": "string", "maxLength": 30000 }
+    },
+    "glossaryVersion": { "type": "string", "maxLength": 64 },
+    "status": { "type": "string", "enum": ["queued", "processing", "generated", "review-required", "approved", "rejected", "failed"] },
+    "provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "key": { "type": "string", "maxLength": 80 },
+        "model": { "type": "string", "maxLength": 120 },
+        "requestId": { "type": "string", "maxLength": 160 }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "maxLength": 30000 }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "approvedByPlatformUserId"],
+      "properties": {
+        "required": { "const": true },
+        "approvedByPlatformUserId": { "type": ["integer", "null"], "minimum": 1 },
+        "approvedAt": { "type": ["string", "null"], "format": "date-time" },
+        "notes": { "type": "string", "maxLength": 2000 }
+      }
+    },
+    "usage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "inputTokens": { "type": "integer", "minimum": 0 },
+        "outputTokens": { "type": "integer", "minimum": 0 },
+        "estimatedCostMinor": { "type": "integer", "minimum": 0 },
+        "currency": { "type": "string", "pattern": "^[A-Z]{3}$" }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "approved" } } },
+      "then": { "properties": { "review": { "properties": { "approvedByPlatformUserId": { "type": "integer", "minimum": 1 } }, "required": ["approvedByPlatformUserId", "approvedAt"] } } }
+    }
+  ]
+}

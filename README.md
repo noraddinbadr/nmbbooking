@@ -1,73 +1,179 @@
-# Welcome to your Lovable project
+# منصة مواقع الأعمال متعددة العملاء
 
-## Project info
+> **حالة المستند:** مرجع حاكم للإنتاج.  
+> **المنتج:** منصة SaaS ديناميكية بالكامل لإنشاء وتشغيل مواقع الشركات متعددة اللغات والقطاعات، مع حزم قابلة للتفعيل، Page Builder مُدار بالعقود، ولوحة تحكم واحدة وتطبيقات جوال أصلية.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 1. الغرض وحدود المنتج
 
-## How can I edit this code?
+هذه المنصة ليست موقعًا واحدًا، وليست قالب WordPress، وليست مولد HTML ساكن. إنها **نظام تشغيل لمواقع الأعمال** يخدم شركات متعددة في قطاعات مثل المقاولات والطاقة الشمسية واللوجستيات والنقل والتصنيع والتعدين. يملك كل عميل موقعًا أو أكثر، نطاقات مخصصة، لغات متعددة، هوية بصرية، صفحات وإصدارات منشورة، وحزم قطاعية أو عامة يمكن تفعيلها أو تعطيلها وفق خطة العميل وصلاحياته.
 
-There are several ways of editing your application.
+يُرندر الموقع العام ديناميكيًا عبر PHP/Laravel وBlade في كل طلب. تُحفظ الصفحة كـ page/revision/blocks مهيكلة، ثم يحدد الطلب النطاق والعميل والموقع واللغة والإصدار المنشور والحزم الفعالة قبل الرندر. لا توجد عملية `static publishing` للصفحات، ولا يسمح للعميل بإدخال PHP أو JavaScript أو CSS حر داخل المحتوى.
 
-**Use Lovable**
+| المجال | القرار المعتمد |
+|---|---|
+| مواقع الشركات العامة | Laravel + Blade + PHP Server-Side Rendering ديناميكي |
+| API | Laravel JSON API منضبط بالعقود وversioning |
+| تطبيقات Android وiOS | React Native + Expo؛ تعيد استخدام APIs والعقود وtokens لا HTML |
+| لوحة التحكم | لوحة واحدة فوق Laravel باستخدام Backpack؛ لا Filament ولا لوحات منفصلة لكل عميل |
+| بيانات العملاء | قاعدة MySQL مستقلة لكل عميل، وجميع الجداول InnoDB |
+| بيانات المنصة | قاعدة MySQL مستقلة باسم `platform_core`، وجميع جداولها InnoDB |
+| الاستضافة الأولى | Namecheap Shared Hosting لعدد 20–30 عميلًا بإنشاء متباعد ومراقب |
+| الانتقال المستقبلي | VPS أو Dedicated أو Managed MySQL دون إعادة تصميم نموذج البيانات |
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## 2. حالة المستودع وقرار التحويل
 
-Changes made via Lovable will be committed automatically to this repo.
+يحتوي المستودع عند البدء على تطبيق React/Vite/Supabase خاص بنطاق صحي مختلف. لا يشكل ذلك التطبيق أساسًا صالحًا لهذا المنتج، لأن المنتج المعتمد يحتاج Laravel/PHP وMySQL وSSR وعزلًا متعدد العملاء بقاعدة مستقلة لكل عميل. لا يجوز خلط نطاقات الأعمال أو إعادة استخدام طبقات Supabase الطبية في النظام الجديد.
 
-**Use your preferred IDE**
+تظل الشفرة القائمة محفوظة إلى أن يعتمد مالك المنتج قرار الأرشفة أو الفصل في branch/repository مستقل. يبدأ المنتج الجديد داخل هذا المستودع بهيكل `backend/`, `mobile/`, `contracts/`, `docs/`, و`infrastructure/` كما يحدد `TODO.md`. لا تبدأ إعادة استخدام مكونات الواجهة القديمة قبل مراجعة صريحة لملاءمتها وترخيصها وجودتها.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 3. المعمارية المرجعية
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### 3.1 Control Plane وTenant Data Plane
 
-Follow these steps:
+تملك المنصة قاعدتي MySQL منطقية في كل مسار تشغيل: `platform_core` لإدارة المنصة، و`tenant_<slug>` لكل عميل. في بيئة الإنتاج سيكون هناك `platform_core` واحد وقاعدة مستقلة لكل Tenant، وليست قاعدة موحدة بكل العملاء. يظل التطبيق Laravel واحدًا ولوحة التحكم واحدة؛ العزل يقع في البيانات واتصالات قواعد البيانات، لا في نسخ الشفرة.
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```text
+طلب HTTP
+  → Address Resolver في platform_core
+  → Tenant Context غير قابل للتعديل ضمن الطلب
+  → Tenant Database Manager يختار tenant_<slug>
+  → Site + Locale + Published Revision + Active Packages
+  → Component Renderer (Blade)
+  → HTML ديناميكي
 ```
 
-**Edit a file directly in GitHub**
+| قاعدة البيانات | تملك | لا تملك |
+|---|---|---|
+| `platform_core` | users، MFA، tenants، memberships، plans، entitlements، package catalog، domain mappings، tenant database registry، migration/provisioning runs، audit المنصة | pages، blocks، forms، leads، projects، media metadata، محتوى العميل |
+| `tenant_<slug>` | sites، locales، theme tokens، pages، revisions، blocks، translations، menus، package activations، forms، media metadata، audit العميل، والجداول القطاعية | كلمات مرور المستخدمين، اشتراكات المنصة، أسرار قواعد بيانات أخرى، بيانات عملاء آخرين |
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+هوية المستخدم مركزية في `platform_core`. لا تنسخ accounts أو passwords داخل قواعد العملاء. أما مالك المحتوى أو ناشره في جداول العميل فيشار إليه عبر `platform_user_id` فقط.
 
-**Use GitHub Codespaces**
+### 3.2 الفصل الطبقي
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+يعتمد Backend على تنظيم عملي قريب من Modular Monolith، لا microservices مصطنعة:
 
-## What technologies are used for this project?
+```text
+backend/
+  app/Domain/            # قواعد الأعمال، القيمة، events، policies
+  app/Application/       # use cases / actions / DTOs / workflows
+  app/Infrastructure/    # MySQL repositories، storage، cache، adapters
+  app/Http/              # Controllers، Requests، Resources، Middleware
+  app/Modules/           # Identity، Tenancy، Sites، Content، Packages ...
+  app/Admin/             # شاشات Backpack المخصصة
+  resources/views/       # Blade themes وcomponent renderers
+  database/
+    platform/            # migrations وseeders لـ platform_core
+    tenant/              # migrations وseeders المشتركة لكل Tenant DB
+```
 
-This project is built with:
+طبقة HTTP لا تتخذ قرارات النشر أو تفعيل الحزم أو عزل العميل. تستدعي Action أو Use Case واحدًا محددًا. والمكونات الإدارية لا تصل مباشرة إلى database models عند وجود workflow متعدد الخطوات؛ تستهلك Application Actions موثقة وقابلة للاختبار.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 4. وحدات المنتج
 
-## How can I deploy this project?
+| الوحدة | المسؤولية الأساسية |
+|---|---|
+| `Identity` | الحسابات، الجلسات، MFA، recovery، audit للمصادقة |
+| `Tenancy` | tenant lifecycle، memberships، connection resolver، address mapping، provisioning |
+| `Plans & Entitlements` | الخطط، التراخيص، حدود الحزم والاستخدام |
+| `Sites` | المواقع، النطاقات، locales، settings، theme tokens، header/footer |
+| `Content` | pages، revisions، workflow النشر، menus، redirects، SEO |
+| `Components` | registry، schemas، variants، renderers، editor metadata، migrations بين الإصدارات |
+| `Packages` | catalog، dependencies، compatibility، activation/config، capabilities |
+| `Sector Blueprints` | حزم وقوالب افتراضية حسب القطاع مع إصدارات لا تغير العملاء بصمت |
+| `Media` | uploads، metadata، variants، private access، retention، manifests |
+| `Forms & Leads` | form contracts، submissions، spam controls، notifications، exports |
+| `Localization & AI` | locales، glossary، JSON translation jobs، review workflow، usage log |
+| `Admin` | لوحة واحدة، tenant/site switcher، RBAC، Marketplace، Page Builder، operations |
+| `Mobile` | Expo application، auth، site/lead dashboards، APIs وtokens المشتركة |
+| `Operations` | backup/restore drills، migrations، health checks، deployment، migration to VPS |
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## 5. الحزم والـ Components: عقود لا حقول حرة
 
-## Can I connect a custom domain to my Lovable project?
+تُعرّف الحزم والقطاعات والـ components بالعقود الموجودة في `contracts/`. Code package جزء من release التطبيق، ويحتوي migrations وrenderers والسياسات والاختبارات. تفعيل الحزمة في Tenant DB لا يشغل migration ولا Composer ولا تنزيلات؛ ينشئ activation/config فقط بعد التحقق من entitlement والاعتماديات والتعارضات.
 
-Yes, you can!
+كل block على الصفحة يحمل `componentKey` و`componentVersion` و`props` متحققًا منهما. لا يتجاوز المحرر JSON schema للعقد. وتُستخدم variants وdesign tokens للاستايل بدلاً من CSS حر غير قابل للدعم.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 6. نموذج النشر والتحرير
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+الإصدار المنشور هو مصدر الحقيقة للزوار. لا تغير المسودة الموقع الحي. تسير النسخ عبر الحالات:
+
+```text
+draft → in_review → approved → scheduled → published → superseded
+                                     ↘ rollback إلى revision منشور سابق
+```
+
+يلزم Page Builder أن يوفر drag-and-drop قابلًا للوصول، live preview، responsive/RTL preview، autosave، content locks، conflict resolution، undo/redo داخل جلسة التحرير، global sections، header/footer builder، navigation builder، وSEO editor. كل قدرة من هذه القدرات لها معايير قبول في `TODO.md` قبل اعتبارها مكتملة.
+
+## 7. الأداء والأمن
+
+الديناميكية لا تعني استعلامات غير محدودة. يستخدم التطبيق fragment/data cache لـ domain mapping والحزم النشطة وtheme tokens والقوائم وview models البطيئة. يستخدم Laravel Cache abstraction كي يبدأ بـ file/database cache على shared hosting ثم ينتقل إلى Redis دون إعادة كتابة منطق الأعمال.
+
+الأمان متطلب إطلاق وليس مرحلة تحسين:
+
+| المجال | الضابط الأدنى |
+|---|---|
+| عزل العميل | Host موثق → TenantContext → DB connection صحيحة؛ لا tenant identifier من user request |
+| الصلاحيات | membership + role + policy + site scope؛ لا إخفاء UI فقط |
+| المحتوى | escaping افتراضي، HTML sanitization محدد، حظر PHP/JS/CSS الخام |
+| الملفات | MIME/magic byte/size validation، private storage، authorization وسجلات تنزيل |
+| HTTP | trusted hosts، CSRF، rate limits، CSP، secure cookies، security headers |
+| الأسرار | لا كلمات مرور DB في جداول أعمال أو logs أو repository؛ secret references فقط |
+| الاختبارات | IDOR، cross-tenant، privilege escalation، upload abuse، SSRF، XSS، workflow bypass |
+
+## 8. التشغيل على Namecheap Shared Hosting
+
+المرحلة الأولى تستهدف 20–30 Tenant بإنشاء متباعد. ينفذ provisioning بشكل متحكم به وقابل للاستئناف: إنشاء قاعدة MySQL وuser محدود الصلاحية من cPanel أو API موثقة بعد POC، ثم verify connection، migrations، seed، blueprint، domain mapping، وsmoke tests. لا يعتمد النظام على daemons أو workers دائمة أو cron عالي التواتر داخل shared hosting.
+
+تنتقل البنية إلى VPS أو Dedicated عندما تظهر حاجة إلى Redis أو queue workers أو provisioning واسع أو معالجة وسائط كثيفة أو SLA/point-in-time recovery. يبقى نموذج البيانات والكود والعقود ثابتًا؛ يتغير driver والبنية التشغيلية فقط.
+
+## 9. هيكل المستودع المستهدف
+
+```text
+.
+├── backend/                     # Laravel production application
+├── mobile/                      # Expo / React Native application
+├── contracts/
+│   ├── schemas/                 # JSON Schemas القابلة للتحقق
+│   └── catalogs/                # package/component/sector/permission catalogs
+├── docs/
+│   ├── adr/                     # Architecture Decision Records
+│   ├── product/                 # PRD، NFR، UX flows، acceptance criteria
+│   └── operations/              # deploy, backup, restore, migration, runbooks
+├── infrastructure/
+│   ├── shared-hosting/          # cPanel/deployment constraints and scripts
+│   ├── vps/                     # future deployment configuration
+│   └── ci/                      # validation and quality pipeline
+├── README.md                    # هذا المرجع
+└── TODO.md                      # خارطة التنفيذ القابلة للتدقيق
+```
+
+## 10. العقود والوثائق الحاكمة
+
+| الملف | الحالة | الغرض |
+|---|---|---|
+| `TODO.md` | حاكم التنفيذ | مراحل، تبعيات، Definition of Done، quality gates |
+| `contracts/schemas/package.schema.json` | قابل للتحقق | عقد حزمة قابل للتفعيل |
+| `contracts/schemas/component.schema.json` | قابل للتحقق | عقد Component/Block وإصداره وprops |
+| `contracts/schemas/sector-blueprint.schema.json` | قابل للتحقق | عقد تهيئة قطاعية إصدارية |
+| `contracts/schemas/translation-job.schema.json` | قابل للتحقق | عقد JSON للترجمة بالذكاء الاصطناعي والمراجعة البشرية |
+| `contracts/catalogs/packages.catalog.json` | أولي | الحزم الأساسية والقطاعية المعتمدة |
+| `contracts/catalogs/sectors.catalog.json` | أولي | blueprints للقطاعات المدعومة أولًا |
+| `contracts/catalogs/permissions.catalog.json` | حاكم | موارد وأفعال صلاحيات المنصة |
+| `docs/adr/ADR-0001-product-replatforming.md` | معتمد | سبب فصل النظام القديم واعتماد Laravel/MySQL |
+| `docs/product/PRD.md` | حاكم | نطاق المنتج، personas، workflows، NFRs |
+| `docs/operations/production-readiness.md` | حاكم | متطلبات الإطلاق والتشغيل والترحيل |
+
+## 11. قواعد المساهمة والتنفيذ
+
+لا يبدأ تطوير feature من واجهة أو جدول عشوائي. يبدأ بالترتيب: قرار/عقد → migration → domain/application action → policy → API/admin/view renderer → tests → observability → documentation. أي feature لا يمر بالاختبارات والعقود وقياسات الأداء والأمن المحددة في `TODO.md` لا يُعتبر مكتملًا.
+
+لا تعد هذه الوثيقة بوصول المنتج إلى «عدم الحاجة إلى أي تعديل لاحقًا»؛ ذلك وعد غير هندسي. لكنها تفرض أن تكون كل إضافة أو تعديل لاحق **متوافقًا بالعقود، قابلًا للترقية، مختبرًا، ومحدود الأثر** بدل ترقيعات تفرض إعادة بناء.
+
+## 12. البداية
+
+الخطوة المعتمدة هي تنفيذ **Phase 0–2** من `TODO.md`: تثبيت boundaries، إنشاء Laravel workspace وقاعدتي migrations، تطبيق tenancy والهوية، ثم بناء content/component/package foundations قبل أي شاشة تجميلية أو صفحة قطاعية.
+
+---
+
+**المراجع الخارجية:** تُحفظ المصادر المقيدة بالاستضافة وLaravel في `docs/operations/production-readiness.md` وتراجع عند لحظة النشر الفعلية؛ لا تعامل هذه الوثيقة كبديل عن التحقق من خطة Namecheap وإصدارات PHP/MySQL الفعلية للحساب.

@@ -1,0 +1,83 @@
+{
+  "catalogVersion": "1.0.0",
+  "schemaReference": "../schemas/sector-blueprint.schema.json",
+  "blueprints": [
+    {
+      "sectorKey": "construction",
+      "version": "1.0.0",
+      "displayName": { "ar": "المقاولات", "en": "Construction" },
+      "defaultLocale": "ar",
+      "theme": { "themeKey": "industrial", "tokenPreset": "industrial-amber" },
+      "packages": [
+        { "packageKey": "media.library", "activationMode": "required", "config": {} },
+        { "packageKey": "seo.core", "activationMode": "enabled-by-default", "config": { "generateSitemap": true, "allowNoindex": false } },
+        { "packageKey": "forms.leads", "activationMode": "enabled-by-default", "config": { "antiSpam": true, "recipientEmails": [] } },
+        { "packageKey": "construction.projects", "activationMode": "enabled-by-default", "config": { "featuredLimit": 6 } }
+      ],
+      "templates": [
+        { "templateKey": "construction.home.v1", "routePath": "/", "purpose": "home" },
+        { "templateKey": "construction.services.v1", "routePath": "/services", "purpose": "services" },
+        { "templateKey": "construction.projects.v1", "routePath": "/projects", "purpose": "projects" },
+        { "templateKey": "construction.contact.v1", "routePath": "/contact", "purpose": "contact" }
+      ],
+      "provisioning": { "seedVersion": "1.0.0", "createsDefaultSite": true, "requiresReviewBeforePublish": true },
+      "migrationNotes": "لا تنشر الصفحات المؤسسة قبل مراجعة محرر مخول للمحتوى والهوية البصرية."
+    },
+    {
+      "sectorKey": "solar-energy",
+      "version": "1.0.0",
+      "displayName": { "ar": "الطاقة الشمسية", "en": "Solar Energy" },
+      "defaultLocale": "ar",
+      "theme": { "themeKey": "clean-energy", "tokenPreset": "solar-blue" },
+      "packages": [
+        { "packageKey": "media.library", "activationMode": "required", "config": {} },
+        { "packageKey": "seo.core", "activationMode": "enabled-by-default", "config": { "generateSitemap": true, "allowNoindex": false } },
+        { "packageKey": "forms.leads", "activationMode": "enabled-by-default", "config": { "antiSpam": true, "recipientEmails": [] } }
+      ],
+      "templates": [
+        { "templateKey": "solar.home.v1", "routePath": "/", "purpose": "home" },
+        { "templateKey": "solar.solutions.v1", "routePath": "/solutions", "purpose": "services" },
+        { "templateKey": "solar.contact.v1", "routePath": "/contact", "purpose": "contact" }
+      ],
+      "provisioning": { "seedVersion": "1.0.0", "createsDefaultSite": true, "requiresReviewBeforePublish": true }
+    },
+    {
+      "sectorKey": "logistics",
+      "version": "1.0.0",
+      "displayName": { "ar": "اللوجستيات", "en": "Logistics" },
+      "defaultLocale": "ar",
+      "theme": { "themeKey": "logistics", "tokenPreset": "logistics-navy" },
+      "packages": [
+        { "packageKey": "media.library", "activationMode": "required", "config": {} },
+        { "packageKey": "seo.core", "activationMode": "enabled-by-default", "config": { "generateSitemap": true, "allowNoindex": false } },
+        { "packageKey": "forms.leads", "activationMode": "enabled-by-default", "config": { "antiSpam": true, "recipientEmails": [] } },
+        { "packageKey": "logistics.fleet", "activationMode": "enabled-by-default", "config": { "showVehicleCount": false } }
+      ],
+      "templates": [
+        { "templateKey": "logistics.home.v1", "routePath": "/", "purpose": "home" },
+        { "templateKey": "logistics.services.v1", "routePath": "/services", "purpose": "services" },
+        { "templateKey": "logistics.fleet.v1", "routePath": "/fleet", "purpose": "listing" },
+        { "templateKey": "logistics.contact.v1", "routePath": "/contact", "purpose": "contact" }
+      ],
+      "provisioning": { "seedVersion": "1.0.0", "createsDefaultSite": true, "requiresReviewBeforePublish": true }
+    },
+    {
+      "sectorKey": "manufacturing",
+      "version": "1.0.0",
+      "displayName": { "ar": "التصنيع", "en": "Manufacturing" },
+      "defaultLocale": "ar",
+      "theme": { "themeKey": "precision", "tokenPreset": "precision-steel" },
+      "packages": [
+        { "packageKey": "media.library", "activationMode": "required", "config": {} },
+        { "packageKey": "seo.core", "activationMode": "enabled-by-default", "config": { "generateSitemap": true, "allowNoindex": false } },
+        { "packageKey": "forms.leads", "activationMode": "enabled-by-default", "config": { "antiSpam": true, "recipientEmails": [] } }
+      ],
+      "templates": [
+        { "templateKey": "manufacturing.home.v1", "routePath": "/", "purpose": "home" },
+        { "templateKey": "manufacturing.capabilities.v1", "routePath": "/capabilities", "purpose": "services" },
+        { "templateKey": "manufacturing.contact.v1", "routePath": "/contact", "purpose": "contact" }
+      ],
+      "provisioning": { "seedVersion": "1.0.0", "createsDefaultSite": true, "requiresReviewBeforePublish": true }
+    }
+  ]
+}

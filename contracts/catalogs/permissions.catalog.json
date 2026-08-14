@@ -1,0 +1,74 @@
+{
+  "catalogVersion": "1.0.0",
+  "permissionFormat": "{scope}:{resource}:{action}",
+  "scopes": ["platform", "tenant", "site"],
+  "roles": [
+    {
+      "key": "platform-owner",
+      "scope": "platform",
+      "inherits": [],
+      "permissions": ["platform:tenants:manage", "platform:plans:manage", "platform:packages:manage", "platform:domains:manage", "platform:operations:manage", "platform:audit:read"]
+    },
+    {
+      "key": "platform-operator",
+      "scope": "platform",
+      "inherits": [],
+      "permissions": ["platform:tenants:read", "platform:domains:manage", "platform:operations:manage", "platform:audit:read"]
+    },
+    {
+      "key": "tenant-owner",
+      "scope": "tenant",
+      "inherits": ["site-publisher"],
+      "permissions": ["tenant:members:manage", "tenant:sites:manage", "tenant:media:manage", "tenant:packages:manage", "tenant:billing:read", "tenant:audit:read"]
+    },
+    {
+      "key": "site-publisher",
+      "scope": "site",
+      "inherits": ["site-reviewer"],
+      "permissions": ["site:pages:publish", "site:pages:rollback", "site:seo:write", "site:redirects:manage", "site:forms:manage"]
+    },
+    {
+      "key": "site-reviewer",
+      "scope": "site",
+      "inherits": ["site-editor"],
+      "permissions": ["site:pages:review", "site:translations:approve"]
+    },
+    {
+      "key": "site-editor",
+      "scope": "site",
+      "inherits": [],
+      "permissions": ["site:pages:read", "site:pages:write", "site:components:use", "site:media:read", "site:media:write", "site:translations:write", "site:forms:read", "site:leads:read"]
+    }
+  ],
+  "resources": [
+    { "scope": "platform", "resource": "tenants", "actions": ["read", "manage"] },
+    { "scope": "platform", "resource": "plans", "actions": ["read", "manage"] },
+    { "scope": "platform", "resource": "packages", "actions": ["read", "manage"] },
+    { "scope": "platform", "resource": "domains", "actions": ["read", "manage"] },
+    { "scope": "platform", "resource": "operations", "actions": ["read", "manage"] },
+    { "scope": "platform", "resource": "audit", "actions": ["read"] },
+    { "scope": "tenant", "resource": "members", "actions": ["read", "manage"] },
+    { "scope": "tenant", "resource": "sites", "actions": ["read", "manage"] },
+    { "scope": "tenant", "resource": "media", "actions": ["read", "manage"] },
+    { "scope": "tenant", "resource": "packages", "actions": ["read", "manage"] },
+    { "scope": "tenant", "resource": "billing", "actions": ["read"] },
+    { "scope": "tenant", "resource": "audit", "actions": ["read"] },
+    { "scope": "site", "resource": "pages", "actions": ["read", "write", "review", "publish", "rollback"] },
+    { "scope": "site", "resource": "components", "actions": ["use"] },
+    { "scope": "site", "resource": "media", "actions": ["read", "write"] },
+    { "scope": "site", "resource": "translations", "actions": ["write", "approve"] },
+    { "scope": "site", "resource": "seo", "actions": ["read", "write"] },
+    { "scope": "site", "resource": "redirects", "actions": ["manage"] },
+    { "scope": "site", "resource": "forms", "actions": ["read", "manage"] },
+    { "scope": "site", "resource": "leads", "actions": ["read", "manage"] },
+    { "scope": "site", "resource": "projects", "actions": ["read", "write", "publish"] },
+    { "scope": "site", "resource": "fleet", "actions": ["read", "write"] }
+  ],
+  "enforcement": {
+    "serverSidePoliciesRequired": true,
+    "clientSideVisibilityIsNotAuthorization": true,
+    "siteScopeRequiredForSitePermissions": true,
+    "tenantScopeRequiredForTenantPermissions": true,
+    "auditRequiredFor": ["publish", "rollback", "manage", "approve"]
+  }
+}
