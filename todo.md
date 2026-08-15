@@ -125,7 +125,7 @@
 - [-] بناء package capabilities registry للـ admin menus/API routes/public components/background actions؛ سجل مركزي يشتق components/admin screens/API scopes/routes/events من manifests النشطة ويُبطل cache فور lifecycle change، والرندر العام يخفي البلوكات المعطلة؛ تبقى middleware وربط Backpack والـ jobs.
 - [x] بناء package compatibility matrix وsemver rules؛ المتحقق يدعم caret/tilde/comparators/wildcards/alternatives ويقارن manifest بإصدار المنصة وPHP وLaravel وschema العميل، وتفشل الاعتماديات النشطة ذات النسخة غير المتوافقة.
 - [x] كتابة package lifecycle tests: activate, duplicate, dependency, conflict, disabled render, rollback؛ تغطي الاختبارات activation الذري وidempotency وdependency غير المتوافقة وconflict وdisabled render وrollback في المسار القائم.
-- [-] تنفيذ Sector Blueprint versioning وsnapshot عند إنشاء موقع؛ كتالوج blueprints متحقق من العقد ويطبق النسخة في إعداد موقع مع audit، وتبقى snapshot غير القابل للتعديل عند provisioning.
+- [x] تنفيذ Sector Blueprint versioning وsnapshot عند إنشاء موقع؛ التطبيق يحفظ العقد الكامل مع checksum ونسخته في إعداد الموقع وتدقيقه، يسمح بإعادة التطبيق المتطابقة فقط ويرفض استبدال blueprint بعد التأسيس باختبار تكامل.
 - [x] تنفيذ `ApplySectorBlueprintAction` مع dry-run/report قبل التفعيل؛ ينشئ صفحات مسودات فقط ويدمج defaults الحزم ثم يفعلها بلا نشر تلقائي وباختبار تكامل.
 - [x] إضافة blueprints أولية: construction, solar-energy, logistics, transport, manufacturing, mining؛ جميعها متحققة بالعقد، وtransport/mining يستخدمان الحزم العامة بتكوينات افتراضية آمنة وتبقي الصفحات مسودات للمراجعة.
 - [x] بناء حزم عامة: `seo.core`, `forms.leads`, `media.library`, `social.links`, `analytics.config`؛ عقودها وصلاحياتها وentitlements وcapabilities مكتملة، واختُبر تفعيل social/analytics مع تحقق config خادمي.

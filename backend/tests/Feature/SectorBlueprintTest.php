@@ -44,6 +44,11 @@ final class SectorBlueprintTest extends TestCase
         self::assertNotNull($context);
         app(TenantDatabaseManager::class)->activate($context);
         $site = Site::query()->where('public_id', $context->sitePublicId)->firstOrFail();
+        DB::connection('tenant')
+            ->table('site_settings')
+            ->where('site_id', $site->id)
+            ->where('setting_key', 'sector.blueprint')
+            ->delete();
         $action = app(ApplySectorBlueprintAction::class);
 
         $pagesBeforeDryRun = Page::query()->where('site_id', $site->id)->count();
@@ -64,5 +69,19 @@ final class SectorBlueprintTest extends TestCase
             ->table('audit_events')
             ->where('event_key', 'sector.blueprint.applied')
             ->exists());
+        $snapshot = json_decode((string) DB::connection('tenant')
+            ->table('site_settings')
+            ->where('site_id', $site->id)
+            ->where('setting_key', 'sector.blueprint')
+            ->value('value_json'), true, flags: JSON_THROW_ON_ERROR);
+        self::assertSame('logistics', $snapshot['sector_key']);
+        self::assertArrayHasKey('snapshot_checksum', $snapshot);
+        self::assertSame('logistics', $snapshot['snapshot']['sectorKey']);
+
+        $action->execute($context, $site, 'logistics', 1);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('snapshot is immutable');
+        $action->execute($context, $site, 'solar-energy', 1);
     }
 }

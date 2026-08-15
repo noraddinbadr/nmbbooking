@@ -11,6 +11,7 @@ use App\Modules\Sites\Models\Site;
 use App\Modules\Tenancy\Services\TenantContext;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use RuntimeException;
 
 final readonly class ApplySectorBlueprintAction
 {
@@ -55,22 +56,40 @@ final readonly class ApplySectorBlueprintAction
             return $report;
         }
 
-        DB::connection((string) config('platform.tenant_connection_name'))->transaction(function () use ($site, $blueprint, $sectorKey, $actorPlatformUserId): void {
+        $snapshot = json_encode($blueprint, JSON_THROW_ON_ERROR);
+        $snapshotChecksum = hash('sha256', $snapshot);
+
+        DB::connection((string) config('platform.tenant_connection_name'))->transaction(function () use ($site, $blueprint, $sectorKey, $actorPlatformUserId, $snapshot, $snapshotChecksum): void {
             $site->forceFill(['default_locale' => $blueprint['defaultLocale']])->save();
-            DB::connection((string) config('platform.tenant_connection_name'))->table('site_settings')->updateOrInsert(
-                ['site_id' => $site->id, 'setting_key' => 'sector.blueprint'],
-                [
+            $settings = DB::connection((string) config('platform.tenant_connection_name'))->table('site_settings');
+            $existingSnapshot = $settings
+                ->where('site_id', $site->id)
+                ->where('setting_key', 'sector.blueprint')
+                ->lockForUpdate()
+                ->first();
+
+            if ($existingSnapshot !== null) {
+                $existingValue = json_decode((string) $existingSnapshot->value_json, true, flags: JSON_THROW_ON_ERROR);
+                if (($existingValue['snapshot_checksum'] ?? null) !== $snapshotChecksum) {
+                    throw new RuntimeException('A site sector blueprint snapshot is immutable after it is established.');
+                }
+            } else {
+                $settings->insert([
+                    'site_id' => $site->id,
+                    'setting_key' => 'sector.blueprint',
                     'value_json' => json_encode([
                         'sector_key' => $sectorKey,
                         'version' => $blueprint['version'],
                         'theme' => $blueprint['theme'],
                         'requires_review_before_publish' => true,
+                        'snapshot_checksum' => $snapshotChecksum,
+                        'snapshot' => json_decode($snapshot, true, flags: JSON_THROW_ON_ERROR),
                     ], JSON_THROW_ON_ERROR),
                     'version' => 1,
                     'created_at' => now(),
                     'updated_at' => now(),
-                ],
-            );
+                ]);
+            }
 
             foreach ($blueprint['templates'] as $template) {
                 $page = Page::query()->firstOrCreate(
