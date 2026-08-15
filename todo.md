@@ -122,7 +122,7 @@
 - [ ] بناء `ActivatePackageAction` ضمن transaction: entitlement → dependencies → config defaults → seed → audit → cache invalidation.
 - [-] بناء `DisablePackageAction` مع سياسة البيانات: hide/retain/export/delete after retention؛ نُفذ الإيقاف بسياسة retain وتدقيق وإبطال cache ومنع تعطيل اعتماد نشط؛ تبقى export/delete after retention.
 - [ ] منع أي migration أو Composer أو external download عند activation.
-- [-] بناء package capabilities registry للـ admin menus/API routes/public components/background actions؛ رندر الواجهة العامة يتحقق الآن من `requiredPackages` ويخفي البلوكات التابعة لحزمة معطلة، وتبقى طبقات القوائم وAPI والمهام الخلفية.
+- [-] بناء package capabilities registry للـ admin menus/API routes/public components/background actions؛ سجل مركزي يشتق components/admin screens/API scopes/routes/events من manifests النشطة ويُبطل cache فور lifecycle change، والرندر العام يخفي البلوكات المعطلة؛ تبقى middleware وربط Backpack والـ jobs.
 - [x] بناء package compatibility matrix وsemver rules؛ المتحقق يدعم caret/tilde/comparators/wildcards/alternatives ويقارن manifest بإصدار المنصة وPHP وLaravel وschema العميل، وتفشل الاعتماديات النشطة ذات النسخة غير المتوافقة.
 - [-] كتابة package lifecycle tests: activate, duplicate, dependency, conflict, disabled render, rollback؛ اختُبر التفعيل، الإخفاء عند التعطيل، rollback في المسار الحالي، ورفض dependency غير المتوافقة؛ وتبقى حالات duplicate/conflict الصريحة.
 - [-] تنفيذ Sector Blueprint versioning وsnapshot عند إنشاء موقع؛ كتالوج blueprints متحقق من العقد ويطبق النسخة في إعداد موقع مع audit، وتبقى snapshot غير القابل للتعديل عند provisioning.
@@ -133,8 +133,8 @@
 
 ### بوابة Phase 4
 
-- [ ] تفعيل حزمة يغير capabilities المقصودة فقط ولا ينفذ migration أو يكسر موقعًا منشورًا.
-- [-] إيقاف حزمة يخفي surface الخاص بها من public/admin/API وفق policy دون فقد صامت للبيانات؛ حالة التفعيل تحفظ كـ disabled مع البيانات وaudit، ورندر public يخفي البلوكات التابعة فعلًا باختبار تكامل، وتبقى واجهات admin/API.
+- [-] تفعيل حزمة يغير capabilities المقصودة فقط ولا ينفذ migration أو يكسر موقعًا منشورًا؛ سجل capabilities واختباره يثبتان surfaces المشتقة وإبطال cache، وتبقى حراسة كل route/menu/job وقاعدة منع migration.
+- [-] إيقاف حزمة يخفي surface الخاص بها من public/admin/API وفق policy دون فقد صامت للبيانات؛ حالة التفعيل تحفظ كـ disabled مع البيانات وaudit، والرندر وسجل capabilities يخفيا surfaces المشتقة باختبارات تكامل؛ تبقى واجهات Backpack وAPI middleware.
 - [-] أي package manifest غير مطابق للعقد يرفض في CI وقبل النشر؛ JSON Schema وmanifest graph يتحققان عند تحميل الكتالوج، وتبقى خطوة CI التي تثبت رفض fixture غير مطابق بصورة مستقلة.
 
 ---

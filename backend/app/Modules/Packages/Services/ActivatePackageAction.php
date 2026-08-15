@@ -19,6 +19,7 @@ final class ActivatePackageAction
 {
     public function __construct(
         private readonly PackageCatalog $catalog,
+        private readonly PackageCapabilityRegistry $capabilities,
         private readonly PackageCompatibilityVerifier $compatibility,
         private readonly JsonSchemaValidator $schemas,
         private readonly SemverConstraint $semver,
@@ -61,6 +62,7 @@ final class ActivatePackageAction
         );
 
         Cache::forget("tenant:{$context->tenantPublicId}:site:".($site?->public_id ?? 'tenant').':packages');
+        $this->capabilities->forget($context, $site);
 
         return $activation;
     }

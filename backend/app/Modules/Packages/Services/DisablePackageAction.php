@@ -13,7 +13,10 @@ use RuntimeException;
 
 final readonly class DisablePackageAction
 {
-    public function __construct(private PackageCatalog $catalog) {}
+    public function __construct(
+        private PackageCapabilityRegistry $capabilities,
+        private PackageCatalog $catalog,
+    ) {}
 
     public function execute(
         TenantContext $context,
@@ -62,6 +65,7 @@ final readonly class DisablePackageAction
         );
 
         Cache::forget("tenant:{$context->tenantPublicId}:site:".($site?->public_id ?? 'tenant').':packages');
+        $this->capabilities->forget($context, $site);
 
         return $activation;
     }
