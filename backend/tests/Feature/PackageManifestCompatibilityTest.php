@@ -105,6 +105,62 @@ final class PackageManifestCompatibilityTest extends TestCase
         }
     }
 
+    public function test_activation_is_idempotent_for_the_same_package_and_scope(): void
+    {
+        $context = $this->context();
+        $site = Site::query()->where('public_id', $context->sitePublicId)->firstOrFail();
+        $action = app(ActivatePackageAction::class);
+
+        $first = $action->execute($context, 'social.links', $site, ['networks' => []], 1);
+        $second = $action->execute($context, 'social.links', $site, ['networks' => []], 1);
+
+        self::assertSame($first->id, $second->id);
+        self::assertSame(1, PackageActivation::query()
+            ->where('package_key', 'social.links')
+            ->where('site_id', $site->id)
+            ->count());
+    }
+
+    public function test_activation_rejects_a_declared_conflict_with_an_active_package(): void
+    {
+        $root = storage_path('framework/testing/contracts-'.Str::lower(Str::random(12)));
+        $previousPath = config('platform.contracts_path');
+        $catalog = json_decode((string) file_get_contents(base_path('../contracts/catalogs/packages.catalog.json')), true, flags: JSON_THROW_ON_ERROR);
+        foreach ($catalog['packages'] as &$package) {
+            if ($package['packageKey'] === 'analytics.config') {
+                $package['conflicts'] = ['social.links'];
+            }
+        }
+        unset($package);
+
+        File::ensureDirectoryExists($root.'/catalogs');
+        File::ensureDirectoryExists($root.'/schemas');
+        File::put($root.'/catalogs/packages.catalog.json', json_encode($catalog, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
+        File::copy(base_path('../contracts/schemas/package.schema.json'), $root.'/schemas/package.schema.json');
+        config(['platform.contracts_path' => $root]);
+        Cache::forget('platform:package-catalog:v2');
+
+        try {
+            $context = $this->context();
+            $site = Site::query()->where('public_id', $context->sitePublicId)->firstOrFail();
+            PackageActivation::query()
+                ->where('package_key', 'analytics.config')
+                ->where('site_id', $site->id)
+                ->update(['status' => 'disabled', 'disabled_at' => now()]);
+            $action = app(ActivatePackageAction::class);
+            $action->execute($context, 'social.links', $site, ['networks' => []], 1);
+
+            $this->expectException(RuntimeException::class);
+            $this->expectExceptionMessage('Package [analytics.config] conflicts with active package [social.links].');
+
+            $action->execute($context, 'analytics.config', $site, ['provider' => 'none', 'measurementId' => ''], 1);
+        } finally {
+            config(['platform.contracts_path' => $previousPath]);
+            Cache::forget('platform:package-catalog:v2');
+            File::deleteDirectory($root);
+        }
+    }
+
     private function context(): TenantContext
     {
         $request = Request::create('http://acme.localhost/');
