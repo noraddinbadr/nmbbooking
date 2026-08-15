@@ -43,6 +43,17 @@ final class ExampleTest extends TestCase
         $response->assertSee('نبني مشاريع تصمد أمام الزمن');
     }
 
+    public function test_tenant_seo_endpoints_expose_only_published_routes(): void
+    {
+        $robots = $this->get('http://acme.localhost/robots.txt');
+        $robots->assertOk()->assertSee('Sitemap: http://acme.localhost/sitemap.xml');
+
+        $sitemap = $this->get('http://acme.localhost/sitemap.xml');
+        $sitemap->assertOk()->assertHeader('Content-Type', 'application/xml; charset=UTF-8');
+        $sitemap->assertSee('<loc>http://acme.localhost/</loc>', false);
+        $sitemap->assertDontSee('/draft-only');
+    }
+
     public function test_verified_address_resolution_caches_only_the_resolved_tenant_context(): void
     {
         $request = Request::create('http://acme.localhost/');
