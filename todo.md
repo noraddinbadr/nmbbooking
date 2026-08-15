@@ -48,7 +48,7 @@
 - [-] إنشاء structured logging مع tenant/public request context من دون أسرار أو PII حساس؛ نُفذ request context، ويبقى إثراؤه بسياق Tenant/Audit وسياسة تنقيح البيانات.
 - [x] إضافة health endpoints داخلية: app, platform-db, tenant-db, storage, cache؛ نُفذت جميع الفحوصات، ومساراتها محمية برمز مراقبة ومختبرة مركزيًا وضمن سياق عميل موثق.
 - [x] إعداد Laravel Cache abstraction وdrivers المحلية؛ محلل العناوين يستخدم `CacheRepository` بمفتاح معزول ومختبر، ولا يعتمد منطق الأعمال على Redis مباشرة.
-- [ ] إعداد mail abstraction وfake driver للاختبارات.
+- [x] إعداد mail abstraction وfake driver للاختبارات؛ تدفقات المنصة تعتمد `EmailDispatcher` ورسالة Laravel قابلة للاختبار، واختبار mail fake يثبت عدم وجود إرسال خارجي.
 - [x] إعداد filesystem disks: tenant-public وtenant-private وtemporary، مع public link للوسائط المنشورة فقط وفحص health ينظف أثره المؤقت.
 - [x] إعداد Vite pipeline للـ admin assets والـ public theme assets؛ build ينجح محليًا عبر lockfile وخطوة build معرّفة في CI.
 
