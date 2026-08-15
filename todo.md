@@ -151,7 +151,7 @@
 - [-] بناء content locks وoptimistic concurrency وconflict UI contract؛ `UpdatePageBlockAction` يقفل الصف ويطابق `lock_version` ويرفض stale writes ويدقق التعديل، وتبقى API وواجهة التعارض وlocks طويلة العمر.
 - [-] بناء autosave workflow وrecovery للـ draft غير المنشور؛ Action للحفظ التلقائي يستخدم تحقق props وoptimistic lock ويكتب أثرًا مدققًا قابلًا للتتبع، وتبقى واجهة الاسترداد وجدولة العميل.
 - [-] بناء drag-and-drop ordering مع keyboard accessibility؛ Action خادمي يعيد ترتيب كل بلوكات المسودة ذريًا مع إزاحة MySQL آمنة ويرفض القوائم الناقصة/المكررة، وتبقى واجهة السحب ولوحة المفاتيح.
-- [ ] بناء responsive preview وRTL/LTR preview وlocale preview.
+- [-] بناء responsive preview وRTL/LTR preview وlocale preview؛ خدمة preview خادمية ترجع مسودة محددة مع locale/fallback وdirection وtheme tokens وترجمات البلوكات بلا لمس revision العامة، وتبقى واجهة responsive.
 - [ ] بناء undo/redo داخل session مع حدود تخزين واضحة.
 - [ ] بناء template library وclone-from-template مع revision provenance.
 - [ ] بناء global sections وتحديثها بمراجعة impact قبل النشر.

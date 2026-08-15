@@ -8,6 +8,13 @@ use App\Modules\Shared\Models\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $site_id
+ * @property string $locale
+ * @property string $direction
+ * @property bool $is_default
+ * @property string $status
+ */
 final class SiteLocale extends Model
 {
     use UsesTenantConnection;
