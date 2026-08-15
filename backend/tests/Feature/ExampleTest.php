@@ -20,6 +20,7 @@ use Database\Seeders\AcmeConstructionSeeder;
 use Database\Seeders\PlatformCatalogSeeder;
 use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -132,6 +133,11 @@ final class ExampleTest extends TestCase
             ->where('package_key', 'logistics.fleet')
             ->where('site_id', $site->id)
             ->where('status', 'active')
+            ->exists());
+        $this->assertTrue(DB::connection((string) config('platform.tenant_connection_name'))
+            ->table('audit_events')
+            ->where('event_key', 'package.activated')
+            ->where('metadata_json', 'like', '%logistics.fleet%')
             ->exists());
     }
 }

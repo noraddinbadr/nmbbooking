@@ -119,7 +119,7 @@
 - [x] تنفيذ `PackageManifest` من JSON Schema والتأكد من compatibility/version/dependencies/conflicts؛ الكتالوج يرفض المفاتيح المكررة والاعتماديات/التعارضات الذاتية أو المجهولة وقيود النسخ غير المتحققة، والتحقق مغطى بالاختبارات.
 - [-] بناء package catalog مركزي وواجهة Marketplace داخل لوحة التحكم؛ كتالوج manifests وخدمة قائمة Marketplace الخادمية مكتملان، وتبقى Backpack CRUD/actions وواجهته الواحدة.
 - [x] بناء entitlement check حسب plan وTenant وموقع؛ خدمة مركزية تتحقق من entitlement المدرج والمفعّل وغير المنتهي وتنتج قائمة Marketplace خادمية، وتمنع activation عند السحب أو الانتهاء باختبار تكامل.
-- [-] بناء `ActivatePackageAction` ضمن transaction: entitlement → dependencies → config defaults → seed → audit → cache invalidation؛ entitlement والتوافق والاعتماديات والconfig وcache invalidation منجزة، وتبقى seed hooks والتدقيق الصريح ضمن transaction.
+- [-] بناء `ActivatePackageAction` ضمن transaction: entitlement → dependencies → config defaults → seed → audit → cache invalidation؛ entitlement والتوافق والاعتماديات والconfig والتدقيق الذري وcache invalidation منجزة ومختبرة، وتبقى seed hooks.
 - [-] بناء `DisablePackageAction` مع سياسة البيانات: hide/retain/export/delete after retention؛ نُفذ الإيقاف بسياسة retain وتدقيق وإبطال cache ومنع تعطيل اعتماد نشط؛ تبقى export/delete after retention.
 - [ ] منع أي migration أو Composer أو external download عند activation.
 - [-] بناء package capabilities registry للـ admin menus/API routes/public components/background actions؛ سجل مركزي يشتق components/admin screens/API scopes/routes/events من manifests النشطة ويُبطل cache فور lifecycle change، والرندر العام يخفي البلوكات المعطلة؛ تبقى middleware وربط Backpack والـ jobs.

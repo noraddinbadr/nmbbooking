@@ -44,7 +44,7 @@ final class ActivatePackageAction
 
         $activation = DB::connection((string) config('platform.tenant_connection_name'))->transaction(
             function () use ($manifest, $packageKey, $site, $config, $actorPlatformUserId): PackageActivation {
-                return PackageActivation::query()->updateOrCreate(
+                $activation = PackageActivation::query()->updateOrCreate(
                     [
                         'package_key' => $packageKey,
                         'scope_type' => $manifest['scope'],
@@ -59,6 +59,22 @@ final class ActivatePackageAction
                         'disabled_at' => null,
                     ],
                 );
+
+                DB::connection((string) config('platform.tenant_connection_name'))->table('audit_events')->insert([
+                    'actor_platform_user_id' => $actorPlatformUserId,
+                    'event_key' => 'package.activated',
+                    'subject_type' => PackageActivation::class,
+                    'subject_public_id' => null,
+                    'metadata_json' => json_encode([
+                        'package_key' => $packageKey,
+                        'package_version' => $manifest['version'],
+                        'scope' => $manifest['scope'],
+                        'site_public_id' => $site?->public_id,
+                    ], JSON_THROW_ON_ERROR),
+                    'created_at' => now(),
+                ]);
+
+                return $activation;
             },
         );
 
