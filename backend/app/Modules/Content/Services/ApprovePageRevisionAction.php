@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Modules\Content\Services;
 
+use App\Modules\Components\Services\ComponentPropsValidator;
 use App\Modules\Content\Models\PageRevision;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 final class ApprovePageRevisionAction
 {
+    public function __construct(private readonly ComponentPropsValidator $props) {}
+
     public function execute(PageRevision $revision, int $actorPlatformUserId): PageRevision
     {
         if ($revision->status !== 'in_review') {
@@ -18,6 +21,14 @@ final class ApprovePageRevisionAction
 
         return DB::connection((string) config('platform.tenant_connection_name'))->transaction(
             function () use ($revision, $actorPlatformUserId): PageRevision {
+                $revision->loadMissing('blocks.translations');
+                foreach ($revision->blocks->where('enabled', true) as $block) {
+                    $this->props->assertValid($block->component_key, $block->component_version, $block->props_json);
+                    foreach ($block->translations as $translation) {
+                        $this->props->assertValid($block->component_key, $block->component_version, $translation->props_json);
+                    }
+                }
+
                 $revision->forceFill(['status' => 'approved'])->save();
 
                 DB::connection((string) config('platform.tenant_connection_name'))

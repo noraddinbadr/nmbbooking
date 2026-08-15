@@ -142,7 +142,7 @@
 ## Phase 5 — Components، Themes، وPage Builder
 
 - [x] تنفيذ Component Registry يقرأ key/version/renderer/variants/required packages من عقود JSON المصدرية.
-- [ ] تنفيذ JSON Schema validation server-side لكل block props قبل الحفظ والنشر.
+- [-] تنفيذ JSON Schema validation server-side لكل block props قبل الحفظ والنشر؛ خدمة تتحقق من props الأصلية والمترجمة للعناصر المفعلة عند اعتماد revision وتمنع النشر غير الصالح باختبار تكامل، وتبقى ربط CRUD/API الحفظ المباشر.
 - [ ] تنفيذ component migration adapters للإصدارات غير المتوافقة.
 - [ ] بناء renderer registry في Blade ومنع class names أو templates من customer input.
 - [ ] بناء theme catalog وtheme tokens: colors, typography, spacing, radii, shadows, breakpoints.
@@ -161,7 +161,7 @@
 
 ### بوابة Phase 5
 
-- [ ] لا يمكن حفظ block بprops لا تطابق schema أو بحزمة غير مفعلة.
+- [-] لا يمكن حفظ block بprops لا تطابق schema أو بحزمة غير مفعلة؛ الاعتماد يرفض props غير المطابقة والرندر يخفي الحزمة غير المفعلة، وتبقى حماية عمليات الحفظ والـ API.
 - [ ] تعديل مسودة لا يغير public site قبل publish.
 - [ ] conflict متزامن لا يؤدي إلى silent overwrite.
 - [ ] جميع components الأساسية تمر accessibility وvisual regression baseline.

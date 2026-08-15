@@ -22,6 +22,7 @@ use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 final class ExampleTest extends TestCase
@@ -121,6 +122,37 @@ final class ExampleTest extends TestCase
         $this->assertSame('published', $published->status);
         $this->assertSame($published->id, $page->fresh()->published_revision_id);
         $this->assertTrue(PageRevision::query()->whereKey($published->id)->where('status', 'published')->exists());
+    }
+
+    public function test_review_cannot_be_approved_when_an_enabled_block_props_fail_the_component_contract(): void
+    {
+        $context = app(AddressResolver::class)->resolve(Request::create('http://acme.localhost/'));
+        self::assertNotNull($context);
+        app(TenantDatabaseManager::class)->activate($context);
+        $site = Site::query()->where('public_id', $context->sitePublicId)->firstOrFail();
+        $page = Page::query()->where('site_id', $site->id)->where('route_path', '/')->firstOrFail();
+        $revision = PageRevision::query()->create([
+            'page_id' => $page->id,
+            'revision_no' => (int) $page->revisions()->max('revision_no') + 1,
+            'template_key' => 'validation-check.v1',
+            'status' => 'in_review',
+            'created_by_platform_user_id' => 1,
+        ]);
+        PageBlock::query()->create([
+            'page_revision_id' => $revision->id,
+            'public_id' => Str::ulid()->toBase32(),
+            'component_key' => 'hero.split',
+            'component_version' => '2.1.0',
+            'position' => 10,
+            'enabled' => true,
+            'variant_key' => 'industrial-dark',
+            'props_json' => ['title' => 'عنوان بلا CTA'],
+            'style_json' => [],
+            'visibility_rules_json' => [],
+        ]);
+
+        $this->expectException(ValidationException::class);
+        app(ApprovePageRevisionAction::class)->execute($revision, 1);
     }
 
     public function test_entitled_sector_package_activates_without_runtime_migration(): void
