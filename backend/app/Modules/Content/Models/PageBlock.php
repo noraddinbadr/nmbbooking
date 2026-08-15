@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property array<string, mixed> $props_json
  * @property array<string, mixed>|null $style_json
  * @property array<string, mixed>|null $visibility_rules_json
+ * @property int $lock_version
  * @property-read PageRevision $revision
  * @property-read Collection<int, PageBlockTranslation> $translations
  */

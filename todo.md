@@ -142,13 +142,13 @@
 ## Phase 5 — Components، Themes، وPage Builder
 
 - [x] تنفيذ Component Registry يقرأ key/version/renderer/variants/required packages من عقود JSON المصدرية.
-- [-] تنفيذ JSON Schema validation server-side لكل block props قبل الحفظ والنشر؛ خدمة تتحقق من props الأصلية والمترجمة للعناصر المفعلة عند اعتماد revision وتمنع النشر غير الصالح باختبار تكامل، وتبقى ربط CRUD/API الحفظ المباشر.
+- [-] تنفيذ JSON Schema validation server-side لكل block props قبل الحفظ والنشر؛ خدمة تتحقق من props الأصلية والمترجمة عند الحفظ لمسودة وعند الاعتماد وتمنع المحتوى غير الصالح باختبارات تكامل، وتبقى API/controller.
 - [ ] تنفيذ component migration adapters للإصدارات غير المتوافقة.
 - [x] بناء renderer registry في Blade ومنع class names أو templates من customer input؛ الرندر لا يعتمد إلا Blade view محصورًا تحت `themes.components` من manifest موثق ويتحقق من وجوده قبل التضمين.
 - [ ] بناء theme catalog وtheme tokens: colors, typography, spacing, radii, shadows, breakpoints.
 - [ ] بناء site-level overrides وinheritance policy للـ theme tokens.
 - [ ] بناء Page, Revision, Block, Global Section, Header, Footer, Menu models وActions.
-- [ ] بناء content locks وoptimistic concurrency وconflict UI contract.
+- [-] بناء content locks وoptimistic concurrency وconflict UI contract؛ `UpdatePageBlockAction` يقفل الصف ويطابق `lock_version` ويرفض stale writes ويدقق التعديل، وتبقى API وواجهة التعارض وlocks طويلة العمر.
 - [ ] بناء autosave workflow وrecovery للـ draft غير المنشور.
 - [ ] بناء drag-and-drop ordering مع keyboard accessibility.
 - [ ] بناء responsive preview وRTL/LTR preview وlocale preview.
@@ -161,9 +161,9 @@
 
 ### بوابة Phase 5
 
-- [-] لا يمكن حفظ block بprops لا تطابق schema أو بحزمة غير مفعلة؛ الاعتماد يرفض props غير المطابقة والرندر يخفي الحزمة غير المفعلة، وتبقى حماية عمليات الحفظ والـ API.
+- [-] لا يمكن حفظ block بprops لا تطابق schema أو بحزمة غير مفعلة؛ الحفظ في المسودة والاعتماد يرفضان props غير المطابقة، والرندر يخفي الحزمة غير المفعلة، وتبقى حماية API.
 - [ ] تعديل مسودة لا يغير public site قبل publish.
-- [ ] conflict متزامن لا يؤدي إلى silent overwrite.
+- [-] conflict متزامن لا يؤدي إلى silent overwrite؛ Action الحفظ يفرض lock version ويرفض الكاتب المتأخر باختبار تكامل، وتبقى معالجة UX/API.
 - [ ] جميع components الأساسية تمر accessibility وvisual regression baseline.
 
 ---
