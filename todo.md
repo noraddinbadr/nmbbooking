@@ -172,7 +172,7 @@
 
 - [-] تنفيذ models وسكيما revisions والإصدار المنشور والرندر؛ Page/Revision/Block وapprove/publish ورندر revision منشورة مطبقة، وتبقى rollback وscheduler وسياسات النشر والمراقبة.
 - [x] تعيين `published_revision_id` مصدر الحقيقة الوحيد للزوار؛ الرندر العام لا يجلب إلا page المنشورة وrevision المنشورة المشار إليها، وتغطيه اختبارات المسودة والرندر.
-- [ ] تنفيذ publish approvals حسب permission/site policy.
+- [-] تنفيذ publish approvals حسب permission/site policy؛ نقاط دخول مفوضة للاعتماد والنشر تتحقق من MembershipAuthorizer وصلاحيات `site:pages:review` و`site:pages:publish` ونطاق الموقع، وتبقى controller/API integration واختبارات الرفض الصريحة.
 - [ ] تنفيذ scheduler idempotent ملائم لقيود shared hosting.
 - [x] تنفيذ rollback مع audit ومقارنة revision ومحو cache مضبوط؛ Action يعيد صفحة إلى revision عامة سابقة من الصفحة نفسها داخل transaction، يسجل المصدر والهدف ويرفع إصدار المحتوى ويمحو cache باختبار تكامل.
 - [-] تنفيذ public route resolution لمواقع ولغات ومسارات منشورة؛ AddressResolver والرندر العام يدعمان tenant host وroutePath وlocale/fallback وdirection، وتبقى redirects وصفحات الأخطاء.
@@ -189,7 +189,7 @@
 ### بوابة Phase 6
 
 - [ ] لا يمكن الوصول إلى draft أو future scheduled revision من public URL.
-- [-] publish/rollback يغير public output ويرفع audit/cache versions كما هو متوقع؛ rollback مغطى بالتدقيق وتبديل المصدر العام وإبطال cache، وتبقى مقارنة output المنشور وpublish policy.
+- [-] publish/rollback يغير public output ويرفع audit/cache versions كما هو متوقع؛ rollback مغطى بالتدقيق وتبديل المصدر العام وإبطال cache، ونقاط publish المفوضة موجودة، وتبقى مقارنة output واختبارات policy.
 - [x] sitemap/robots/canonical/hreflang صحيحون لTenant ولغة ومسار؛ جميعها اختبرت لنطاق العميل والصفحات المنشورة واللغة النشطة.
 - [ ] الصفحات الأساسية تتجاوز ميزانية الأداء المتفق عليها في staging.
 

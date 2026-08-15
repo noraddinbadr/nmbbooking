@@ -4,14 +4,27 @@ declare(strict_types=1);
 
 namespace App\Modules\Content\Services;
 
+use App\Models\User;
 use App\Modules\Components\Services\ComponentPropsValidator;
 use App\Modules\Content\Models\PageRevision;
+use App\Modules\Tenancy\Services\TenantContext;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 final class ApprovePageRevisionAction
 {
-    public function __construct(private readonly ComponentPropsValidator $props) {}
+    public function __construct(
+        private readonly ComponentPropsValidator $props,
+        private readonly ContentPublicationAuthorizer $authorizer,
+    ) {}
+
+    public function executeAuthorized(PageRevision $revision, User $actor, TenantContext $context): PageRevision
+    {
+        $revision->loadMissing('page.site');
+        $this->authorizer->assertAllows($actor, $context, $revision->page->site, 'site:pages:review');
+
+        return $this->execute($revision, $actor->id);
+    }
 
     public function execute(PageRevision $revision, int $actorPlatformUserId): PageRevision
     {
