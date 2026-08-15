@@ -14,9 +14,11 @@ use App\Modules\Packages\Models\PackageActivation;
 use App\Modules\Packages\Services\ActivatePackageAction;
 use App\Modules\Sites\Models\Site;
 use App\Modules\Tenancy\Services\AddressResolver;
+use App\Modules\Tenancy\Services\TenantContext;
 use App\Modules\Tenancy\Services\TenantDatabaseManager;
 use Database\Seeders\AcmeConstructionSeeder;
 use Database\Seeders\PlatformCatalogSeeder;
+use Illuminate\Contracts\Cache\Repository as CacheRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -37,6 +39,22 @@ final class ExampleTest extends TestCase
         $response->assertOk();
         $response->assertSee('شركة Acme للمقاولات');
         $response->assertSee('نبني مشاريع تصمد أمام الزمن');
+    }
+
+    public function test_verified_address_resolution_caches_only_the_resolved_tenant_context(): void
+    {
+        $request = Request::create('http://acme.localhost/');
+        $cacheKey = 'tenant-context:'.hash('sha256', "acme.localhost\n/");
+        $cache = app(CacheRepository::class);
+        $cache->forget($cacheKey);
+
+        $resolvedContext = app(AddressResolver::class)->resolve($request);
+        $cachedContext = $cache->get($cacheKey);
+
+        $this->assertInstanceOf(TenantContext::class, $resolvedContext);
+        $this->assertInstanceOf(TenantContext::class, $cachedContext);
+        $this->assertSame($resolvedContext->tenantPublicId, $cachedContext->tenantPublicId);
+        $this->assertSame($resolvedContext->sitePublicId, $cachedContext->sitePublicId);
     }
 
     public function test_an_unknown_host_cannot_select_or_render_a_tenant(): void
