@@ -8,7 +8,7 @@ use App\Modules\Components\Services\ComponentRegistry;
 use App\Modules\Content\Models\Page;
 use App\Modules\Content\Models\PageBlock;
 use App\Modules\Content\Models\PageRevision;
-use App\Modules\Packages\Models\PackageActivation;
+use App\Modules\Packages\Services\PackageCapabilityRegistry;
 use App\Modules\Sites\Models\Site;
 use App\Modules\Tenancy\Services\TenantContext;
 use Illuminate\Http\Request;
@@ -16,7 +16,10 @@ use Illuminate\Support\Collection;
 
 final class RenderPublishedPageAction
 {
-    public function __construct(private readonly ComponentRegistry $components) {}
+    public function __construct(
+        private readonly ComponentRegistry $components,
+        private readonly PackageCapabilityRegistry $capabilities,
+    ) {}
 
     /** @return array<string, mixed> */
     public function execute(Request $request, TenantContext $context, string $routePath): array
@@ -47,18 +50,6 @@ final class RenderPublishedPageAction
             $locale = $site->default_locale;
         }
 
-        $activePackages = PackageActivation::query()
-            ->where('status', 'active')
-            ->where(function ($query) use ($site): void {
-                $query->where(function ($nested): void {
-                    $nested->where('scope_type', 'tenant')->whereNull('site_id');
-                })->orWhere(function ($nested) use ($site): void {
-                    $nested->where('scope_type', 'site')->where('site_id', $site->id);
-                });
-            })
-            ->pluck('package_key')
-            ->flip();
-
         return [
             'tenant' => $context,
             'site' => $site,
@@ -67,7 +58,7 @@ final class RenderPublishedPageAction
             'page' => $page,
             'title' => $translation->title,
             'seo' => $translation->seo_json ?? [],
-            'blocks' => $this->viewModels($revision->blocks, $locale, $activePackages),
+            'blocks' => $this->viewModels($revision->blocks, $locale, $this->capabilities->activePackageKeys($context, $site)),
         ];
     }
 
