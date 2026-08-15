@@ -32,8 +32,10 @@ final class PackageEntitlementServiceTest extends TestCase
         $service = app(PackageEntitlementService::class);
         $initialListing = $service->marketplace($context)->keyBy('packageKey');
 
-        self::assertCount(5, $initialListing);
+        self::assertCount(7, $initialListing);
         self::assertTrue($initialListing['construction.projects']['entitled']);
+        self::assertTrue($initialListing['social.links']['entitled']);
+        self::assertTrue($initialListing['analytics.config']['entitled']);
         self::assertSame('مشروعات المقاولات', $initialListing['construction.projects']['displayName']['ar']);
 
         DB::connection('platform')

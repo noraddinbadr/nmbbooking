@@ -64,6 +64,35 @@ final class PackageCapabilityRegistryTest extends TestCase
         self::assertTrue($registry->hasEvent($context, $site, 'fleet.vehicle-updated'));
     }
 
+    public function test_general_packages_activate_with_validated_configuration_and_expose_declared_capabilities(): void
+    {
+        $context = $this->context();
+        $site = Site::query()->where('public_id', $context->sitePublicId)->firstOrFail();
+
+        app(ActivatePackageAction::class)->execute(
+            context: $context,
+            packageKey: 'social.links',
+            site: $site,
+            config: ['networks' => [['network' => 'linkedin', 'url' => 'https://www.linkedin.com/company/acme']]],
+            actorPlatformUserId: 1,
+        );
+        app(ActivatePackageAction::class)->execute(
+            context: $context,
+            packageKey: 'analytics.config',
+            site: $site,
+            config: ['provider' => 'plausible', 'measurementId' => 'acme.example'],
+            actorPlatformUserId: 1,
+        );
+
+        $registry = app(PackageCapabilityRegistry::class);
+        self::assertTrue($registry->hasAdminScreen($context, $site, 'social.links'));
+        self::assertTrue($registry->hasApiScope($context, $site, 'social:write'));
+        self::assertTrue($registry->hasEvent($context, $site, 'social.links-updated'));
+        self::assertTrue($registry->hasAdminScreen($context, $site, 'analytics.settings'));
+        self::assertTrue($registry->hasApiScope($context, $site, 'analytics:read'));
+        self::assertTrue($registry->hasEvent($context, $site, 'analytics.configuration-updated'));
+    }
+
     private function context(): TenantContext
     {
         $context = app(AddressResolver::class)->resolve(Request::create('http://acme.localhost/'));

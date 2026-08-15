@@ -146,6 +146,64 @@
       },
       "migrations": { "tenantSchemaIntroduced": "1.0.0", "migrationIdentifiers": ["2026_08_15_create_logistics_fleet"] },
       "security": { "permissions": ["site:fleet:read", "site:fleet:write"], "sensitiveData": false, "externalHosts": [] }
+    },
+    {
+      "packageKey": "social.links",
+      "version": "1.0.0",
+      "displayName": { "ar": "الروابط الاجتماعية", "en": "Social Links" },
+      "category": "marketing",
+      "scope": "site",
+      "lifecycle": {
+        "activationRequires": ["entitlement", "dependency-check", "seed", "cache-invalidation"],
+        "disablePolicy": "hide-retain",
+        "dataOwnership": "site"
+      },
+      "compatibility": { "platform": "^1.0.0", "php": "^8.3", "laravel": "^13.0", "tenantSchema": "^1.0.0" },
+      "dependencies": [],
+      "conflicts": [],
+      "capabilities": {
+        "components": [],
+        "adminScreens": ["social.links"],
+        "apiScopes": ["social:read", "social:write"],
+        "routes": [],
+        "events": ["social.links-updated"]
+      },
+      "configuration": {
+        "schemaVersion": "1.0.0",
+        "jsonSchema": { "type": "object", "additionalProperties": false, "properties": { "networks": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["network", "url"], "properties": { "network": { "type": "string", "maxLength": 40 }, "url": { "type": "string", "format": "uri", "maxLength": 2048 } } } } }, "required": ["networks"] },
+        "defaults": { "networks": [] }
+      },
+      "migrations": { "tenantSchemaIntroduced": "1.0.0", "migrationIdentifiers": [] },
+      "security": { "permissions": ["site:social:read", "site:social:write"], "sensitiveData": false, "externalHosts": [] }
+    },
+    {
+      "packageKey": "analytics.config",
+      "version": "1.0.0",
+      "displayName": { "ar": "إعدادات التحليلات", "en": "Analytics Configuration" },
+      "category": "marketing",
+      "scope": "site",
+      "lifecycle": {
+        "activationRequires": ["entitlement", "dependency-check", "seed", "cache-invalidation"],
+        "disablePolicy": "requires-admin-approval",
+        "dataOwnership": "site"
+      },
+      "compatibility": { "platform": "^1.0.0", "php": "^8.3", "laravel": "^13.0", "tenantSchema": "^1.0.0" },
+      "dependencies": [],
+      "conflicts": [],
+      "capabilities": {
+        "components": [],
+        "adminScreens": ["analytics.settings"],
+        "apiScopes": ["analytics:read", "analytics:write"],
+        "routes": [],
+        "events": ["analytics.configuration-updated"]
+      },
+      "configuration": {
+        "schemaVersion": "1.0.0",
+        "jsonSchema": { "type": "object", "additionalProperties": false, "properties": { "provider": { "type": "string", "enum": ["none", "google-analytics", "plausible"] }, "measurementId": { "type": "string", "maxLength": 120 } }, "required": ["provider", "measurementId"] },
+        "defaults": { "provider": "none", "measurementId": "" }
+      },
+      "migrations": { "tenantSchemaIntroduced": "1.0.0", "migrationIdentifiers": [] },
+      "security": { "permissions": ["site:analytics:read", "site:analytics:write"], "sensitiveData": false, "externalHosts": [] }
     }
   ]
 }

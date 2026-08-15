@@ -62,7 +62,9 @@
     { "scope": "site", "resource": "forms", "actions": ["read", "manage"] },
     { "scope": "site", "resource": "leads", "actions": ["read", "manage"] },
     { "scope": "site", "resource": "projects", "actions": ["read", "write", "publish"] },
-    { "scope": "site", "resource": "fleet", "actions": ["read", "write"] }
+    { "scope": "site", "resource": "fleet", "actions": ["read", "write"] },
+    { "scope": "site", "resource": "social", "actions": ["read", "write"] },
+    { "scope": "site", "resource": "analytics", "actions": ["read", "write"] }
   ],
   "enforcement": {
     "serverSidePoliciesRequired": true,
