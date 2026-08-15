@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 return [
     'contracts_path' => env('PLATFORM_CONTRACTS_PATH', base_path('../contracts')),
+    'version' => env('PLATFORM_VERSION', '1.0.0'),
     'allowed_platform_hosts' => array_values(array_filter(explode(',', (string) env('PLATFORM_ALLOWED_HOSTS', '')))),
     'platform_connection_name' => 'platform',
     'platform_migrations_connection_name' => env('PLATFORM_MIGRATIONS_CONNECTION', 'platform_migrator'),

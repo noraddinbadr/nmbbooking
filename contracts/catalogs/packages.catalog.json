@@ -13,7 +13,7 @@
         "disablePolicy": "hide-retain",
         "dataOwnership": "site"
       },
-      "compatibility": { "platform": "^1.0.0", "php": "^8.3", "laravel": "^12.0", "tenantSchema": "^1.0.0" },
+      "compatibility": { "platform": "^1.0.0", "php": "^8.3", "laravel": "^13.0", "tenantSchema": "^1.0.0" },
       "dependencies": [],
       "conflicts": [],
       "capabilities": {
@@ -42,7 +42,7 @@
         "disablePolicy": "export-then-disable",
         "dataOwnership": "site"
       },
-      "compatibility": { "platform": "^1.0.0", "php": "^8.3", "laravel": "^12.0", "tenantSchema": "^1.0.0" },
+      "compatibility": { "platform": "^1.0.0", "php": "^8.3", "laravel": "^13.0", "tenantSchema": "^1.0.0" },
       "dependencies": [],
       "conflicts": [],
       "capabilities": {
@@ -71,7 +71,7 @@
         "disablePolicy": "requires-admin-approval",
         "dataOwnership": "tenant"
       },
-      "compatibility": { "platform": "^1.0.0", "php": "^8.3", "laravel": "^12.0", "tenantSchema": "^1.0.0" },
+      "compatibility": { "platform": "^1.0.0", "php": "^8.3", "laravel": "^13.0", "tenantSchema": "^1.0.0" },
       "dependencies": [],
       "conflicts": [],
       "capabilities": {
@@ -100,7 +100,7 @@
         "disablePolicy": "hide-retain",
         "dataOwnership": "site"
       },
-      "compatibility": { "platform": "^1.0.0", "php": "^8.3", "laravel": "^12.0", "tenantSchema": "^1.0.0" },
+      "compatibility": { "platform": "^1.0.0", "php": "^8.3", "laravel": "^13.0", "tenantSchema": "^1.0.0" },
       "dependencies": [{ "packageKey": "media.library", "versionConstraint": "^1.0.0", "required": true }],
       "conflicts": [],
       "capabilities": {
@@ -129,7 +129,7 @@
         "disablePolicy": "hide-retain",
         "dataOwnership": "site"
       },
-      "compatibility": { "platform": "^1.0.0", "php": "^8.3", "laravel": "^12.0", "tenantSchema": "^1.0.0" },
+      "compatibility": { "platform": "^1.0.0", "php": "^8.3", "laravel": "^13.0", "tenantSchema": "^1.0.0" },
       "dependencies": [{ "packageKey": "media.library", "versionConstraint": "^1.0.0", "required": true }],
       "conflicts": [],
       "capabilities": {

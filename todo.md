@@ -116,15 +116,15 @@
 
 ## Phase 4 — Package Platform وSector Blueprints
 
-- [ ] تنفيذ `PackageManifest` من JSON Schema والتأكد من compatibility/version/dependencies/conflicts.
+- [x] تنفيذ `PackageManifest` من JSON Schema والتأكد من compatibility/version/dependencies/conflicts؛ الكتالوج يرفض المفاتيح المكررة والاعتماديات/التعارضات الذاتية أو المجهولة وقيود النسخ غير المتحققة، والتحقق مغطى بالاختبارات.
 - [ ] بناء package catalog مركزي وواجهة Marketplace داخل لوحة التحكم.
 - [ ] بناء entitlement check حسب plan وTenant وموقع.
 - [ ] بناء `ActivatePackageAction` ضمن transaction: entitlement → dependencies → config defaults → seed → audit → cache invalidation.
 - [-] بناء `DisablePackageAction` مع سياسة البيانات: hide/retain/export/delete after retention؛ نُفذ الإيقاف بسياسة retain وتدقيق وإبطال cache ومنع تعطيل اعتماد نشط؛ تبقى export/delete after retention.
 - [ ] منع أي migration أو Composer أو external download عند activation.
 - [-] بناء package capabilities registry للـ admin menus/API routes/public components/background actions؛ رندر الواجهة العامة يتحقق الآن من `requiredPackages` ويخفي البلوكات التابعة لحزمة معطلة، وتبقى طبقات القوائم وAPI والمهام الخلفية.
-- [ ] بناء package compatibility matrix وsemver rules.
-- [-] كتابة package lifecycle tests: activate, duplicate, dependency, conflict, disabled render, rollback؛ اختُبر التفعيل، الإخفاء عند التعطيل، وrollback في المسار الحالي؛ وتبقى حالات duplicate/dependency/conflict كاختبارات صريحة.
+- [x] بناء package compatibility matrix وsemver rules؛ المتحقق يدعم caret/tilde/comparators/wildcards/alternatives ويقارن manifest بإصدار المنصة وPHP وLaravel وschema العميل، وتفشل الاعتماديات النشطة ذات النسخة غير المتوافقة.
+- [-] كتابة package lifecycle tests: activate, duplicate, dependency, conflict, disabled render, rollback؛ اختُبر التفعيل، الإخفاء عند التعطيل، rollback في المسار الحالي، ورفض dependency غير المتوافقة؛ وتبقى حالات duplicate/conflict الصريحة.
 - [-] تنفيذ Sector Blueprint versioning وsnapshot عند إنشاء موقع؛ كتالوج blueprints متحقق من العقد ويطبق النسخة في إعداد موقع مع audit، وتبقى snapshot غير القابل للتعديل عند provisioning.
 - [x] تنفيذ `ApplySectorBlueprintAction` مع dry-run/report قبل التفعيل؛ ينشئ صفحات مسودات فقط ويدمج defaults الحزم ثم يفعلها بلا نشر تلقائي وباختبار تكامل.
 - [-] إضافة blueprints أولية: construction, solar-energy, logistics, transport, manufacturing, mining؛ الكتالوج يحوي construction وsolar-energy وlogistics وmanufacturing، ويبقى transport وmining.
@@ -135,7 +135,7 @@
 
 - [ ] تفعيل حزمة يغير capabilities المقصودة فقط ولا ينفذ migration أو يكسر موقعًا منشورًا.
 - [-] إيقاف حزمة يخفي surface الخاص بها من public/admin/API وفق policy دون فقد صامت للبيانات؛ حالة التفعيل تحفظ كـ disabled مع البيانات وaudit، ورندر public يخفي البلوكات التابعة فعلًا باختبار تكامل، وتبقى واجهات admin/API.
-- [ ] أي package manifest غير مطابق للعقد يرفض في CI وقبل النشر.
+- [-] أي package manifest غير مطابق للعقد يرفض في CI وقبل النشر؛ JSON Schema وmanifest graph يتحققان عند تحميل الكتالوج، وتبقى خطوة CI التي تثبت رفض fixture غير مطابق بصورة مستقلة.
 
 ---
 
