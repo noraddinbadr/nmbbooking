@@ -65,12 +65,12 @@
 - [x] إنشاء اتصال `platform_core` وإعداد migrations منفصلة في `database/platform`.
 - [x] إنشاء migrations مستقلة لقواعد العملاء في `database/tenant` وrunner `tenants:migrate` متسلسل يسجل نجاح أو فشل كل Tenant.
 - [-] تفعيل `utf8mb4` وInnoDB وstrict connections في السكيما؛ تكتمل سياسة timezone وmigrations الموسعة ضمن التشغيل.
-- [ ] إنشاء `tenants` و`tenant_databases` و`site_addresses` و`provisioning_runs` و`tenant_migration_runs`.
-- [ ] إنشاء users, memberships, roles, permissions, MFA factors, sessions في `platform_core`.
-- [ ] إنشاء plans, subscriptions, entitlements, package catalog, package versions في `platform_core`.
-- [ ] تعريف database credentials references؛ منع تخزين كلمات المرور كنص صريح في business tables.
-- [ ] إنشاء Tenant schema: sites, locales, settings, themes, pages, revisions, blocks, translations, menus, redirects.
-- [ ] إنشاء Tenant schema: package activations/configs, media assets/variants/links, forms/submissions, audit events.
+- [x] إنشاء `tenants` و`tenant_databases` و`site_addresses` و`provisioning_runs` و`tenant_migration_runs` ضمن migrations المنفصلة للمنصة.
+- [-] إنشاء users, memberships, roles, permissions, MFA factors, sessions في `platform_core`؛ الجداول الأساسية موجودة، وأضيفت `mfa_factors` و`platform_sessions` باختبار سكيما؛ تبقى تدفقات الهوية وMFA العملية في المرحلة التالية.
+- [x] إنشاء plans, subscriptions, entitlements, package catalog, package versions في `platform_core`.
+- [-] تعريف database credentials references؛ تستخدم `tenant_databases.credential_ref` مرجعًا لا كلمة مرور وتوجد اختبارات عزل؛ تبقى واجهة secret provider الإنتاجية وسياسات التدوير.
+- [x] إنشاء Tenant schema: sites, locales, settings, themes, pages, revisions, blocks, translations, menus, redirects.
+- [x] إنشاء Tenant schema: package activations/configs, media assets/variants/links, forms/submissions, audit events.
 - [ ] إنشاء infrastructure migrations للجداول القطاعية فقط عبر code packages.
 - [ ] إضافة index review لكل query path: domain resolution، page render، publication، media، forms، admin lists.
 - [ ] إضافة foreign keys وunique constraints وsoft-delete policy صريحة لكل كيان.
