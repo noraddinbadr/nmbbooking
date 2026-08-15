@@ -19,6 +19,10 @@ Route::prefix('platform/auth')->middleware('throttle:10,1')->group(function (): 
         ->name('platform.auth.login');
     Route::post('/mfa/verify', [PlatformAuthController::class, 'completeMfaLogin'])
         ->name('platform.auth.mfa.verify');
+    Route::post('/password/forgot', [PlatformAuthController::class, 'sendPasswordResetLink'])
+        ->name('platform.auth.password.forgot');
+    Route::post('/password/reset', [PlatformAuthController::class, 'resetPassword'])
+        ->name('platform.auth.password.reset');
 });
 
 Route::prefix('platform')->middleware('auth:sanctum')->group(function (): void {

@@ -90,7 +90,7 @@
 
 ## Phase 3 — Identity وTenancy وAddress Resolution
 
-- [-] بناء registration/invitation/login/logout/password reset/email verification؛ نُفذ registration اختياري معطل افتراضيًا وlogin/logout/`me` برموز Sanctum قابلة للإلغاء، ودعوات برمز مجزأ وقبول ذري؛ تبقى الاستعادة والتحقق البريدي وواجهات الإدارة.
+- [-] بناء registration/invitation/login/logout/password reset/email verification؛ نُفذ registration اختياري معطل افتراضيًا وlogin/logout/`me` برموز Sanctum قابلة للإلغاء، ودعوات برمز مجزأ وقبول ذري؛ نُفذت كذلك استعادة كلمة المرور عبر broker مركزي واختبارها؛ تبقى email verification وواجهات الإدارة.
 - [-] بناء MFA اختياري للمشرفين وrecovery codes وسياسة قفل الحساب؛ نُفذ TOTP مشفر وrecovery codes أحادية الاستعمال وتحدي دخول قصير العمر قبل إصدار API token، وتبقى سياسة قفل الحساب وإدارة عوامل متقدمة.
 - [-] بناء `TenantMembership` مع role وsite scopes وحالة invitation/disabled؛ نُفذت نماذج العضوية والدعوة وقبول الدعوة الذري ونطاق الموقع، وتبقى واجهات إدارة الحالة وسياسات التعطيل.
 - [-] بناء Permission catalog وربط role-permission ومصفوفة ownership؛ استيراد الكتالوج يحل وراثة الأدوار، وخدمة التفويض تتحقق من العضوية والدور ونطاق الموقع خادميًا باختبار تكامل؛ تبقى Laravel Policies ومصفوفة ownership الكاملة.

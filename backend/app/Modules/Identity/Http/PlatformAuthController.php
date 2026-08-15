@@ -10,6 +10,7 @@ use App\Modules\Identity\Services\MfaTotpService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password as PasswordBroker;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -71,6 +72,46 @@ final class PlatformAuthController
         }
 
         return response()->json(['data' => $this->authenticatedPayload($user, $data['device_name'] ?? 'platform-api')]);
+    }
+
+    public function sendPasswordResetLink(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'email' => ['required', 'string', 'email:rfc', 'max:190'],
+        ]);
+
+        PasswordBroker::sendResetLink(['email' => mb_strtolower($data['email'])]);
+
+        return response()->json(status: 204);
+    }
+
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'token' => ['required', 'string'],
+            'email' => ['required', 'string', 'email:rfc', 'max:190'],
+            'password' => ['required', 'confirmed', Password::min(12)->mixedCase()->numbers()],
+        ]);
+
+        $status = PasswordBroker::reset(
+            [
+                'email' => mb_strtolower($data['email']),
+                'password' => $data['password'],
+                'token' => $data['token'],
+            ],
+            static function (User $user, string $password): void {
+                $user->forceFill(['password' => Hash::make($password), 'remember_token' => null])->save();
+                $user->tokens()->delete();
+            },
+        );
+
+        if ($status !== PasswordBroker::PASSWORD_RESET) {
+            throw ValidationException::withMessages([
+                'email' => [__($status)],
+            ]);
+        }
+
+        return response()->json(status: 204);
     }
 
     public function completeMfaLogin(Request $request): JsonResponse
