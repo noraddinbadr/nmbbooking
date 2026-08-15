@@ -11,6 +11,7 @@ use App\Modules\Tenancy\Models\Tenant;
 use App\Modules\Tenancy\Models\TenantInvitation;
 use App\Modules\Tenancy\Services\AcceptTenantInvitationAction;
 use App\Modules\Tenancy\Services\CreateTenantInvitationAction;
+use App\Modules\Tenancy\Services\MembershipAuthorizer;
 use Database\Seeders\AcmeConstructionSeeder;
 use Database\Seeders\PlatformCatalogSeeder;
 use Illuminate\Support\Facades\DB;
@@ -76,5 +77,9 @@ final class TenantInvitationTest extends TestCase
             'membership_id' => $membership->id,
             'site_public_id' => $sitePublicId,
         ], 'platform');
+
+        $authorizer = app(MembershipAuthorizer::class);
+        self::assertTrue($authorizer->allows($invitedUser, $tenant, 'site:pages:write', $sitePublicId));
+        self::assertFalse($authorizer->allows($invitedUser, $tenant, 'site:pages:write', Str::ulid()->toBase32()));
     }
 }
