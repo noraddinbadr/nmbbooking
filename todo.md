@@ -147,7 +147,7 @@
 - [x] بناء renderer registry في Blade ومنع class names أو templates من customer input؛ الرندر لا يعتمد إلا Blade view محصورًا تحت `themes.components` من manifest موثق ويتحقق من وجوده قبل التضمين.
 - [x] بناء theme catalog وtheme tokens: colors, typography, spacing, radii, shadows, breakpoints؛ كتالوج عقود متحقق يغطي ثيمات جميع blueprints ويرتبط بفاحص العقود.
 - [x] بناء site-level overrides وinheritance policy للـ theme tokens؛ resolver يورث tokens من theme القطاعي ويقبل فقط المفاتيح التي تسمح بها سياسة manifest ويرفض غيرها باختبار تكامل.
-- [ ] بناء Page, Revision, Block, Global Section, Header, Footer, Menu models وActions.
+- [-] بناء Page, Revision, Block, Global Section, Header, Footer, Menu models وActions؛ نماذج Page/Revision/Block والترجمات قائمة، وAction ينشئ مسودة مستقلة بنسخ البلوكات والترجمات من المصدر المنشور، وتبقى global sections/header/footer/menu actions.
 - [-] بناء content locks وoptimistic concurrency وconflict UI contract؛ `UpdatePageBlockAction` يقفل الصف ويطابق `lock_version` ويرفض stale writes ويدقق التعديل، وتبقى API وواجهة التعارض وlocks طويلة العمر.
 - [ ] بناء autosave workflow وrecovery للـ draft غير المنشور.
 - [ ] بناء drag-and-drop ordering مع keyboard accessibility.
@@ -162,7 +162,7 @@
 ### بوابة Phase 5
 
 - [-] لا يمكن حفظ block بprops لا تطابق schema أو بحزمة غير مفعلة؛ الحفظ في المسودة والاعتماد يرفضان props غير المطابقة، والرندر يخفي الحزمة غير المفعلة، وتبقى حماية API.
-- [ ] تعديل مسودة لا يغير public site قبل publish.
+- [x] تعديل مسودة لا يغير public site قبل publish؛ إنشاء المسودة ينسخ revision المنشورة إلى draft جديد ببلوكات public IDs مستقلة ويبقي `published_revision_id` ومصدر الزوار دون تغيير باختبار تكامل.
 - [-] conflict متزامن لا يؤدي إلى silent overwrite؛ Action الحفظ يفرض lock version ويرفض الكاتب المتأخر باختبار تكامل، وتبقى معالجة UX/API.
 - [ ] جميع components الأساسية تمر accessibility وvisual regression baseline.
 
