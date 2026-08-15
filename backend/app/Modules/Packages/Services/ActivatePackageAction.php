@@ -40,6 +40,7 @@ final class ActivatePackageAction
         $this->assertScope($manifest, $site);
         $this->assertDependenciesAreActive($manifest, $site);
         $this->assertNoActiveConflicts($manifest, $site);
+        $config = $this->mergeConfigDefaults($manifest, $config);
         $this->assertConfig($manifest, $config);
 
         $activation = DB::connection((string) config('platform.tenant_connection_name'))->transaction(
@@ -158,6 +159,40 @@ final class ActivatePackageAction
                     });
                 }
             });
+    }
+
+    /**
+     * @param  array<string, mixed>  $manifest
+     * @param  array<string, mixed>  $overrides
+     * @return array<string, mixed>
+     */
+    private function mergeConfigDefaults(array $manifest, array $overrides): array
+    {
+        /** @var array<string, mixed> $defaults */
+        $defaults = $manifest['configuration']['defaults'];
+
+        return $this->mergeAssociativeConfig($defaults, $overrides);
+    }
+
+    /** @param array<string, mixed> $defaults @param array<string, mixed> $overrides @return array<string, mixed> */
+    private function mergeAssociativeConfig(array $defaults, array $overrides): array
+    {
+        foreach ($overrides as $key => $value) {
+            if (is_array($value) && isset($defaults[$key]) && is_array($defaults[$key])
+                && ! array_is_list($value) && ! array_is_list($defaults[$key])) {
+                /** @var array<string, mixed> $defaultValue */
+                $defaultValue = $defaults[$key];
+                /** @var array<string, mixed> $overrideValue */
+                $overrideValue = $value;
+                $defaults[$key] = $this->mergeAssociativeConfig($defaultValue, $overrideValue);
+
+                continue;
+            }
+
+            $defaults[$key] = $value;
+        }
+
+        return $defaults;
     }
 
     /** @param array<string, mixed> $manifest @param array<string, mixed> $config */

@@ -93,6 +93,19 @@ final class PackageCapabilityRegistryTest extends TestCase
         self::assertTrue($registry->hasEvent($context, $site, 'analytics.configuration-updated'));
     }
 
+    public function test_activation_merges_manifest_defaults_before_validating_and_persisting_configuration(): void
+    {
+        $context = $this->context();
+        $site = Site::query()->where('public_id', $context->sitePublicId)->firstOrFail();
+        $action = app(ActivatePackageAction::class);
+
+        $social = $action->execute($context, 'social.links', $site, [], 1);
+        $analytics = $action->execute($context, 'analytics.config', $site, ['provider' => 'plausible'], 1);
+
+        self::assertSame(['networks' => []], $social->config_json);
+        self::assertSame(['provider' => 'plausible', 'measurementId' => ''], $analytics->config_json);
+    }
+
     private function context(): TenantContext
     {
         $context = app(AddressResolver::class)->resolve(Request::create('http://acme.localhost/'));
