@@ -120,7 +120,7 @@
 - [ ] بناء package catalog مركزي وواجهة Marketplace داخل لوحة التحكم.
 - [ ] بناء entitlement check حسب plan وTenant وموقع.
 - [ ] بناء `ActivatePackageAction` ضمن transaction: entitlement → dependencies → config defaults → seed → audit → cache invalidation.
-- [ ] بناء `DisablePackageAction` مع سياسة البيانات: hide/retain/export/delete after retention.
+- [-] بناء `DisablePackageAction` مع سياسة البيانات: hide/retain/export/delete after retention؛ نُفذ الإيقاف بسياسة retain وتدقيق وإبطال cache ومنع تعطيل اعتماد نشط؛ تبقى export/delete after retention.
 - [ ] منع أي migration أو Composer أو external download عند activation.
 - [ ] بناء package capabilities registry للـ admin menus/API routes/public components/background actions.
 - [ ] بناء package compatibility matrix وsemver rules.
@@ -134,7 +134,7 @@
 ### بوابة Phase 4
 
 - [ ] تفعيل حزمة يغير capabilities المقصودة فقط ولا ينفذ migration أو يكسر موقعًا منشورًا.
-- [ ] إيقاف حزمة يخفي surface الخاص بها من public/admin/API وفق policy دون فقد صامت للبيانات.
+- [-] إيقاف حزمة يخفي surface الخاص بها من public/admin/API وفق policy دون فقد صامت للبيانات؛ حالة التفعيل تحفظ كـ disabled مع البيانات وaudit، ويبقى ربط capabilities بالواجهات.
 - [ ] أي package manifest غير مطابق للعقد يرفض في CI وقبل النشر.
 
 ---

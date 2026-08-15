@@ -6,9 +6,23 @@ namespace App\Modules\Packages\Models;
 
 use App\Modules\Shared\Models\UsesTenantConnection;
 use App\Modules\Sites\Models\Site;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property string $package_key
+ * @property string $package_version
+ * @property string $scope_type
+ * @property int|null $site_id
+ * @property string $status
+ * @property array<string, mixed> $config_json
+ * @property int $enabled_by_platform_user_id
+ * @property CarbonImmutable|null $enabled_at
+ * @property CarbonImmutable|null $disabled_at
+ * @property-read Site|null $site
+ */
 final class PackageActivation extends Model
 {
     use UsesTenantConnection;
