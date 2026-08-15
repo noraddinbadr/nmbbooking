@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Content\Services;
 
 use App\Modules\Components\Services\ComponentRegistry;
+use App\Modules\Components\Services\ComponentRendererRegistry;
 use App\Modules\Content\Models\Page;
 use App\Modules\Content\Models\PageBlock;
 use App\Modules\Content\Models\PageRevision;
@@ -18,6 +19,7 @@ final class RenderPublishedPageAction
 {
     public function __construct(
         private readonly ComponentRegistry $components,
+        private readonly ComponentRendererRegistry $renderers,
         private readonly PackageCapabilityRegistry $capabilities,
     ) {}
 
@@ -91,7 +93,7 @@ final class RenderPublishedPageAction
                     'publicId' => $block->public_id,
                     'componentKey' => $block->component_key,
                     'componentVersion' => $block->component_version,
-                    'view' => $manifest['renderer']['bladeView'],
+                    'view' => $this->renderers->bladeView($block->component_key, $block->component_version),
                     'variant' => $block->variant_key,
                     'props' => $translation?->props_json ?? $block->props_json,
                     'style' => $block->style_json ?? [],

@@ -144,7 +144,7 @@
 - [x] تنفيذ Component Registry يقرأ key/version/renderer/variants/required packages من عقود JSON المصدرية.
 - [-] تنفيذ JSON Schema validation server-side لكل block props قبل الحفظ والنشر؛ خدمة تتحقق من props الأصلية والمترجمة للعناصر المفعلة عند اعتماد revision وتمنع النشر غير الصالح باختبار تكامل، وتبقى ربط CRUD/API الحفظ المباشر.
 - [ ] تنفيذ component migration adapters للإصدارات غير المتوافقة.
-- [ ] بناء renderer registry في Blade ومنع class names أو templates من customer input.
+- [x] بناء renderer registry في Blade ومنع class names أو templates من customer input؛ الرندر لا يعتمد إلا Blade view محصورًا تحت `themes.components` من manifest موثق ويتحقق من وجوده قبل التضمين.
 - [ ] بناء theme catalog وtheme tokens: colors, typography, spacing, radii, shadows, breakpoints.
 - [ ] بناء site-level overrides وinheritance policy للـ theme tokens.
 - [ ] بناء Page, Revision, Block, Global Section, Header, Footer, Menu models وActions.
