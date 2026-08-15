@@ -41,6 +41,7 @@ final class ExampleTest extends TestCase
         $response->assertOk();
         $response->assertSee('شركة Acme للمقاولات');
         $response->assertSee('نبني مشاريع تصمد أمام الزمن');
+        $response->assertSee('<link rel="canonical" href="http://acme.localhost/">', false);
     }
 
     public function test_tenant_seo_endpoints_expose_only_published_routes(): void

@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title }}</title>
+    <link rel="canonical" href="{{ request()->getSchemeAndHttpHost() }}{{ $page->route_path }}">
     @if (!empty($seo['description']))
         <meta name="description" content="{{ $seo['description'] }}">
     @endif
