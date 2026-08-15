@@ -33,14 +33,20 @@ final class PlatformCatalogSeeder extends Seeder
             }
         }
 
+        /** @var array<string, array<string, mixed>> $rolesByKey */
+        $rolesByKey = [];
         foreach ($permissions['roles'] as $role) {
+            $rolesByKey[(string) $role['key']] = $role;
             $connection->table('roles')->updateOrInsert(
                 ['key' => $role['key']],
                 ['scope' => $role['scope'], 'name' => $role['key'], 'created_at' => now(), 'updated_at' => now()],
             );
+        }
+
+        foreach ($permissions['roles'] as $role) {
             $roleId = (int) $connection->table('roles')->where('key', $role['key'])->value('id');
 
-            foreach ($role['permissions'] as $permissionKey) {
+            foreach ($this->resolvedPermissions($role, $rolesByKey) as $permissionKey) {
                 $permissionId = $connection->table('permissions')->where('key', $permissionKey)->value('id');
                 if ($permissionId !== null) {
                     $connection->table('role_permissions')->updateOrInsert([
@@ -79,6 +85,34 @@ final class PlatformCatalogSeeder extends Seeder
                 ],
             );
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $role
+     * @param  array<string, array<string, mixed>>  $rolesByKey
+     * @param  array<string, true>  $visited
+     * @return array<int, string>
+     */
+    private function resolvedPermissions(array $role, array $rolesByKey, array $visited = []): array
+    {
+        $roleKey = (string) ($role['key'] ?? '');
+        if ($roleKey === '' || isset($visited[$roleKey])) {
+            throw new RuntimeException("Role inheritance contains a cycle at [{$roleKey}].");
+        }
+
+        $visited[$roleKey] = true;
+        $permissionKeys = array_values(array_filter($role['permissions'] ?? [], 'is_string'));
+
+        foreach (array_values(array_filter($role['inherits'] ?? [], 'is_string')) as $parentKey) {
+            $parentRole = $rolesByKey[$parentKey] ?? null;
+            if (! is_array($parentRole)) {
+                throw new RuntimeException("Role [{$roleKey}] inherits unknown role [{$parentKey}].");
+            }
+
+            $permissionKeys = [...$permissionKeys, ...$this->resolvedPermissions($parentRole, $rolesByKey, $visited)];
+        }
+
+        return array_values(array_unique($permissionKeys));
     }
 
     /** @return array<string, mixed> */

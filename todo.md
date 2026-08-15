@@ -93,7 +93,7 @@
 - [-] بناء registration/invitation/login/logout/password reset/email verification؛ نُفذ registration اختياري معطل افتراضيًا وlogin/logout/`me` برموز Sanctum قابلة للإلغاء، ودعوات برمز مجزأ وقبول ذري؛ تبقى الاستعادة والتحقق البريدي وواجهات الإدارة.
 - [ ] بناء MFA اختياري للمشرفين وrecovery codes وسياسة قفل الحساب.
 - [-] بناء `TenantMembership` مع role وsite scopes وحالة invitation/disabled؛ نُفذت نماذج العضوية والدعوة وقبول الدعوة الذري ونطاق الموقع، وتبقى واجهات إدارة الحالة وسياسات التعطيل.
-- [ ] بناء Permission catalog وربط role-permission ومصفوفة ownership.
+- [-] بناء Permission catalog وربط role-permission ومصفوفة ownership؛ استيراد الكتالوج يحل وراثة الأدوار ويربط الصلاحيات باختبار تكامل، وتبقى service/policies ومصفوفة ownership التنفيذية.
 - [-] بناء `AddressResolver` للنطاق وplatform subdomain مع أطول path prefix؛ يحتاج workflow توثيق custom domain.
 - [ ] رفض host غير موثق وتطبيق trusted hosts/canonical host policy.
 - [-] بناء `TenantContext` immutable لكل طلب HTTP مع Tenant DB Manager؛ يحتاج ربط background jobs عند تنفيذها.
