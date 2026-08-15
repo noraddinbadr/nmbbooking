@@ -55,7 +55,7 @@
 ### بوابة Phase 1
 
 - [-] `composer test`, static analysis, formatter, وbuild assets تعمل في CI من clone نظيف؛ contracts وVite وPint وLarastan وPHPUnit معرّفة في workflow المحلي، ويبقى دفعه وتأكيده على GitHub.
-- [ ] application boot لا يحتاج بيانات tenant عند CLI/migrations.
+- [x] application boot لا يحتاج بيانات tenant عند CLI/migrations؛ اختبار `artisan about` يثبت الإقلاع من دون Tenant Context.
 - [-] baseline security headers وerror handling لا يظهران stack traces في production mode؛ نُفذت CSP قابلة للضبط ورؤوس حماية وAPI error envelope واختُبرت، ويبقى smoke test صريح بوضع production قبل الإغلاق.
 
 ---
