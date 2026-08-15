@@ -95,7 +95,7 @@
 - [-] بناء `TenantMembership` مع role وsite scopes وحالة invitation/disabled؛ نُفذت نماذج العضوية والدعوة وقبول الدعوة الذري ونطاق الموقع، وتبقى واجهات إدارة الحالة وسياسات التعطيل.
 - [-] بناء Permission catalog وربط role-permission ومصفوفة ownership؛ استيراد الكتالوج يحل وراثة الأدوار، وخدمة التفويض تتحقق من العضوية والدور ونطاق الموقع خادميًا باختبار تكامل؛ تبقى Laravel Policies ومصفوفة ownership الكاملة.
 - [-] بناء `AddressResolver` للنطاق وplatform subdomain مع أطول path prefix؛ يحتاج workflow توثيق custom domain.
-- [ ] رفض host غير موثق وتطبيق trusted hosts/canonical host policy.
+- [-] رفض host غير موثق وتطبيق trusted hosts/canonical host policy؛ أسطح المنصة والإدارة والصحة تقبل قائمة مضيفات صريحة وتُرجع 404 لغير الموثق باختبار تكامل؛ يبقى canonical redirect ونطاقات الإنتاج النهائية.
 - [-] بناء `TenantContext` immutable لكل طلب HTTP مع Tenant DB Manager؛ يحتاج ربط background jobs عند تنفيذها.
 - [x] بناء `TenantDatabaseManager` يختار connection من registry ولا يقبل connection key من request.
 - [ ] بناء policies لكل موارد المنصة والمحتوى والنشر والملفات والحزم.
@@ -108,7 +108,7 @@
 ### بوابة Phase 3
 
 - [ ] اختبارات cross-tenant وIDOR وrole escalation تمر جميعًا.
-- [ ] Host غير معروف يعيد 404/رفض آمن ولا يمكنه اختيار Tenant من URL parameter.
+- [x] Host غير معروف يعيد 404/رفض آمن ولا يمكنه اختيار Tenant من URL parameter؛ يغلق `AddressResolver` نطاقات العميل غير الموثقة وسياسة المضيفات أسطح المنصة.
 - [ ] مستخدم متعدد العضويات لا يرى أو يعدل إلا tenant/site scope المصرح بها.
 - [ ] provisioning يعيد الحالة الصحيحة بعد failure/retry ولا ينشئ قاعدة أو membership مكررة.
 

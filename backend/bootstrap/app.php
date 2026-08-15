@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Shared\Http\ApplySecurityHeaders;
+use App\Modules\Shared\Http\EnforcePlatformHostPolicy;
 use App\Modules\Shared\Http\EnsureCorrelationId;
 use App\Modules\Shared\Http\RequireInternalHealthAccess;
 use App\Modules\Tenancy\Http\ResolveTenantContext;
@@ -20,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(EnforcePlatformHostPolicy::class);
         $middleware->append(EnsureCorrelationId::class);
         $middleware->append(ApplySecurityHeaders::class);
 
