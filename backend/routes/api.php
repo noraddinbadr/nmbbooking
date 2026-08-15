@@ -12,6 +12,10 @@ Route::get('/internal/health', InternalHealthController::class)
     ->middleware('internal.health')
     ->name('internal.health');
 
+Route::get('/platform/auth/email/verify/{id}/{hash}', [PlatformAuthController::class, 'verifyEmail'])
+    ->middleware('signed')
+    ->name('verification.verify');
+
 Route::prefix('platform/auth')->middleware('throttle:10,1')->group(function (): void {
     Route::post('/register', [PlatformAuthController::class, 'register'])
         ->name('platform.auth.register');
@@ -30,6 +34,9 @@ Route::prefix('platform')->middleware('auth:sanctum')->group(function (): void {
         ->name('platform.auth.me');
     Route::post('/logout', [PlatformAuthController::class, 'logout'])
         ->name('platform.auth.logout');
+    Route::post('/email/verification-notification', [PlatformAuthController::class, 'sendEmailVerification'])
+        ->middleware('throttle:3,15')
+        ->name('platform.auth.email.send-verification');
     Route::prefix('mfa/totp')->group(function (): void {
         Route::post('/prepare', [MfaController::class, 'prepare'])->name('platform.mfa.totp.prepare');
         Route::post('/confirm', [MfaController::class, 'confirm'])->name('platform.mfa.totp.confirm');

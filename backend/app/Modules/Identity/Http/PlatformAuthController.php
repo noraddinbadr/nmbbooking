@@ -134,6 +134,29 @@ final class PlatformAuthController
         return response()->json(['data' => $this->authenticatedPayload($user, $data['device_name'] ?? 'platform-api')]);
     }
 
+    public function sendEmailVerification(Request $request): JsonResponse
+    {
+        $user = $this->resolvedUser($request);
+
+        if (! $user->hasVerifiedEmail()) {
+            $user->sendEmailVerificationNotification();
+        }
+
+        return response()->json(status: 204);
+    }
+
+    public function verifyEmail(Request $request, int $id, string $hash): JsonResponse
+    {
+        $user = User::query()->findOrFail($id);
+        abort_unless(hash_equals(sha1($user->getEmailForVerification()), $hash), 403);
+
+        if (! $user->hasVerifiedEmail()) {
+            $user->markEmailAsVerified();
+        }
+
+        return response()->json(status: 204);
+    }
+
     public function me(Request $request): JsonResponse
     {
         $user = $this->resolvedUser($request);
