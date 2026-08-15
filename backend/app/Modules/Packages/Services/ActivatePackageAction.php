@@ -21,6 +21,7 @@ final class ActivatePackageAction
         private readonly PackageCatalog $catalog,
         private readonly PackageCapabilityRegistry $capabilities,
         private readonly PackageCompatibilityVerifier $compatibility,
+        private readonly PackageEntitlementService $entitlements,
         private readonly JsonSchemaValidator $schemas,
         private readonly SemverConstraint $semver,
     ) {}
@@ -35,7 +36,7 @@ final class ActivatePackageAction
     ): PackageActivation {
         $manifest = $this->catalog->require($packageKey);
         $this->compatibility->assertCompatible($manifest, $context);
-        $this->assertEntitled($context, $packageKey);
+        $this->entitlements->assertGranted($context, $packageKey);
         $this->assertScope($manifest, $site);
         $this->assertDependenciesAreActive($manifest, $site);
         $this->assertNoActiveConflicts($manifest, $site);
@@ -76,22 +77,6 @@ final class ActivatePackageAction
             throw ValidationException::withMessages([
                 'scope' => 'Package scope does not match the selected activation target.',
             ]);
-        }
-    }
-
-    private function assertEntitled(TenantContext $context, string $packageKey): void
-    {
-        $allowed = DB::connection('platform')
-            ->table('tenant_entitlements as entitlement')
-            ->join('package_definitions as package', 'package.id', '=', 'entitlement.package_id')
-            ->where('entitlement.tenant_id', $context->tenantId)
-            ->where('package.package_key', $packageKey)
-            ->where('entitlement.is_enabled', true)
-            ->where(fn ($query) => $query->whereNull('entitlement.expires_at')->orWhere('entitlement.expires_at', '>', now()))
-            ->exists();
-
-        if (! $allowed) {
-            throw new RuntimeException("Tenant is not entitled to package [{$packageKey}].");
         }
     }
 
