@@ -100,8 +100,8 @@
 - [x] بناء `TenantDatabaseManager` يختار connection من registry ولا يقبل connection key من request.
 - [ ] بناء policies لكل موارد المنصة والمحتوى والنشر والملفات والحزم.
 - [ ] بناء tenant/site switcher داخل لوحة واحدة فقط.
-- [ ] بناء tenant lifecycle: provisioning, active, suspended, failed, archived.
-- [ ] بناء suspend policy تمنع الرندر/الإدارة حسب نوع التعليق مع صفحة عامة آمنة.
+- [-] بناء tenant lifecycle: provisioning, active, suspended, failed, archived؛ نُفذت انتقالات الحالة المسموحة وتدقيقها والتحقق من جاهزية قاعدة العميل قبل التفعيل؛ يبقى provisioning القابل للاستئناف وواجهات الإدارة.
+- [-] بناء suspend policy تمنع الرندر/الإدارة حسب نوع التعليق مع صفحة عامة آمنة؛ `AddressResolver` يرفض العميل غير النشط، وتبقى صفحة التعليق العامة وسياسة الإدارة التفصيلية.
 - [ ] بناء provisioning workflow قابل للاستئناف وidempotent.
 - [ ] بناء request audit للعمليات الحساسة: login، invitation، domain mapping، package activation، publish، download.
 
