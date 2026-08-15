@@ -1,0 +1,90 @@
+{
+  "$schema": "../schemas/theme.schema.json",
+  "catalogVersion": "1.0.0",
+  "themes": [
+    {
+      "themeKey": "industrial",
+      "version": "1.0.0",
+      "displayName": { "ar": "صناعي كهرماني", "en": "Industrial Amber" },
+      "tokens": {
+        "colors": { "brand": "#b45309", "ink": "#172554", "surface": "#f8fafc", "card": "#ffffff", "muted": "#64748b" },
+        "typography": { "font.family": "Instrument Sans, system-ui, sans-serif", "font.heading-weight": "700", "font.body-weight": "400" },
+        "spacing": { "section": "5rem", "container": "min(1120px, calc(100% - 2rem))", "grid-gap": "1rem" },
+        "radii": { "card": "0.9rem", "button": "0.5rem" },
+        "shadows": { "card": "0 1px 2px rgb(15 23 42 / 0.08)" },
+        "breakpoints": { "mobile": "760px", "tablet": "1024px" }
+      },
+      "siteOverridePolicy": { "allowedTokenKeys": ["colors.brand", "colors.ink", "colors.surface", "colors.card", "typography.font.family", "radii.card"], "inheritMissingTokens": true }
+    },
+    {
+      "themeKey": "clean-energy",
+      "version": "1.0.0",
+      "displayName": { "ar": "طاقة نظيفة", "en": "Clean Energy" },
+      "tokens": {
+        "colors": { "brand": "#0f766e", "ink": "#134e4a", "surface": "#f0fdfa", "card": "#ffffff", "muted": "#64748b" },
+        "typography": { "font.family": "Instrument Sans, system-ui, sans-serif", "font.heading-weight": "700", "font.body-weight": "400" },
+        "spacing": { "section": "5rem", "container": "min(1120px, calc(100% - 2rem))", "grid-gap": "1rem" },
+        "radii": { "card": "1rem", "button": "999px" },
+        "shadows": { "card": "0 8px 24px rgb(13 148 136 / 0.10)" },
+        "breakpoints": { "mobile": "760px", "tablet": "1024px" }
+      },
+      "siteOverridePolicy": { "allowedTokenKeys": ["colors.brand", "colors.ink", "colors.surface", "colors.card", "typography.font.family", "radii.card"], "inheritMissingTokens": true }
+    },
+    {
+      "themeKey": "logistics",
+      "version": "1.0.0",
+      "displayName": { "ar": "لوجستي بحري", "en": "Logistics Navy" },
+      "tokens": {
+        "colors": { "brand": "#1d4ed8", "ink": "#172554", "surface": "#eff6ff", "card": "#ffffff", "muted": "#475569" },
+        "typography": { "font.family": "Instrument Sans, system-ui, sans-serif", "font.heading-weight": "700", "font.body-weight": "400" },
+        "spacing": { "section": "5rem", "container": "min(1120px, calc(100% - 2rem))", "grid-gap": "1rem" },
+        "radii": { "card": "0.65rem", "button": "0.4rem" },
+        "shadows": { "card": "0 4px 16px rgb(30 64 175 / 0.12)" },
+        "breakpoints": { "mobile": "760px", "tablet": "1024px" }
+      },
+      "siteOverridePolicy": { "allowedTokenKeys": ["colors.brand", "colors.ink", "colors.surface", "colors.card", "typography.font.family", "radii.card"], "inheritMissingTokens": true }
+    },
+    {
+      "themeKey": "precision",
+      "version": "1.0.0",
+      "displayName": { "ar": "دقة فولاذية", "en": "Precision Steel" },
+      "tokens": {
+        "colors": { "brand": "#475569", "ink": "#0f172a", "surface": "#f8fafc", "card": "#ffffff", "muted": "#64748b" },
+        "typography": { "font.family": "Instrument Sans, system-ui, sans-serif", "font.heading-weight": "700", "font.body-weight": "400" },
+        "spacing": { "section": "5rem", "container": "min(1120px, calc(100% - 2rem))", "grid-gap": "1rem" },
+        "radii": { "card": "0.5rem", "button": "0.25rem" },
+        "shadows": { "card": "0 1px 3px rgb(15 23 42 / 0.14)" },
+        "breakpoints": { "mobile": "760px", "tablet": "1024px" }
+      },
+      "siteOverridePolicy": { "allowedTokenKeys": ["colors.brand", "colors.ink", "colors.surface", "colors.card", "typography.font.family", "radii.card"], "inheritMissingTokens": true }
+    },
+    {
+      "themeKey": "mobility",
+      "version": "1.0.0",
+      "displayName": { "ar": "حركة زرقاء", "en": "Mobility Blue" },
+      "tokens": {
+        "colors": { "brand": "#0369a1", "ink": "#082f49", "surface": "#f0f9ff", "card": "#ffffff", "muted": "#64748b" },
+        "typography": { "font.family": "Instrument Sans, system-ui, sans-serif", "font.heading-weight": "700", "font.body-weight": "400" },
+        "spacing": { "section": "5rem", "container": "min(1120px, calc(100% - 2rem))", "grid-gap": "1rem" },
+        "radii": { "card": "1rem", "button": "0.6rem" },
+        "shadows": { "card": "0 6px 20px rgb(3 105 161 / 0.12)" },
+        "breakpoints": { "mobile": "760px", "tablet": "1024px" }
+      },
+      "siteOverridePolicy": { "allowedTokenKeys": ["colors.brand", "colors.ink", "colors.surface", "colors.card", "typography.font.family", "radii.card"], "inheritMissingTokens": true }
+    },
+    {
+      "themeKey": "earthworks",
+      "version": "1.0.0",
+      "displayName": { "ar": "أرض نحاسية", "en": "Earth Copper" },
+      "tokens": {
+        "colors": { "brand": "#9a3412", "ink": "#431407", "surface": "#fff7ed", "card": "#ffffff", "muted": "#78716c" },
+        "typography": { "font.family": "Instrument Sans, system-ui, sans-serif", "font.heading-weight": "700", "font.body-weight": "400" },
+        "spacing": { "section": "5rem", "container": "min(1120px, calc(100% - 2rem))", "grid-gap": "1rem" },
+        "radii": { "card": "0.75rem", "button": "0.4rem" },
+        "shadows": { "card": "0 5px 18px rgb(120 53 15 / 0.12)" },
+        "breakpoints": { "mobile": "760px", "tablet": "1024px" }
+      },
+      "siteOverridePolicy": { "allowedTokenKeys": ["colors.brand", "colors.ink", "colors.surface", "colors.card", "typography.font.family", "radii.card"], "inheritMissingTokens": true }
+    }
+  ]
+}

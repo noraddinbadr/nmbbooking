@@ -30,8 +30,9 @@ const packagesCatalog = readJson(resolve(catalogsDir, 'packages.catalog.json'));
 const componentsCatalog = readJson(resolve(catalogsDir, 'components.catalog.json'));
 const sectorsCatalog = readJson(resolve(catalogsDir, 'sectors.catalog.json'));
 const permissionsCatalog = readJson(resolve(catalogsDir, 'permissions.catalog.json'));
+const themesCatalog = readJson(resolve(catalogsDir, 'themes.catalog.json'));
 
-if (packagesCatalog && componentsCatalog && sectorsCatalog && permissionsCatalog) {
+if (packagesCatalog && componentsCatalog && sectorsCatalog && permissionsCatalog && themesCatalog) {
   const packages = packagesCatalog.packages ?? [];
   const packageKeys = new Set();
   const permissionKeys = new Set();
@@ -75,8 +76,16 @@ if (packagesCatalog && componentsCatalog && sectorsCatalog && permissionsCatalog
     }
   }
 
+  const themeKeys = new Set();
+  for (const theme of themesCatalog.themes ?? []) {
+    assert(!themeKeys.has(theme.themeKey), `themeKey مكرر: ${theme.themeKey}`);
+    themeKeys.add(theme.themeKey);
+    assert((theme.siteOverridePolicy?.allowedTokenKeys ?? []).length > 0, `Theme ${theme.themeKey} لا يحدد سياسة تجاوز للموقع.`);
+  }
+
   for (const blueprint of sectorsCatalog.blueprints ?? []) {
     assert(blueprint.provisioning?.requiresReviewBeforePublish === true, `Blueprint ${blueprint.sectorKey} لا يتطلب مراجعة قبل النشر.`);
+    assert(themeKeys.has(blueprint.theme?.themeKey), `Blueprint ${blueprint.sectorKey} يشير إلى theme غير معرف: ${blueprint.theme?.themeKey}`);
     for (const packageEntry of blueprint.packages ?? []) {
       assert(packageKeys.has(packageEntry.packageKey), `Blueprint ${blueprint.sectorKey} يشير إلى حزمة غير معرفة: ${packageEntry.packageKey}`);
     }

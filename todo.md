@@ -145,8 +145,8 @@
 - [-] تنفيذ JSON Schema validation server-side لكل block props قبل الحفظ والنشر؛ خدمة تتحقق من props الأصلية والمترجمة عند الحفظ لمسودة وعند الاعتماد وتمنع المحتوى غير الصالح باختبارات تكامل، وتبقى API/controller.
 - [ ] تنفيذ component migration adapters للإصدارات غير المتوافقة.
 - [x] بناء renderer registry في Blade ومنع class names أو templates من customer input؛ الرندر لا يعتمد إلا Blade view محصورًا تحت `themes.components` من manifest موثق ويتحقق من وجوده قبل التضمين.
-- [ ] بناء theme catalog وtheme tokens: colors, typography, spacing, radii, shadows, breakpoints.
-- [ ] بناء site-level overrides وinheritance policy للـ theme tokens.
+- [x] بناء theme catalog وtheme tokens: colors, typography, spacing, radii, shadows, breakpoints؛ كتالوج عقود متحقق يغطي ثيمات جميع blueprints ويرتبط بفاحص العقود.
+- [x] بناء site-level overrides وinheritance policy للـ theme tokens؛ resolver يورث tokens من theme القطاعي ويقبل فقط المفاتيح التي تسمح بها سياسة manifest ويرفض غيرها باختبار تكامل.
 - [ ] بناء Page, Revision, Block, Global Section, Header, Footer, Menu models وActions.
 - [-] بناء content locks وoptimistic concurrency وconflict UI contract؛ `UpdatePageBlockAction` يقفل الصف ويطابق `lock_version` ويرفض stale writes ويدقق التعديل، وتبقى API وواجهة التعارض وlocks طويلة العمر.
 - [ ] بناء autosave workflow وrecovery للـ draft غير المنشور.
