@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Modules\Content\Http\PublicSiteApiController;
+use App\Modules\Identity\Http\MfaController;
 use App\Modules\Identity\Http\PlatformAuthController;
 use App\Modules\Shared\Http\Controllers\InternalHealthController;
 use Illuminate\Support\Facades\Route;
@@ -16,6 +17,8 @@ Route::prefix('platform/auth')->middleware('throttle:10,1')->group(function (): 
         ->name('platform.auth.register');
     Route::post('/login', [PlatformAuthController::class, 'login'])
         ->name('platform.auth.login');
+    Route::post('/mfa/verify', [PlatformAuthController::class, 'completeMfaLogin'])
+        ->name('platform.auth.mfa.verify');
 });
 
 Route::prefix('platform')->middleware('auth:sanctum')->group(function (): void {
@@ -23,6 +26,11 @@ Route::prefix('platform')->middleware('auth:sanctum')->group(function (): void {
         ->name('platform.auth.me');
     Route::post('/logout', [PlatformAuthController::class, 'logout'])
         ->name('platform.auth.logout');
+    Route::prefix('mfa/totp')->group(function (): void {
+        Route::post('/prepare', [MfaController::class, 'prepare'])->name('platform.mfa.totp.prepare');
+        Route::post('/confirm', [MfaController::class, 'confirm'])->name('platform.mfa.totp.confirm');
+        Route::post('/disable', [MfaController::class, 'disable'])->name('platform.mfa.totp.disable');
+    });
 });
 
 Route::prefix('v1')->middleware(['tenant.resolve', 'internal.health'])->group(function (): void {

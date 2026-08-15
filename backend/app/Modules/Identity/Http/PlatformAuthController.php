@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Http;
 
 use App\Models\User;
+use App\Modules\Identity\Services\MfaLoginChallengeService;
+use App\Modules\Identity\Services\MfaTotpService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -14,6 +16,11 @@ use Laravel\Sanctum\PersonalAccessToken;
 
 final class PlatformAuthController
 {
+    public function __construct(
+        private readonly MfaTotpService $mfaTotpService,
+        private readonly MfaLoginChallengeService $mfaLoginChallengeService,
+    ) {}
+
     public function register(Request $request): JsonResponse
     {
         abort_unless((bool) config('platform.allow_self_registration'), 404);
@@ -54,16 +61,36 @@ final class PlatformAuthController
             ]);
         }
 
-        $user->forceFill(['last_login_at' => now()])->save();
-        $token = $user->createToken($data['device_name'] ?? 'platform-api', ['platform:read']);
+        if ($this->mfaTotpService->requiresMfa($user)) {
+            return response()->json([
+                'data' => [
+                    'requires_mfa' => true,
+                    'challenge' => $this->mfaLoginChallengeService->create($user),
+                ],
+            ], 202);
+        }
 
-        return response()->json([
-            'data' => [
-                'token' => $token->plainTextToken,
-                'token_type' => 'Bearer',
-                'user' => $this->userPayload($user),
-            ],
+        return response()->json(['data' => $this->authenticatedPayload($user, $data['device_name'] ?? 'platform-api')]);
+    }
+
+    public function completeMfaLogin(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'challenge' => ['required', 'string', 'size:64'],
+            'code' => ['required', 'string', 'max:32'],
+            'device_name' => ['nullable', 'string', 'max:120'],
         ]);
+        $user = $this->mfaLoginChallengeService->resolve($data['challenge']);
+
+        if (! $this->mfaTotpService->verify($user, $data['code'])) {
+            throw ValidationException::withMessages([
+                'code' => ['The authentication code is invalid.'],
+            ]);
+        }
+
+        $this->mfaLoginChallengeService->consume($data['challenge']);
+
+        return response()->json(['data' => $this->authenticatedPayload($user, $data['device_name'] ?? 'platform-api')]);
     }
 
     public function me(Request $request): JsonResponse
@@ -83,6 +110,21 @@ final class PlatformAuthController
         }
 
         return response()->json(status: 204);
+    }
+
+    /**
+     * @return array{token: string, token_type: string, user: array{public_id: string, name: string, email: string, status: string}}
+     */
+    private function authenticatedPayload(User $user, string $deviceName): array
+    {
+        $user->forceFill(['last_login_at' => now()])->save();
+        $token = $user->createToken($deviceName, ['platform:read']);
+
+        return [
+            'token' => $token->plainTextToken,
+            'token_type' => 'Bearer',
+            'user' => $this->userPayload($user),
+        ];
     }
 
     /**

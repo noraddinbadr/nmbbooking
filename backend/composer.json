@@ -15,7 +15,8 @@
         "laravel/framework": "^13.17",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
-        "opis/json-schema": "^2.6"
+        "opis/json-schema": "^2.6",
+        "spomky-labs/otphp": "^11.0"
     },
     "require-dev": {
         "backpack/generators": "^4.1",
