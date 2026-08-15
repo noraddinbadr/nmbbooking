@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title }}</title>
     <link rel="canonical" href="{{ request()->getSchemeAndHttpHost() }}{{ $page->route_path }}">
+    @foreach ($site->locales()->where('status', 'active')->get() as $alternateLocale)
+        <link rel="alternate" hreflang="{{ $alternateLocale->locale }}" href="{{ request()->getSchemeAndHttpHost() }}{{ $page->route_path }}?lang={{ $alternateLocale->locale }}">
+    @endforeach
     @if (!empty($seo['description']))
         <meta name="description" content="{{ $seo['description'] }}">
     @endif

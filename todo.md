@@ -179,7 +179,7 @@
 - [x] تنفيذ Blade rendering من component registry وحزم نشطة فقط؛ Renderer Registry يحصر Blade views في manifests موثقة وسجل capabilities يخفي البلوكات التابعة لحزمة معطلة.
 - [ ] تنفيذ fragment cache keys باسم tenant/site/locale/revision/package-config version.
 - [ ] تنفيذ cache invalidation matrix لكل publish/config/package/theme/menu change.
-- [-] تنفيذ canonical URLs وhreflang وsitemap وrobots وRSS policy إن لزم؛ sitemap.xml وrobots.txt وcanonical tenant-aware مكتملة وتقتصر على الصفحات المنشورة، وتبقى hreflang/RSS.
+- [-] تنفيذ canonical URLs وhreflang وsitemap وrobots وRSS policy إن لزم؛ sitemap.xml وrobots.txt وcanonical وhreflang للغات الموقع النشطة مكتملة وتقتصر على الصفحات المنشورة، وتبقى RSS.
 - [ ] تنفيذ metadata editor وOpen Graph/Twitter cards وJSON-LD policy.
 - [ ] تنفيذ redirects 301/302 مع loop detection وimport/export.
 - [ ] تنفيذ 404/410/maintenance pages tenant-aware.
@@ -190,7 +190,7 @@
 
 - [ ] لا يمكن الوصول إلى draft أو future scheduled revision من public URL.
 - [ ] publish/rollback يغير public output ويرفع audit/cache versions كما هو متوقع.
-- [-] sitemap/robots/canonical/hreflang صحيحون لTenant ولغة ومسار؛ sitemap وrobots وcanonical اختبرت لنطاق العميل ومحتوى منشور فقط، وتبقى hreflang.
+- [x] sitemap/robots/canonical/hreflang صحيحون لTenant ولغة ومسار؛ جميعها اختبرت لنطاق العميل والصفحات المنشورة واللغة النشطة.
 - [ ] الصفحات الأساسية تتجاوز ميزانية الأداء المتفق عليها في staging.
 
 ---
