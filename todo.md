@@ -170,13 +170,13 @@
 
 ## Phase 6 — النشر والرندر العام وSEO
 
-- [-] تنفيذ models وسكيما revisions والإصدار المنشور والرندر؛ transitions وapproval/rollback actions لم تنفذ بعد.
-- [ ] تعيين `published_revision_id` مصدر الحقيقة الوحيد للزوار.
+- [-] تنفيذ models وسكيما revisions والإصدار المنشور والرندر؛ Page/Revision/Block وapprove/publish ورندر revision منشورة مطبقة، وتبقى rollback وscheduler وسياسات النشر والمراقبة.
+- [x] تعيين `published_revision_id` مصدر الحقيقة الوحيد للزوار؛ الرندر العام لا يجلب إلا page المنشورة وrevision المنشورة المشار إليها، وتغطيه اختبارات المسودة والرندر.
 - [ ] تنفيذ publish approvals حسب permission/site policy.
 - [ ] تنفيذ scheduler idempotent ملائم لقيود shared hosting.
 - [ ] تنفيذ rollback مع audit ومقارنة revision ومحو cache مضبوط.
-- [ ] تنفيذ public route resolution لمواقع ولغات ومسارات منشورة.
-- [ ] تنفيذ Blade rendering من component registry وحزم نشطة فقط.
+- [-] تنفيذ public route resolution لمواقع ولغات ومسارات منشورة؛ AddressResolver والرندر العام يدعمان tenant host وroutePath وlocale/fallback وdirection، وتبقى redirects وصفحات الأخطاء.
+- [x] تنفيذ Blade rendering من component registry وحزم نشطة فقط؛ Renderer Registry يحصر Blade views في manifests موثقة وسجل capabilities يخفي البلوكات التابعة لحزمة معطلة.
 - [ ] تنفيذ fragment cache keys باسم tenant/site/locale/revision/package-config version.
 - [ ] تنفيذ cache invalidation matrix لكل publish/config/package/theme/menu change.
 - [ ] تنفيذ canonical URLs وhreflang وsitemap وrobots وRSS policy إن لزم.
