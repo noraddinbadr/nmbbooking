@@ -174,7 +174,7 @@
 - [x] تعيين `published_revision_id` مصدر الحقيقة الوحيد للزوار؛ الرندر العام لا يجلب إلا page المنشورة وrevision المنشورة المشار إليها، وتغطيه اختبارات المسودة والرندر.
 - [ ] تنفيذ publish approvals حسب permission/site policy.
 - [ ] تنفيذ scheduler idempotent ملائم لقيود shared hosting.
-- [ ] تنفيذ rollback مع audit ومقارنة revision ومحو cache مضبوط.
+- [x] تنفيذ rollback مع audit ومقارنة revision ومحو cache مضبوط؛ Action يعيد صفحة إلى revision عامة سابقة من الصفحة نفسها داخل transaction، يسجل المصدر والهدف ويرفع إصدار المحتوى ويمحو cache باختبار تكامل.
 - [-] تنفيذ public route resolution لمواقع ولغات ومسارات منشورة؛ AddressResolver والرندر العام يدعمان tenant host وroutePath وlocale/fallback وdirection، وتبقى redirects وصفحات الأخطاء.
 - [x] تنفيذ Blade rendering من component registry وحزم نشطة فقط؛ Renderer Registry يحصر Blade views في manifests موثقة وسجل capabilities يخفي البلوكات التابعة لحزمة معطلة.
 - [ ] تنفيذ fragment cache keys باسم tenant/site/locale/revision/package-config version.
@@ -189,7 +189,7 @@
 ### بوابة Phase 6
 
 - [ ] لا يمكن الوصول إلى draft أو future scheduled revision من public URL.
-- [ ] publish/rollback يغير public output ويرفع audit/cache versions كما هو متوقع.
+- [-] publish/rollback يغير public output ويرفع audit/cache versions كما هو متوقع؛ rollback مغطى بالتدقيق وتبديل المصدر العام وإبطال cache، وتبقى مقارنة output المنشور وpublish policy.
 - [x] sitemap/robots/canonical/hreflang صحيحون لTenant ولغة ومسار؛ جميعها اختبرت لنطاق العميل والصفحات المنشورة واللغة النشطة.
 - [ ] الصفحات الأساسية تتجاوز ميزانية الأداء المتفق عليها في staging.
 
