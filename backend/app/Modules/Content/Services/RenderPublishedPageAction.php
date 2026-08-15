@@ -13,7 +13,6 @@ use App\Modules\Sites\Models\Site;
 use App\Modules\Tenancy\Services\TenantContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use RuntimeException;
 
 final class RenderPublishedPageAction
 {
@@ -86,26 +85,28 @@ final class RenderPublishedPageAction
     /** @param Collection<int, PageBlock> $blocks @param Collection<string, int> $activePackages */
     private function viewModels(Collection $blocks, string $locale, Collection $activePackages): array
     {
-        return $blocks->map(function (PageBlock $block) use ($locale, $activePackages): array {
-            $manifest = $this->components->require($block->component_key, $block->component_version);
-            $requiredPackages = collect($manifest['requiredPackages'] ?? []);
-            $missingPackage = $requiredPackages->first(fn (string $packageKey): bool => ! $activePackages->has($packageKey));
+        return $blocks
+            ->filter(function (PageBlock $block) use ($activePackages): bool {
+                $manifest = $this->components->require($block->component_key, $block->component_version);
 
-            if ($missingPackage !== null) {
-                throw new RuntimeException("Published block [{$block->public_id}] requires inactive package [{$missingPackage}].");
-            }
+                return collect($manifest['requiredPackages'] ?? [])
+                    ->every(fn (string $packageKey): bool => $activePackages->has($packageKey));
+            })
+            ->map(function (PageBlock $block) use ($locale): array {
+                $manifest = $this->components->require($block->component_key, $block->component_version);
+                $translation = $block->translations->firstWhere('locale', $locale);
 
-            $translation = $block->translations->firstWhere('locale', $locale);
-
-            return [
-                'publicId' => $block->public_id,
-                'componentKey' => $block->component_key,
-                'componentVersion' => $block->component_version,
-                'view' => $manifest['renderer']['bladeView'],
-                'variant' => $block->variant_key,
-                'props' => $translation?->props_json ?? $block->props_json,
-                'style' => $block->style_json ?? [],
-            ];
-        })->all();
+                return [
+                    'publicId' => $block->public_id,
+                    'componentKey' => $block->component_key,
+                    'componentVersion' => $block->component_version,
+                    'view' => $manifest['renderer']['bladeView'],
+                    'variant' => $block->variant_key,
+                    'props' => $translation?->props_json ?? $block->props_json,
+                    'style' => $block->style_json ?? [],
+                ];
+            })
+            ->values()
+            ->all();
     }
 }

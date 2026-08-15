@@ -122,9 +122,9 @@
 - [ ] بناء `ActivatePackageAction` ضمن transaction: entitlement → dependencies → config defaults → seed → audit → cache invalidation.
 - [-] بناء `DisablePackageAction` مع سياسة البيانات: hide/retain/export/delete after retention؛ نُفذ الإيقاف بسياسة retain وتدقيق وإبطال cache ومنع تعطيل اعتماد نشط؛ تبقى export/delete after retention.
 - [ ] منع أي migration أو Composer أو external download عند activation.
-- [ ] بناء package capabilities registry للـ admin menus/API routes/public components/background actions.
+- [-] بناء package capabilities registry للـ admin menus/API routes/public components/background actions؛ رندر الواجهة العامة يتحقق الآن من `requiredPackages` ويخفي البلوكات التابعة لحزمة معطلة، وتبقى طبقات القوائم وAPI والمهام الخلفية.
 - [ ] بناء package compatibility matrix وsemver rules.
-- [ ] كتابة package lifecycle tests: activate, duplicate, dependency, conflict, disabled render, rollback.
+- [-] كتابة package lifecycle tests: activate, duplicate, dependency, conflict, disabled render, rollback؛ اختُبر التفعيل، الإخفاء عند التعطيل، وrollback في المسار الحالي؛ وتبقى حالات duplicate/dependency/conflict كاختبارات صريحة.
 - [-] تنفيذ Sector Blueprint versioning وsnapshot عند إنشاء موقع؛ كتالوج blueprints متحقق من العقد ويطبق النسخة في إعداد موقع مع audit، وتبقى snapshot غير القابل للتعديل عند provisioning.
 - [x] تنفيذ `ApplySectorBlueprintAction` مع dry-run/report قبل التفعيل؛ ينشئ صفحات مسودات فقط ويدمج defaults الحزم ثم يفعلها بلا نشر تلقائي وباختبار تكامل.
 - [-] إضافة blueprints أولية: construction, solar-energy, logistics, transport, manufacturing, mining؛ الكتالوج يحوي construction وsolar-energy وlogistics وmanufacturing، ويبقى transport وmining.
@@ -134,7 +134,7 @@
 ### بوابة Phase 4
 
 - [ ] تفعيل حزمة يغير capabilities المقصودة فقط ولا ينفذ migration أو يكسر موقعًا منشورًا.
-- [-] إيقاف حزمة يخفي surface الخاص بها من public/admin/API وفق policy دون فقد صامت للبيانات؛ حالة التفعيل تحفظ كـ disabled مع البيانات وaudit، ويبقى ربط capabilities بالواجهات.
+- [-] إيقاف حزمة يخفي surface الخاص بها من public/admin/API وفق policy دون فقد صامت للبيانات؛ حالة التفعيل تحفظ كـ disabled مع البيانات وaudit، ورندر public يخفي البلوكات التابعة فعلًا باختبار تكامل، وتبقى واجهات admin/API.
 - [ ] أي package manifest غير مطابق للعقد يرفض في CI وقبل النشر.
 
 ---
