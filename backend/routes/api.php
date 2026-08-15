@@ -3,12 +3,27 @@
 declare(strict_types=1);
 
 use App\Modules\Content\Http\PublicSiteApiController;
+use App\Modules\Identity\Http\PlatformAuthController;
 use App\Modules\Shared\Http\Controllers\InternalHealthController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/internal/health', InternalHealthController::class)
     ->middleware('internal.health')
     ->name('internal.health');
+
+Route::prefix('platform/auth')->middleware('throttle:10,1')->group(function (): void {
+    Route::post('/register', [PlatformAuthController::class, 'register'])
+        ->name('platform.auth.register');
+    Route::post('/login', [PlatformAuthController::class, 'login'])
+        ->name('platform.auth.login');
+});
+
+Route::prefix('platform')->middleware('auth:sanctum')->group(function (): void {
+    Route::get('/me', [PlatformAuthController::class, 'me'])
+        ->name('platform.auth.me');
+    Route::post('/logout', [PlatformAuthController::class, 'logout'])
+        ->name('platform.auth.logout');
+});
 
 Route::prefix('v1')->middleware(['tenant.resolve', 'internal.health'])->group(function (): void {
     Route::get('/internal/health', InternalHealthController::class)

@@ -90,7 +90,7 @@
 
 ## Phase 3 — Identity وTenancy وAddress Resolution
 
-- [ ] بناء registration/invitation/login/logout/password reset/email verification.
+- [-] بناء registration/invitation/login/logout/password reset/email verification؛ نُفذ registration اختياري معطل افتراضيًا وlogin/logout/`me` برموز Sanctum قابلة للإلغاء واختبارات تكامل، وتبقى invitations والاستعادة والتحقق البريدي.
 - [ ] بناء MFA اختياري للمشرفين وrecovery codes وسياسة قفل الحساب.
 - [ ] بناء `TenantMembership` مع role وsite scopes وحالة invitation/disabled.
 - [ ] بناء Permission catalog وربط role-permission ومصفوفة ownership.

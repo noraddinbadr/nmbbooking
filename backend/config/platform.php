@@ -11,6 +11,7 @@ return [
     'tenant_migrations_connection_name' => env('TENANT_MIGRATIONS_CONNECTION', 'tenant_migrator'),
     'tenant_cache_ttl_seconds' => (int) env('TENANT_CONTEXT_CACHE_TTL', 60),
     'default_locale' => env('PLATFORM_DEFAULT_LOCALE', 'ar'),
+    'allow_self_registration' => env('PLATFORM_ALLOW_SELF_REGISTRATION', false),
     'strict_contract_validation' => env('PLATFORM_STRICT_CONTRACT_VALIDATION', true),
     'content_security_policy' => env(
         'PLATFORM_CONTENT_SECURITY_POLICY',
