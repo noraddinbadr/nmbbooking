@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Modules\Content\Models\Page;
 use App\Modules\Packages\Models\PackageActivation;
 use App\Modules\Packages\Services\ApplySectorBlueprintAction;
+use App\Modules\Packages\Services\SectorBlueprintCatalog;
 use App\Modules\Sites\Models\Site;
 use App\Modules\Tenancy\Services\AddressResolver;
 use App\Modules\Tenancy\Services\TenantDatabaseManager;
@@ -23,6 +24,18 @@ final class SectorBlueprintTest extends TestCase
         parent::setUp();
         $this->seed(PlatformCatalogSeeder::class);
         $this->seed(AcmeConstructionSeeder::class);
+    }
+
+    public function test_transport_and_mining_blueprints_are_available_with_safe_defaults(): void
+    {
+        $catalog = app(SectorBlueprintCatalog::class);
+        $transport = $catalog->require('transport');
+        $mining = $catalog->require('mining');
+
+        self::assertSame('/coverage', $transport['templates'][2]['routePath']);
+        self::assertSame('social.links', $transport['packages'][3]['packageKey']);
+        self::assertSame('/sustainability', $mining['templates'][2]['routePath']);
+        self::assertSame('analytics.config', $mining['packages'][3]['packageKey']);
     }
 
     public function test_blueprint_dry_run_is_non_mutating_and_apply_creates_drafts_and_activations(): void

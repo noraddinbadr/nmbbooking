@@ -78,6 +78,46 @@
         { "templateKey": "manufacturing.contact.v1", "routePath": "/contact", "purpose": "contact" }
       ],
       "provisioning": { "seedVersion": "1.0.0", "createsDefaultSite": true, "requiresReviewBeforePublish": true }
+    },
+    {
+      "sectorKey": "transport",
+      "version": "1.0.0",
+      "displayName": { "ar": "النقل", "en": "Transport" },
+      "defaultLocale": "ar",
+      "theme": { "themeKey": "mobility", "tokenPreset": "mobility-blue" },
+      "packages": [
+        { "packageKey": "media.library", "activationMode": "required", "config": {} },
+        { "packageKey": "seo.core", "activationMode": "enabled-by-default", "config": { "generateSitemap": true, "allowNoindex": false } },
+        { "packageKey": "forms.leads", "activationMode": "enabled-by-default", "config": { "antiSpam": true, "recipientEmails": [] } },
+        { "packageKey": "social.links", "activationMode": "enabled-by-default", "config": { "networks": [] } }
+      ],
+      "templates": [
+        { "templateKey": "transport.home.v1", "routePath": "/", "purpose": "home" },
+        { "templateKey": "transport.services.v1", "routePath": "/services", "purpose": "services" },
+        { "templateKey": "transport.coverage.v1", "routePath": "/coverage", "purpose": "listing" },
+        { "templateKey": "transport.contact.v1", "routePath": "/contact", "purpose": "contact" }
+      ],
+      "provisioning": { "seedVersion": "1.0.0", "createsDefaultSite": true, "requiresReviewBeforePublish": true }
+    },
+    {
+      "sectorKey": "mining",
+      "version": "1.0.0",
+      "displayName": { "ar": "التعدين", "en": "Mining" },
+      "defaultLocale": "ar",
+      "theme": { "themeKey": "earthworks", "tokenPreset": "earth-copper" },
+      "packages": [
+        { "packageKey": "media.library", "activationMode": "required", "config": {} },
+        { "packageKey": "seo.core", "activationMode": "enabled-by-default", "config": { "generateSitemap": true, "allowNoindex": false } },
+        { "packageKey": "forms.leads", "activationMode": "enabled-by-default", "config": { "antiSpam": true, "recipientEmails": [] } },
+        { "packageKey": "analytics.config", "activationMode": "enabled-by-default", "config": { "provider": "none", "measurementId": "" } }
+      ],
+      "templates": [
+        { "templateKey": "mining.home.v1", "routePath": "/", "purpose": "home" },
+        { "templateKey": "mining.operations.v1", "routePath": "/operations", "purpose": "services" },
+        { "templateKey": "mining.sustainability.v1", "routePath": "/sustainability", "purpose": "listing" },
+        { "templateKey": "mining.contact.v1", "routePath": "/contact", "purpose": "contact" }
+      ],
+      "provisioning": { "seedVersion": "1.0.0", "createsDefaultSite": true, "requiresReviewBeforePublish": true }
     }
   ]
 }

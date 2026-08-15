@@ -127,7 +127,7 @@
 - [-] كتابة package lifecycle tests: activate, duplicate, dependency, conflict, disabled render, rollback؛ اختُبر التفعيل، الإخفاء عند التعطيل، rollback في المسار الحالي، ورفض dependency غير المتوافقة؛ وتبقى حالات duplicate/conflict الصريحة.
 - [-] تنفيذ Sector Blueprint versioning وsnapshot عند إنشاء موقع؛ كتالوج blueprints متحقق من العقد ويطبق النسخة في إعداد موقع مع audit، وتبقى snapshot غير القابل للتعديل عند provisioning.
 - [x] تنفيذ `ApplySectorBlueprintAction` مع dry-run/report قبل التفعيل؛ ينشئ صفحات مسودات فقط ويدمج defaults الحزم ثم يفعلها بلا نشر تلقائي وباختبار تكامل.
-- [-] إضافة blueprints أولية: construction, solar-energy, logistics, transport, manufacturing, mining؛ الكتالوج يحوي construction وsolar-energy وlogistics وmanufacturing، ويبقى transport وmining.
+- [x] إضافة blueprints أولية: construction, solar-energy, logistics, transport, manufacturing, mining؛ جميعها متحققة بالعقد، وtransport/mining يستخدمان الحزم العامة بتكوينات افتراضية آمنة وتبقي الصفحات مسودات للمراجعة.
 - [x] بناء حزم عامة: `seo.core`, `forms.leads`, `media.library`, `social.links`, `analytics.config`؛ عقودها وصلاحياتها وentitlements وcapabilities مكتملة، واختُبر تفعيل social/analytics مع تحقق config خادمي.
 - [-] بناء حزم قطاعية أولية حسب catalog وقيودها؛ construction.projects وlogistics.fleet معرفتان ومتوافقتان ومغطاتان باختبارات lifecycle، وتبقى حزم قطاعات الطاقة والتصنيع والنقل والتعدين.
 
