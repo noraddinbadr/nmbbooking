@@ -20,12 +20,13 @@ final class ThemeTokenResolver
             ->where('site_id', $site->id)
             ->where('setting_key', 'sector.blueprint')
             ->value('value_json');
-        if (! is_string($blueprint)) {
-            throw new RuntimeException("Site [{$site->public_id}] has no sector blueprint theme.");
+        $themeKey = 'industrial';
+        if (is_string($blueprint)) {
+            $blueprintValue = json_decode($blueprint, true, flags: JSON_THROW_ON_ERROR);
+            $themeKey = (string) ($blueprintValue['theme']['themeKey'] ?? $themeKey);
         }
 
-        $blueprintValue = json_decode($blueprint, true, flags: JSON_THROW_ON_ERROR);
-        $theme = $this->themes->require((string) $blueprintValue['theme']['themeKey']);
+        $theme = $this->themes->require($themeKey);
         /** @var array<string, array<string, string>> $groups */
         $groups = $theme['tokens'];
         $tokens = $this->flatten($groups);
@@ -41,7 +42,12 @@ final class ThemeTokenResolver
                 throw new RuntimeException("Site [{$site->public_id}] overrides non-permitted theme token [{$tokenKey}].");
             }
 
-            $tokens[$tokenKey] = (string) $override->token_value;
+            $value = (string) $override->token_value;
+            if (str_contains($value, ';') || str_contains($value, '{') || str_contains($value, '}')) {
+                throw new RuntimeException("Site [{$site->public_id}] contains unsafe theme token value [{$tokenKey}].");
+            }
+
+            $tokens[$tokenKey] = $value;
         }
 
         return $tokens;

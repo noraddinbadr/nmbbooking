@@ -51,9 +51,16 @@ final class ThemeTokenResolverTest extends TestCase
             ['token_value' => '10rem', 'version' => 1, 'created_at' => now(), 'updated_at' => now()],
         );
 
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('overrides non-permitted theme token [spacing.section]');
-        $resolver->resolve($site);
+        try {
+            $this->expectException(RuntimeException::class);
+            $this->expectExceptionMessage('overrides non-permitted theme token [spacing.section]');
+            $resolver->resolve($site);
+        } finally {
+            $tenant->table('site_theme_tokens')
+                ->where('site_id', $site->id)
+                ->where('token_key', 'spacing.section')
+                ->delete();
+        }
     }
 
     private function context(): TenantContext

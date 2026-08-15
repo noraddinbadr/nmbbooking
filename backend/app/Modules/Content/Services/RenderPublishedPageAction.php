@@ -21,6 +21,7 @@ final class RenderPublishedPageAction
         private readonly ComponentRegistry $components,
         private readonly ComponentRendererRegistry $renderers,
         private readonly PackageCapabilityRegistry $capabilities,
+        private readonly ThemeTokenResolver $themeTokens,
     ) {}
 
     /** @return array<string, mixed> */
@@ -60,6 +61,7 @@ final class RenderPublishedPageAction
             'page' => $page,
             'title' => $translation->title,
             'seo' => $translation->seo_json ?? [],
+            'themeTokens' => $this->themeTokens->resolve($site),
             'blocks' => $this->viewModels($revision->blocks, $locale, $this->capabilities->activePackageKeys($context, $site)),
         ];
     }
