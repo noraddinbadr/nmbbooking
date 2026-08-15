@@ -36,6 +36,7 @@ dist-ssr
 /backend/storage/framework/cache/
 /backend/storage/framework/sessions/
 /backend/storage/framework/views/
+/backend/storage/framework/phpstan/
 /backend/bootstrap/cache/*.php
 !/backend/bootstrap/cache/.gitignore
 /backend/database/*.sqlite

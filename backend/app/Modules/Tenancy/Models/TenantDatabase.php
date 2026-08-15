@@ -7,6 +7,19 @@ namespace App\Modules\Tenancy\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $tenant_id
+ * @property string $connection_key
+ * @property string $database_name
+ * @property string $db_host
+ * @property int $db_port
+ * @property string $db_username
+ * @property string $credential_ref
+ * @property string $schema_version
+ * @property string $status
+ * @property-read Tenant $tenant
+ */
 final class TenantDatabase extends Model
 {
     protected $connection = 'platform';
@@ -31,6 +44,7 @@ final class TenantDatabase extends Model
         ];
     }
 
+    /** @return BelongsTo<Tenant, $this> */
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);

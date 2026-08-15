@@ -13,6 +13,14 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
+/**
+ * @property int $id
+ * @property string $public_id
+ * @property string $name
+ * @property string $email
+ * @property string $password
+ * @property string $status
+ */
 #[Fillable(['name', 'email', 'password', 'status'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable

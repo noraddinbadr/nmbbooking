@@ -5,10 +5,26 @@ declare(strict_types=1);
 namespace App\Modules\Content\Models;
 
 use App\Modules\Shared\Models\UsesTenantConnection;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $page_revision_id
+ * @property string $public_id
+ * @property string $component_key
+ * @property string $component_version
+ * @property int $position
+ * @property bool $enabled
+ * @property string|null $variant_key
+ * @property array<string, mixed> $props_json
+ * @property array<string, mixed>|null $style_json
+ * @property array<string, mixed>|null $visibility_rules_json
+ * @property-read PageRevision $revision
+ * @property-read Collection<int, PageBlockTranslation> $translations
+ */
 final class PageBlock extends Model
 {
     use UsesTenantConnection;
@@ -37,11 +53,13 @@ final class PageBlock extends Model
         ];
     }
 
+    /** @return BelongsTo<PageRevision, $this> */
     public function revision(): BelongsTo
     {
         return $this->belongsTo(PageRevision::class, 'page_revision_id');
     }
 
+    /** @return HasMany<PageBlockTranslation, $this> */
     public function translations(): HasMany
     {
         return $this->hasMany(PageBlockTranslation::class);

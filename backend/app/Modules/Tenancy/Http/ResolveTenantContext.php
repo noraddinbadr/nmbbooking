@@ -9,6 +9,7 @@ use App\Modules\Tenancy\Services\TenantContext;
 use App\Modules\Tenancy\Services\TenantDatabaseManager;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 final class ResolveTenantContext
@@ -29,6 +30,10 @@ final class ResolveTenantContext
         $this->databaseManager->activate($context);
         app()->instance(TenantContext::class, $context);
         $request->attributes->set(TenantContext::class, $context);
+        Log::withContext([
+            'tenant_public_id' => $context->tenantPublicId,
+            'site_public_id' => $context->sitePublicId,
+        ]);
 
         try {
             return $next($request);

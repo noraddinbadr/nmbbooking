@@ -8,6 +8,13 @@ use App\Modules\Shared\Models\UsesTenantConnection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $page_block_id
+ * @property string $locale
+ * @property array<string, mixed> $props_json
+ * @property-read PageBlock $block
+ */
 final class PageBlockTranslation extends Model
 {
     use UsesTenantConnection;
@@ -23,6 +30,7 @@ final class PageBlockTranslation extends Model
         return ['props_json' => 'array'];
     }
 
+    /** @return BelongsTo<PageBlock, $this> */
     public function block(): BelongsTo
     {
         return $this->belongsTo(PageBlock::class, 'page_block_id');

@@ -47,6 +47,31 @@ return [
             'report' => false,
         ],
 
+        'tenant-public' => [
+            'driver' => 'local',
+            'root' => env('TENANT_PUBLIC_STORAGE_PATH', storage_path('app/tenant-public')),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/media',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        'tenant-private' => [
+            'driver' => 'local',
+            'root' => env('TENANT_PRIVATE_STORAGE_PATH', storage_path('app/tenant-private')),
+            'visibility' => 'private',
+            'throw' => false,
+            'report' => false,
+        ],
+
+        'temporary' => [
+            'driver' => 'local',
+            'root' => env('TEMPORARY_STORAGE_PATH', storage_path('app/temporary')),
+            'visibility' => 'private',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
@@ -75,6 +100,7 @@ return [
 
     'links' => [
         public_path('storage') => storage_path('app/public'),
+        public_path('media') => env('TENANT_PUBLIC_STORAGE_PATH', storage_path('app/tenant-public')),
     ],
 
 ];

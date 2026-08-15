@@ -7,6 +7,17 @@ namespace App\Modules\Tenancy\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $tenant_id
+ * @property string $site_public_id
+ * @property string $address_type
+ * @property string $hostname
+ * @property string $path_prefix
+ * @property bool $is_primary
+ * @property string $status
+ * @property-read Tenant $tenant
+ */
 final class SiteAddress extends Model
 {
     protected $connection = 'platform';
@@ -30,6 +41,7 @@ final class SiteAddress extends Model
         ];
     }
 
+    /** @return BelongsTo<Tenant, $this> */
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);

@@ -39,24 +39,24 @@
 
 - [x] تثبيت Laravel 13 على PHP 8.3 محليًا؛ يبقى التحقق من نسخة حساب Namecheap الحقيقي شرط نشر.
 - [x] إنشاء تطبيق Laravel داخل `backend/` مع Composer lock وبنية Backend منفصلة.
-- [ ] تفعيل Pint وPHPStan/Psalm بمستوى صارم تدريجيًا.
-- [ ] تفعيل PHPUnit أو Pest، وتهيئة coverage reports.
+- [-] تفعيل Pint وPHPStan/Psalm بمستوى صارم تدريجيًا؛ Pint وLarastan مفعّلان ويجتازان الشفرة عند المستوى 3، ومندمجان في CI؛ يبقى رفع مستوى التحليل تدريجيًا مع توسع الوحدات.
+- [-] تفعيل PHPUnit أو Pest، وتهيئة coverage reports؛ PHPUnit مفعّل مع اختبارات تكامل MySQL للرندر والعزل والحزم والصحة وواجهات API، ويبقى تقرير التغطية ضمن CI.
 - [-] إنشاء Modular Monolith؛ أنجزت boundaries الفعلية لـ `Modules/Tenancy`, `Sites`, `Content`, `Packages`, `Components` و`Admin`، وتستكمل طبقات Domain/Application/Infrastructure المنفصلة.
 - [ ] تعريف قاعدة منع Controllers من احتواء workflow أو SQL مباشر.
 - [ ] تعريف قاعدة منع Views/Admin Resources من تجاوز Policies وApplication Actions.
-- [ ] إنشاء error envelope موحد للـ API وcorrelation ID لكل طلب.
-- [ ] إنشاء structured logging مع tenant/public request context من دون أسرار أو PII حساس.
-- [ ] إضافة health endpoints داخلية: app, platform-db, tenant-db, storage, cache.
+- [x] إنشاء error envelope موحد للـ API وcorrelation ID لكل طلب؛ نُفذ `X-Request-Id` آمن ومربوط بالـ response/log context، وAPI يعيد envelope آمنًا ثابتًا ومختبرًا للأخطاء المتوقعة.
+- [-] إنشاء structured logging مع tenant/public request context من دون أسرار أو PII حساس؛ نُفذ request context، ويبقى إثراؤه بسياق Tenant/Audit وسياسة تنقيح البيانات.
+- [x] إضافة health endpoints داخلية: app, platform-db, tenant-db, storage, cache؛ نُفذت جميع الفحوصات، ومساراتها محمية برمز مراقبة ومختبرة مركزيًا وضمن سياق عميل موثق.
 - [ ] إعداد Laravel Cache abstraction وdrivers المحلية؛ لا يعتمد منطق الأعمال على Redis مباشرة.
 - [ ] إعداد mail abstraction وfake driver للاختبارات.
-- [ ] إعداد filesystem disks: tenant-public وtenant-private وtemporary.
+- [x] إعداد filesystem disks: tenant-public وtenant-private وtemporary، مع public link للوسائط المنشورة فقط وفحص health ينظف أثره المؤقت.
 - [ ] إعداد Vite pipeline للـ admin assets والـ public theme assets.
 
 ### بوابة Phase 1
 
-- [ ] `composer test`, static analysis, formatter, وbuild assets تعمل في CI من clone نظيف.
+- [-] `composer test`, static analysis, formatter, وbuild assets تعمل في CI من clone نظيف؛ contracts وPint وLarastan وPHPUnit معرّفة في workflow المحلي، ويبقى دفعه وتأكيده على GitHub وبناء assets.
 - [ ] application boot لا يحتاج بيانات tenant عند CLI/migrations.
-- [ ] baseline security headers وerror handling لا يظهران stack traces في production mode.
+- [-] baseline security headers وerror handling لا يظهران stack traces في production mode؛ نُفذت CSP قابلة للضبط ورؤوس حماية وAPI error envelope واختُبرت، ويبقى smoke test صريح بوضع production قبل الإغلاق.
 
 ---
 
