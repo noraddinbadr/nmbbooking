@@ -20,11 +20,9 @@
 | الاستضافة الأولى | Namecheap Shared Hosting لعدد 20–30 عميلًا بإنشاء متباعد ومراقب |
 | الانتقال المستقبلي | VPS أو Dedicated أو Managed MySQL دون إعادة تصميم نموذج البيانات |
 
-## 2. حالة المستودع وقرار التحويل
+## 2. نطاق المستودع
 
-يحتوي المستودع عند البدء على تطبيق React/Vite/Supabase خاص بنطاق صحي مختلف. لا يشكل ذلك التطبيق أساسًا صالحًا لهذا المنتج، لأن المنتج المعتمد يحتاج Laravel/PHP وMySQL وSSR وعزلًا متعدد العملاء بقاعدة مستقلة لكل عميل. لا يجوز خلط نطاقات الأعمال أو إعادة استخدام طبقات Supabase الطبية في النظام الجديد.
-
-تظل الشفرة القائمة محفوظة إلى أن يعتمد مالك المنتج قرار الأرشفة أو الفصل في branch/repository مستقل. يبدأ المنتج الجديد داخل هذا المستودع بهيكل `backend/`, `mobile/`, `contracts/`, `docs/`, و`infrastructure/` كما يحدد `TODO.md`. لا تبدأ إعادة استخدام مكونات الواجهة القديمة قبل مراجعة صريحة لملاءمتها وترخيصها وجودتها.
+يمثل هذا المستودع المصدر الحاكم لمنصة مواقع الأعمال متعددة العملاء. يبدأ تنفيذ المنتج ضمن هيكل `backend/`, `mobile/`, `contracts/`, `docs/`, و`infrastructure/` كما يحدد `TODO.md`. لا تدخل أي شفرة أو وثيقة أو أصل لا يخدم المعمارية المعتمدة إلى مسار التنفيذ.
 
 ## 3. المعمارية المرجعية
 
@@ -160,7 +158,7 @@ draft → in_review → approved → scheduled → published → superseded
 | `contracts/catalogs/packages.catalog.json` | أولي | الحزم الأساسية والقطاعية المعتمدة |
 | `contracts/catalogs/sectors.catalog.json` | أولي | blueprints للقطاعات المدعومة أولًا |
 | `contracts/catalogs/permissions.catalog.json` | حاكم | موارد وأفعال صلاحيات المنصة |
-| `docs/adr/ADR-0001-product-replatforming.md` | معتمد | سبب فصل النظام القديم واعتماد Laravel/MySQL |
+| `docs/adr/ADR-0001-platform-foundation.md` | معتمد | قرار تأسيس المنصة واعتماد Laravel/MySQL |
 | `docs/product/PRD.md` | حاكم | نطاق المنتج، personas، workflows، NFRs |
 | `docs/operations/production-readiness.md` | حاكم | متطلبات الإطلاق والتشغيل والترحيل |
 
