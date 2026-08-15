@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\PackageMarketplaceController;
 use App\Http\Controllers\Admin\PlatformDashboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,6 +20,8 @@ Route::group([
 ], function () { // custom admin routes
     Route::get('platform', PlatformDashboardController::class)
         ->name('platform.dashboard');
+    Route::get('packages', PackageMarketplaceController::class)
+        ->name('platform.packages.marketplace');
 }); // this should be the absolute last line of this file
 
 /**

@@ -74,6 +74,17 @@ final class ExampleTest extends TestCase
             ->assertSee('تشغيل المنصة');
     }
 
+    public function test_platform_owner_can_access_the_package_marketplace_in_the_single_admin_dashboard(): void
+    {
+        $owner = User::query()->where('email', 'owner@example.test')->firstOrFail();
+
+        $this->actingAs($owner, 'backpack')
+            ->get('/admin/packages')
+            ->assertOk()
+            ->assertSee('Marketplace الحزم')
+            ->assertSee('construction.projects');
+    }
+
     public function test_reviewer_approval_and_publish_atomically_move_the_public_revision(): void
     {
         $request = Request::create('http://acme.localhost/');

@@ -117,7 +117,7 @@
 ## Phase 4 — Package Platform وSector Blueprints
 
 - [x] تنفيذ `PackageManifest` من JSON Schema والتأكد من compatibility/version/dependencies/conflicts؛ الكتالوج يرفض المفاتيح المكررة والاعتماديات/التعارضات الذاتية أو المجهولة وقيود النسخ غير المتحققة، والتحقق مغطى بالاختبارات.
-- [-] بناء package catalog مركزي وواجهة Marketplace داخل لوحة التحكم؛ كتالوج manifests وخدمة قائمة Marketplace الخادمية مكتملان، وتبقى Backpack CRUD/actions وواجهته الواحدة.
+- [-] بناء package catalog مركزي وواجهة Marketplace داخل لوحة التحكم؛ كتالوج manifests وخدمة القائمة وصفحة Marketplace للقراءة داخل Backpack مكتملة ومختبرة، وتبقى actions إدارة الاستحقاقات والتفعيل/التعطيل عبر الواجهة.
 - [x] بناء entitlement check حسب plan وTenant وموقع؛ خدمة مركزية تتحقق من entitlement المدرج والمفعّل وغير المنتهي وتنتج قائمة Marketplace خادمية، وتمنع activation عند السحب أو الانتهاء باختبار تكامل.
 - [-] بناء `ActivatePackageAction` ضمن transaction: entitlement → dependencies → config defaults → seed → audit → cache invalidation؛ entitlement والتوافق والاعتماديات والconfig والتدقيق الذري وcache invalidation منجزة ومختبرة، وتبقى seed hooks.
 - [-] بناء `DisablePackageAction` مع سياسة البيانات: hide/retain/export/delete after retention؛ نُفذ الإيقاف بسياسة retain وتدقيق وإبطال cache ومنع تعطيل اعتماد نشط؛ تبقى export/delete after retention.
