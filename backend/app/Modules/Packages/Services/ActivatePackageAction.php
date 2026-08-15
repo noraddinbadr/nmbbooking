@@ -122,7 +122,7 @@ final class ActivatePackageAction
     {
         try {
             $this->schemas->assertValid(
-                $config,
+                $config === [] ? (object) [] : $config,
                 (array) ($manifest['configuration']['jsonSchema'] ?? []),
                 'package-config:'.$manifest['packageKey'],
             );

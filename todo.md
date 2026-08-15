@@ -125,9 +125,9 @@
 - [ ] بناء package capabilities registry للـ admin menus/API routes/public components/background actions.
 - [ ] بناء package compatibility matrix وsemver rules.
 - [ ] كتابة package lifecycle tests: activate, duplicate, dependency, conflict, disabled render, rollback.
-- [ ] تنفيذ Sector Blueprint versioning وsnapshot عند إنشاء موقع.
-- [ ] تنفيذ `ApplySectorBlueprintAction` مع dry-run/report قبل التفعيل.
-- [ ] إضافة blueprints أولية: construction, solar-energy, logistics, transport, manufacturing, mining.
+- [-] تنفيذ Sector Blueprint versioning وsnapshot عند إنشاء موقع؛ كتالوج blueprints متحقق من العقد ويطبق النسخة في إعداد موقع مع audit، وتبقى snapshot غير القابل للتعديل عند provisioning.
+- [x] تنفيذ `ApplySectorBlueprintAction` مع dry-run/report قبل التفعيل؛ ينشئ صفحات مسودات فقط ويدمج defaults الحزم ثم يفعلها بلا نشر تلقائي وباختبار تكامل.
+- [-] إضافة blueprints أولية: construction, solar-energy, logistics, transport, manufacturing, mining؛ الكتالوج يحوي construction وsolar-energy وlogistics وmanufacturing، ويبقى transport وmining.
 - [ ] بناء حزم عامة: `seo.core`, `forms.leads`, `media.library`, `social.links`, `analytics.config`.
 - [ ] بناء حزم قطاعية أولية حسب catalog وقيودها.
 
