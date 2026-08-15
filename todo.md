@@ -150,7 +150,7 @@
 - [-] بناء Page, Revision, Block, Global Section, Header, Footer, Menu models وActions؛ نماذج Page/Revision/Block والترجمات قائمة، وAction ينشئ مسودة مستقلة بنسخ البلوكات والترجمات من المصدر المنشور، وتبقى global sections/header/footer/menu actions.
 - [-] بناء content locks وoptimistic concurrency وconflict UI contract؛ `UpdatePageBlockAction` يقفل الصف ويطابق `lock_version` ويرفض stale writes ويدقق التعديل، وتبقى API وواجهة التعارض وlocks طويلة العمر.
 - [ ] بناء autosave workflow وrecovery للـ draft غير المنشور.
-- [ ] بناء drag-and-drop ordering مع keyboard accessibility.
+- [-] بناء drag-and-drop ordering مع keyboard accessibility؛ Action خادمي يعيد ترتيب كل بلوكات المسودة ذريًا مع إزاحة MySQL آمنة ويرفض القوائم الناقصة/المكررة، وتبقى واجهة السحب ولوحة المفاتيح.
 - [ ] بناء responsive preview وRTL/LTR preview وlocale preview.
 - [ ] بناء undo/redo داخل session مع حدود تخزين واضحة.
 - [ ] بناء template library وclone-from-template مع revision provenance.
